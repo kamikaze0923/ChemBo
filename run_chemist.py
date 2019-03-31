@@ -15,20 +15,18 @@ import os
 import shutil
 
 # dragonfly imports
-from dragonfly.opt.gp_bandit import bo_from_func_caller
-# TODO: instead, would be
-# from chemist.chemist_opt.chemist import optimize_chemist
-
+# from dragonfly.opt.gp_bandit import bo_from_func_caller
 from dragonfly.exd.worker_manager import RealWorkerManager
 from dragonfly.utils.reporters import get_reporter
 
 # a few local imports here
-from mol_function_caller import MolFunctionCaller
+from chemist_opt.chemist import optimize_chemist
+from chemist_opt.mol_function_caller import MolFunctionCaller
 # if molecular visualization is implemented, use it
 try:
     # this function should plot a molecule
     # and draw a synthesis plan
-    from mol.visualize import visualize_mol
+    from mols.visualize import visualize_mol
 except ImportError as e:
     print(e)
     visualize_mol = None
