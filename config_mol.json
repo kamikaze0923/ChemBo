@@ -1,6 +1,7 @@
 {
 	"name": "mol",
 	"domain": {
-		// TODO
+		"name":"mol0",
+    	"type":"mol",
 	}
 }

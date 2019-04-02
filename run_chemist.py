@@ -15,18 +15,19 @@ import os
 import shutil
 
 # dragonfly imports
-# from dragonfly.opt.gp_bandit import bo_from_func_caller
 from dragonfly.exd.worker_manager import RealWorkerManager
 from dragonfly.utils.reporters import get_reporter
 
 # a few local imports here
-from chemist_opt.chemist import optimize_chemist
-from chemist_opt.mol_function_caller import MolFunctionCaller
+from chemist_opt.chemist import optimize_chemist as bo_from_func_caller  # TODO-2
+from chemist_opt.mol_function_caller import MolFunctionCaller  # TODO-1
+from mols.mol_functions import get_objective_by_name
+
 # if molecular visualization is implemented, use it
 try:
     # this function should plot a molecule
     # and draw a synthesis plan
-    from mols.visualize import visualize_mol
+    from mols.visualize import visualize_mol  # TODO-3
 except ImportError as e:
     print(e)
     visualize_mol = None
@@ -34,10 +35,11 @@ except ImportError as e:
 
 DATASET = "" # TODO
 
-GPU_IDS = []
+GPU_IDS = []  # TODO: not really needed
 
+# data directory
+MOL_DATA_DIR = 'chembl-data'
 # Config file which specifies the domain
-MOL_DATA_DIR = 'cifar-10-data'  # some analog of this
 MOL_CONFIG_FILE = 'config_mol.json'
 
 # Where to store temporary model checkpoints
@@ -63,8 +65,12 @@ def main():
     # Obtain a reporter
     reporter = get_reporter(open(LOG_FILE, 'w'))
 
-    train_params = Namespace(data_dir=MOL_DATA_DIR)
-    func_caller = MolFunctionCaller(MOL_CONFIG_FILE, train_params, reporter=reporter,
+    objective_func = get_objective_by_name("sascore")  # just a function
+    train_params = Namespace(data_dir=MOL_DATA_DIR)  # TODO: use this?
+    func_caller = MolFunctionCaller(objective_func,
+                                    MOL_CONFIG_FILE,
+                                    train_params,  # maybe not needed
+                                    reporter=reporter,
                                     tmp_dir=TMP_DIR)
 
     worker_manager = RealWorkerManager(GPU_IDS, EXP_DIR)
@@ -77,7 +83,7 @@ def main():
     opt_mol = raw_opt_point[0] # Because first index in the config file is the neural net.
     # Print the optimal value and visualise the best network.
     reporter.writeln('\nOptimum value found: %0.5f'%(opt_val))
-    
+
     if visualize_mol is not None:
         visualize_file = os.path.join(EXP_DIR, 'optimal_molecule')
         reporter.writeln('Optimal molecule visualized in %s.eps.'%(visualize_file))

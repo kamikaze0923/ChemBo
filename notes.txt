@@ -1,0 +1,2 @@
+nn_ga_optimise_from_args in nn.nn_ga_optimiser is the api for optimization over NNs - will probably need to do something similar to plug in the Explorer;
+=> find the place where it appears
