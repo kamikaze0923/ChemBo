@@ -1,2 +1,19 @@
 nn_ga_optimise_from_args in nn.nn_ga_optimiser is the api for optimization over NNs - will probably need to do something similar to plug in the Explorer;
 => find the place where it appears
+
+get_default_acq_opt_method_for_domain in gp_bandit.py returns str name of method (should be 'explorer')
+
+optimise(BlackboxOptimizer)->run_experiments(ExperimentDesigner)->_determine_next_query(Childclass:GPBandit); (CPGPBandit does not override this method)
+
+# Key lines:
+select_pt_func = getattr(gpb_acquisitions.asy, curr_acq)
+next_eval_point = select_pt_func(self.gp, anc_data)  # anc_data here holds opt method:
+													 # acq_opt_method=self.acq_opt_method
+
+Hence TODO option: 
+a) redefine _determine_next_query in "Chemist"?
+b) add a new opt algo to Namespace asy from gbp_acquisitions
+
+Found the place where acquisition is optimized: exd/exd_utils.py maximise_with_method
+forget about generality, only need the molecular domain => use this as examples to integrate
+into maximise_acquisition

@@ -25,8 +25,11 @@ from dragonfly.utils.reporters import get_reporter
 from dragonfly.utils.option_handler import get_option_specs, load_options
 
 # to local:
-from dragonfly.opt.gp_bandit import CPGPBandit  # TODO-1: re-write/inherit?
+# from dragonfly.opt.gp_bandit import CPGPBandit  # TODO-1: re-write/inherit?
+from chemist_opt.gp_bandit import CPGPBandit
 
+b = CPGPBandit()
+b.say_hi()
 
 def optimize_chemist(func_caller, worker_manager, max_capital, is_mf=False, mode=None,
                      acq=None, mf_strategy=None, domain_add_max_group_size=-1,
@@ -41,6 +44,8 @@ def optimize_chemist(func_caller, worker_manager, max_capital, is_mf=False, mode
     #--- TODO options ---#
     if options is None:
         options = load_options(dflt_list_of_options, reporter=reporter)
+    # set 'ksenias-optimization-method' here:
+    # options.acq_opt_method = 'ksenias-optimization-method'
     # .................. #
     #--- TODO options ---#
 
