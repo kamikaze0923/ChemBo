@@ -1,8 +1,8 @@
 """
 Module for BO with graph kernel and synthesizeable exploration.
-Core class is Chemist
 @author: kkorovin@cs.cmu.edu
 
+Available Explorers: 'rand_explorer', ...
 
 TODO: may need to implement:
 * Molecular domain (if cart prod does not work)
@@ -19,35 +19,31 @@ import numpy as np
 
 # Dragonfly imports
 from dragonfly.opt.blackbox_optimiser import blackbox_opt_args
-from dragonfly.opt.gp_bandit import GPBandit, gp_bandit_args
+from dragonfly.opt.gp_bandit import GPBandit, gp_bandit_args, \
+                                    get_all_cp_gp_bandit_args
 from dragonfly.utils.general_utils import block_augment_array
 from dragonfly.utils.reporters import get_reporter
 from dragonfly.utils.option_handler import get_option_specs, load_options
+from dragonfly.exd.worker_manager import RealWorkerManager, SyntheticWorkerManager
 
 # to local:
 # from dragonfly.opt.gp_bandit import CPGPBandit  # TODO-1: re-write/inherit?
 from chemist_opt.gp_bandit import CPGPBandit
 
-b = CPGPBandit()
-b.say_hi()
+# b = CPGPBandit()
+# b.say_hi()
 
 def optimize_chemist(func_caller, worker_manager, max_capital, is_mf=False, mode=None,
                      acq=None, mf_strategy=None, domain_add_max_group_size=-1,
                      options=None, reporter='default'):
-    # TODO: need a different Bandit (e.g. copy CPGPBandit and modify)?
     optimiser_constructor = CPGPBandit
     dflt_list_of_options = get_all_cp_gp_bandit_args()
-    # potentially use it here instead
 
+    # TODO --------------------------------------------------------------------
     reporter = get_reporter(reporter)
-
-    #--- TODO options ---#
     if options is None:
         options = load_options(dflt_list_of_options, reporter=reporter)
-    # set 'ksenias-optimization-method' here:
-    # options.acq_opt_method = 'ksenias-optimization-method'
-    # .................. #
-    #--- TODO options ---#
+    options.acq_opt_method = 'rand_explorer'
 
     # create optimiser and return
     optimiser = optimiser_constructor(func_caller, worker_manager, is_mf=is_mf,

@@ -2,6 +2,11 @@
 A mirror of gp_bandit.py of Dragonfly:
 imports class, resets a method and inherits further
 
+This is an example of how to make this work:
+>> sneaky_func = lambda: print("Hi!")
+>> gpb_acquisitions.asy_ei.__code__ = sneaky_func.__code__
+>> gpb_acquisitions.asy.ei()
+
 """
 
 from argparse import Namespace
@@ -10,35 +15,61 @@ from dragonfly.opt.gp_bandit import GPBandit as GPBandit_
 from dragonfly.opt.gp_bandit import CPGPBandit
 import dragonfly.opt.gpb_acquisitions as gpb_acquisitions
 
-## This is an example of how to make this work:
-# sneaky_func = lambda: print("Hi!")
-# gpb_acquisitions.asy_ei.__code__ = sneaky_func.__code__
-# gpb_acquisitions.asy.ei()
+from dragonfly.gp.cartesian_product_gp import cartesian_product_gp_args, \
+                                              cartesian_product_mf_gp_args, \
+                                              CPGPFitter, CPMFGPFitter
 
-def mol_maximise_acquisition():
-	raise NotImplementedError("TODO")
+from explore.mol_explorer import RandomExplorer
+
+
+def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
+    """ returns optimal point """
+    acq_opt_method = anc_data.acq_opt_method
+
+    if anc_data.domain.get_type() == 'euclidean':
+        if acq_opt_method in ['rand']:
+            acquisition = acq_fn
+        else:
+            # these methods cannot handle vectorised functions.
+            acquisition = lambda x: acq_fn(x.reshape((1, -1)))
+    elif anc_data.domain.get_type() == 'cartesian_product':
+        # these methods cannot handle vectorised functions.
+        acquisition = lambda x: acq_fn([x])
+
+    # acquisition(lst) if euc, otherwise acquisition(val)
+    if acq_opt_method == "rand_explorer":
+        # arguments: acquisition, anc_data.domain, anc_data.max_evals
+        explorer = RandomExplorer(acquisition)
+        explorer.evolve(anc_data.max_evals)
+        opt_pt = explorer.get_best(k=1)
+        opt_val = acquisition(opt_pt)
+        return opt_pt
+    else:
+        raise NotImplementedError("Acq opt method {} not implemented.".format(acq_opt_method))
+
 
 gpb_acquisitions.maximise_acquisition.__code__ = mol_maximise_acquisition.__code__
 
-# now we have to make GPBandit use this `poisoned` module:
-# one option is to simply reset its _determine_next_query method like above
-# (or override it in child class)
+###############################################################################
+# now we have to make GPBandit use this `poisoned` module:                    #
+# one option is to override it in child class                                 #
+###############################################################################
 
 class GPBandit(GPBandit_):
-	def say_hi(self):
-		# testing function to see if the tricks worked
-		print("Hi")
+    def say_hi(self):
+        # testing function to see if the tricks worked
+        print("Hi")
 
-	def _determine_next_query(self):
-		""" Determine the next point for evaluation. """
-		curr_acq = self._get_next_acq()
-		anc_data = self._get_ancillary_data_for_acquisition(curr_acq)
-		select_pt_func = getattr(gpb_acquisitions.asy, curr_acq)  # <---- here
-		qinfo = Namespace(curr_acq=curr_acq,
-						  hp_tune_method=self.gp_processor.hp_tune_method)
-		next_eval_point = select_pt_func(self.gp, anc_data)
-		qinfo.point = next_eval_point
-		return qinfo
+    def _determine_next_query(self):
+        """ Determine the next point for evaluation. """
+        curr_acq = self._get_next_acq()
+        anc_data = self._get_ancillary_data_for_acquisition(curr_acq)
+        select_pt_func = getattr(gpb_acquisitions.asy, curr_acq)  # <---- here
+        qinfo = Namespace(curr_acq=curr_acq,
+                          hp_tune_method=self.gp_processor.hp_tune_method)
+        next_eval_point = select_pt_func(self.gp, anc_data)
+        qinfo.point = next_eval_point
+        return qinfo
 
 
 class CPGPBandit(GPBandit):
@@ -57,10 +88,10 @@ class CPGPBandit(GPBandit):
         super(CPGPBandit, self).__init__(func_caller, worker_manager, is_mf=is_mf,
                                          options=options, reporter=reporter)
 
-    # TEMPORARY
-    def __init__(self):
-        # for testing purposes
-        print("easy init")
+    # # TEMPORARY
+    # def __init__(self):
+    #     # for testing purposes
+    #     print("easy init")
 
     def _child_opt_method_set_up(self):
         """ Set up for child class. Override this method in child class. """
@@ -93,7 +124,7 @@ class CPGPBandit(GPBandit):
         # since we don't expect pre-computing distances will be necessary there.
         for idx, dom in enumerate(self.domain.list_of_domains):
             if dom.get_type() == 'neural_network' and self.domain_dist_computers[idx] is None:
-                from ..nn.otmann import get_otmann_distance_computer_from_args
+                from dragonfly.nn.otmann import get_otmann_distance_computer_from_args
                 otm_mislabel_coeffs =  \
                     dummy_gp_fitter.domain_kernel_params_for_each_domain[idx].otmann_mislabel_coeffs
                 otm_struct_coeffs =  \
@@ -118,6 +149,8 @@ class CPGPBandit(GPBandit):
             self._set_up_cp_acq_opt_rand()
         elif self.acq_opt_method.lower().startswith('ga'):
             self._set_up_cp_acq_opt_ga()
+        elif self.acq_opt_method.lower().endswith('explorer'):
+            self._set_up_cp_acq_opt_explorer()
         else:
             raise ValueError('Unrecognised acq_opt_method "%s".'%(self.acq_opt_method))
 
@@ -149,6 +182,10 @@ class CPGPBandit(GPBandit):
             self._set_up_cp_acq_opt_with_params(1, 300, 1e3)
         else:
             self._set_up_cp_acq_opt_with_params(1, 1000, 3e4)
+
+    def _set_up_cp_acq_opt_explorer(self):
+        # explorer
+        self._set_up_cp_acq_opt_with_params(1, 300, 1e3)
 
     def _compute_lists_of_dists(self, X1, X2):
         """ Computes lists of dists. """

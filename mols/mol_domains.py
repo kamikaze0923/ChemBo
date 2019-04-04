@@ -17,7 +17,7 @@ class MolConstraintChecker:
 
 class MolDomain(Domain):
     """ Domain for Molecules. """
-    def __init__(self, mol_type, constraint_checker=None):
+    def __init__(self, mol_type=None, constraint_checker=None):
         """ Constructor. """
         self.mol_type = mol_type  # e.g. can be 'drug-like'
         self.constraint_checker = constraint_checker
@@ -52,6 +52,7 @@ class MolDomain(Domain):
 
 def molecules_are_equal(mol1, mol2):
     # TODO: implement a comparator method
+    pass
 
 
 # API -------------------------------------------------------------------------

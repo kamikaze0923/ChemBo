@@ -17,3 +17,15 @@ b) add a new opt algo to Namespace asy from gbp_acquisitions
 Found the place where acquisition is optimized: exd/exd_utils.py maximise_with_method
 forget about generality, only need the molecular domain => use this as examples to integrate
 into maximise_acquisition
+
+
+CURRENT STOP:
+>> File "/Users/ksk/miniconda3/envs/my-rdkit-env/lib/python3.6/site-packages/dragonfly/gp/cartesian_product_gp.py", line 625, in _get_kernel_type_from_options
+raise ValueError('Unknown domain type %s.'%(dom_type))
+
+
+#########################################
+                 Niceness
+#########################################
+- set logging levels for Rexgen and Explorer together
+  (see rexgen_direct/scripts/eval_by_smiles.py for Rexgen)

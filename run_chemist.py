@@ -39,8 +39,6 @@ GPU_IDS = []  # TODO: not really needed
 
 # data directory
 MOL_DATA_DIR = 'chembl-data'
-# Config file which specifies the domain
-MOL_CONFIG_FILE = 'config_mol.json'
 
 # Where to store temporary model checkpoints
 EXP_DIR = 'experiment_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
@@ -68,10 +66,9 @@ def main():
     objective_func = get_objective_by_name("sascore")  # just a function
     train_params = Namespace(data_dir=MOL_DATA_DIR)  # TODO: use this?
     func_caller = MolFunctionCaller(objective_func,
-                                    MOL_CONFIG_FILE,
-                                    train_params,  # maybe not needed
-                                    reporter=reporter,
-                                    tmp_dir=TMP_DIR)
+                                    config=None,
+                                    train_params=train_params,  # maybe not needed
+                                    reporter=reporter)
 
     worker_manager = RealWorkerManager(GPU_IDS, EXP_DIR)
     opt_val, opt_point, _ = bo_from_func_caller(func_caller, worker_manager, BUDGET,

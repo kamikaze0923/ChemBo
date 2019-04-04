@@ -1,3 +1,9 @@
+"""
+This script evaluates the quality of predictions from the rank_diff_wln model by applying the predicted
+graph edits to the reactants, cleaning up the generated product, and comparing it to what was recorded
+as the true (major) product of that reaction
+"""
+
 import rdkit
 from rdkit import Chem
 from optparse import OptionParser
@@ -5,11 +11,8 @@ from rdkit import RDLogger
 lg = RDLogger.logger()
 lg.setLevel(4)
 
-'''
-This script evaluates the quality of predictions from the rank_diff_wln model by applying the predicted
-graph edits to the reactants, cleaning up the generated product, and comparing it to what was recorded
-as the true (major) product of that reaction
-'''
+VERBOSE = False  # silencing the unparseable molecule warning
+
 
 # Define some post-sanitization reaction cleaning scripts
 # These are to align our graph edit representation of a reaction with the data for improved coverage
@@ -166,7 +169,8 @@ def edit_mol(rmol, edits):
 
         # Check if we failed/succeeded in previous step
         if mol is None:
-            print('##### Unparseable mol: {}'.format(pred_list[i]))
+            if VERBOSE:
+                print('##### Unparseable mol: {}'.format(pred_list[i]))
             continue
 
         # Else, try post-sanitiztion fixes in structure

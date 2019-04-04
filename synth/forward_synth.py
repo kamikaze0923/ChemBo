@@ -23,7 +23,7 @@ import sys
 from rexgen_direct.core_wln_global.directcorefinder import DirectCoreFinder 
 from rexgen_direct.scripts.eval_by_smiles import edit_mol
 from rexgen_direct.rank_diff_wln.directcandranker import DirectCandRanker
-from mols.data_struct import Molecule
+from mols.molecule import Molecule
 
 
 TEMP = ["[CH3:26][c:27]1[cH:28][cH:29][cH:30][cH:31][cH:32]1", 
