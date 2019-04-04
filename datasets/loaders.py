@@ -6,10 +6,24 @@ This is a poorly structured module and needs re-thinking.
 
 """
 
+import numpy as np
 import pandas as pd
 from collections import defaultdict
 from mols.molecule import Molecule
 
+
+# Class used in CartesianGP 
+
+class MolSampler:
+    def __init__(self, dataset="chembl"):
+        # load the dataset
+        if dataset == "chembl":
+            self.dataset = get_chembl()
+
+    def __call__(self, n_samples):
+        return np.random.choice(self.dataset, n_samples)
+
+# Helper utilities
 
 def get_chembl_prop(n_mols=None, as_mols=False):
     """ Returns (pool, smile->prop mappings) """
@@ -33,3 +47,8 @@ def get_chembl(n_mols=None, as_mols=True):
 def get_initial_pool():
     """Used in chemist_opt.chemist"""
     return get_chembl(10)
+
+
+if __name__ == "__main__":
+    samp = MolSampler()
+    print(samp(3))

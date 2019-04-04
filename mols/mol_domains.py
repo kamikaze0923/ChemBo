@@ -33,10 +33,13 @@ class MolDomain(Domain):
 
     def is_a_member(self, point):
         """ Returns true if point is in the domain. """
-        if not self.mol_type == point.mol_class:
-            return False
-        else:
-            return self.constraint_checker(point)
+        return True
+
+        # TODO
+        # if not self.mol_type == point.mol_class:
+        #     return False
+        # else:
+        #     return self.constraint_checker(point)
 
     @classmethod
     def members_are_equal(cls, point_1, point_2):

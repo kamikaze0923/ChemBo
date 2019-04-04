@@ -7,6 +7,13 @@ This is an example of how to make this work:
 >> gpb_acquisitions.asy_ei.__code__ = sneaky_func.__code__
 >> gpb_acquisitions.asy.ei()
 
+TODO:
+* Finish implementing get_cp_domain_initial_qinfos with a Sampler
+* * * * *
+* Maybe replace the CPGPFitter in line 122 with MolFitter on MolGP,
+* then also no need for Cartesian Product at all
+* (see cartesian_product_gp.py for problems)
+
 """
 
 from argparse import Namespace
@@ -14,13 +21,16 @@ from argparse import Namespace
 from dragonfly.opt.gp_bandit import GPBandit as GPBandit_
 from dragonfly.opt.gp_bandit import CPGPBandit
 import dragonfly.opt.gpb_acquisitions as gpb_acquisitions
-
 from dragonfly.gp.cartesian_product_gp import cartesian_product_gp_args, \
                                               cartesian_product_mf_gp_args, \
                                               CPGPFitter, CPMFGPFitter
+from dragonfly.exd.exd_utils import sample_from_cp_domain
+from dragonfly.utils.general_utils import transpose_list_of_lists
+# from dragonfly.exd.cp_domain_utils import sample_from_cp_domain_without_constraints
+
 
 from explore.mol_explorer import RandomExplorer
-
+from datasets.loaders import MolSampler
 
 def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
     """ returns optimal point """
@@ -72,10 +82,45 @@ class GPBandit(GPBandit_):
         return qinfo
 
 
+# Some additional modifications------------------------------------------------
+
+def get_cp_domain_initial_qinfos(domain, num_samples, fidel_space=None, fidel_to_opt=None,
+                                 set_to_fidel_to_opt_with_prob=None,
+                                 dom_euclidean_sample_type='latin_hc',
+                                 dom_integral_sample_type='latin_hc',
+                                 dom_nn_sample_type='rand',
+                                 fidel_space_euclidean_sample_type='latin_hc',
+                                 fidel_space_integral_sample_type='latin_hc',
+                                 fidel_space_nn_sample_type='rand'):
+    """ Get initial qinfos in Cartesian product domain.
+    The difference to the original function is in addition 
+    of a sampler to handle MolDomain sampling.
+
+    TODO:
+    * implement and add a mol sampler (in datasets.loaders?)
+    * maybe add an argument for different mol sampling strategies
+    """
+    sampler = MolSampler()  # Is just a function to be called: Sampler(num_samples)
+    # ret_dom_pts = sample_from_cp_domain_without_constraints(domain, num_samples, domain_samplers=[sampler],
+    #                                                         euclidean_sample_type=dom_euclidean_sample_type,
+    #                                                         integral_sample_type=dom_integral_sample_type,
+    #                                                         nn_sample_type=dom_nn_sample_type)
+
+    # from sample_from_cp_domain_without_constraints
+    individual_domain_samples = [sampler(num_samples)]
+    ret_dom_pts = transpose_list_of_lists(individual_domain_samples)
+
+    # from original get_cp_domain_initial_qinfos
+    ret_dom_pts = ret_dom_pts[:num_samples]
+    return [Namespace(point=x) for x in ret_dom_pts]
+
+
+# CPGP Class to use------------------------------------------------------------
+
 class CPGPBandit(GPBandit):
     """ A GP Bandit class on Cartesian product spaces. """
     def __init__(self, func_caller, worker_manager, is_mf=False,
-                             domain_dist_computers=None, options=None, reporter=None):
+                 domain_dist_computers=None, options=None, reporter=None):
         """ Constructor. """
         if options is None:
             reporter = get_reporter(reporter)
@@ -115,11 +160,15 @@ class CPGPBandit(GPBandit):
                 domain_dist_computers=None,
                 options=self.options, reporter=self.reporter)
         else:
-            dummy_gp_fitter = CPGPFitter([], [], self.func_caller.domain,
-                 domain_kernel_ordering=self.func_caller.domain_orderings.kernel_ordering,
-                 domain_lists_of_dists=None,
-                 domain_dist_computers=None,
-                 options=self.options, reporter=self.reporter)
+            pass
+            # TODO: here, domain type is 'unknown'; this can be uncommented when kernels are ready
+            
+            # dummy_gp_fitter = CPGPFitter([], [], self.func_caller.domain,
+            #      domain_kernel_ordering=self.func_caller.domain_orderings.kernel_ordering,
+            #      domain_lists_of_dists=None,
+            #      domain_dist_computers=None,
+            #      options=self.options, reporter=self.reporter)
+        
         # Pre-compute distances for all sub-domains in domain - not doing for fidel_space
         # since we don't expect pre-computing distances will be necessary there.
         for idx, dom in enumerate(self.domain.list_of_domains):
@@ -238,14 +287,14 @@ class CPGPBandit(GPBandit):
         """ Returns initial qinfos. """
         if self.is_an_mf_method():
             return get_cp_domain_initial_qinfos(self.domain, num_init_evals,
-                fidel_space=self.fidel_space, fidel_to_opt=self.func_caller.fidel_to_opt,
-                set_to_fidel_to_opt_with_prob=self.options.init_set_to_fidel_to_opt_with_prob,
-                dom_euclidean_sample_type='latin_hc',
-                dom_integral_sample_type='latin_hc',
-                dom_nn_sample_type='rand',
-                fidel_space_euclidean_sample_type='latin_hc',
-                fidel_space_integral_sample_type='latin_hc',
-                fidel_space_nn_sample_type='rand')
+                                                fidel_space=self.fidel_space, fidel_to_opt=self.func_caller.fidel_to_opt,
+                                                set_to_fidel_to_opt_with_prob=self.options.init_set_to_fidel_to_opt_with_prob,
+                                                dom_euclidean_sample_type='latin_hc',
+                                                dom_integral_sample_type='latin_hc',
+                                                dom_nn_sample_type='rand',
+                                                fidel_space_euclidean_sample_type='latin_hc',
+                                                fidel_space_integral_sample_type='latin_hc',
+                                                fidel_space_nn_sample_type='rand')
         else:
             return get_cp_domain_initial_qinfos(self.domain, num_init_evals,
                                                 dom_euclidean_sample_type='latin_hc',

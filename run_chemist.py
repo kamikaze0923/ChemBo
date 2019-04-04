@@ -15,7 +15,7 @@ import os
 import shutil
 
 # dragonfly imports
-from dragonfly.exd.worker_manager import RealWorkerManager
+from dragonfly.exd.worker_manager import SyntheticWorkerManager
 from dragonfly.utils.reporters import get_reporter
 
 # a few local imports here
@@ -34,8 +34,6 @@ except ImportError as e:
 
 
 DATASET = "" # TODO
-
-GPU_IDS = []  # TODO: not really needed
 
 # data directory
 MOL_DATA_DIR = 'chembl-data'
@@ -70,7 +68,7 @@ def main():
                                     train_params=train_params,  # maybe not needed
                                     reporter=reporter)
 
-    worker_manager = RealWorkerManager(GPU_IDS, EXP_DIR)
+    worker_manager = SyntheticWorkerManager(1, time_distro='const')
     opt_val, opt_point, _ = bo_from_func_caller(func_caller, worker_manager, BUDGET,
                                                 is_mf=False,  # not multifidelity for now
                                                 reporter=reporter)

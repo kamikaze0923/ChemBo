@@ -25,10 +25,11 @@ from dragonfly.utils.general_utils import block_augment_array
 from dragonfly.utils.reporters import get_reporter
 from dragonfly.utils.option_handler import get_option_specs, load_options
 from dragonfly.exd.worker_manager import RealWorkerManager, SyntheticWorkerManager
+from dragonfly.exd.exd_utils import get_cp_domain_initial_qinfos
 
 # to local:
 # from dragonfly.opt.gp_bandit import CPGPBandit  # TODO-1: re-write/inherit?
-from chemist_opt.gp_bandit import CPGPBandit
+from chemist_opt.gp_bandit import CPGPBandit, get_cp_domain_initial_qinfos
 
 # b = CPGPBandit()
 # b.say_hi()
@@ -44,6 +45,22 @@ def optimize_chemist(func_caller, worker_manager, max_capital, is_mf=False, mode
     if options is None:
         options = load_options(dflt_list_of_options, reporter=reporter)
     options.acq_opt_method = 'rand_explorer'
+    if acq is not None:
+        options.acq = acq
+    if mode is not None:
+        options.mode = mode
+    if mf_strategy is not None:
+        options.mf_strategy = mf_strategy
+    if isinstance(worker_manager, RealWorkerManager):
+        options.capital_type = 'realtime'
+    elif isinstance(worker_manager, SyntheticWorkerManager):
+        options.capital_type = 'return_value'
+
+    # TODO: method to obtain initial queries
+    # options.get_initial_qinfos = lambda *args, **kwargs: print("hey")
+    def get_initial_qinfos(num):
+        return get_cp_domain_initial_qinfos(func_caller.domain, num)
+    options.get_initial_qinfos = get_initial_qinfos
 
     # create optimiser and return
     optimiser = optimiser_constructor(func_caller, worker_manager, is_mf=is_mf,
