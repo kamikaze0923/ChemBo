@@ -29,7 +29,7 @@ try:
     # and draw a synthesis plan
     from mols.visualize import visualize_mol  # TODO-3
 except ImportError as e:
-    print(e)
+    # print(e)
     visualize_mol = None
 
 
@@ -75,7 +75,7 @@ def main():
 
     # convert to raw format
     raw_opt_point = func_caller.get_raw_domain_point_from_processed(opt_point)
-    opt_mol = raw_opt_point[0] # Because first index in the config file is the neural net.
+    opt_mol = raw_opt_point[0]  # Because first index in the config file is the neural net.
     # Print the optimal value and visualise the best network.
     reporter.writeln('\nOptimum value found: %0.5f'%(opt_val))
 

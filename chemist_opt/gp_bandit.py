@@ -8,11 +8,11 @@ This is an example of how to make this work:
 >> gpb_acquisitions.asy.ei()
 
 TODO:
-* Finish implementing get_cp_domain_initial_qinfos with a Sampler
-* * * * *
+- Fix interaction with cartesian_product_gp.py:
 * Maybe replace the CPGPFitter in line 122 with MolFitter on MolGP,
 * then also no need for Cartesian Product at all
-* (see cartesian_product_gp.py for problems)
+- Other:
+* setting up a MolSampler is time-consuming; if it's used often, better set up as global
 
 """
 
@@ -21,13 +21,19 @@ from argparse import Namespace
 from dragonfly.opt.gp_bandit import GPBandit as GPBandit_
 from dragonfly.opt.gp_bandit import CPGPBandit
 import dragonfly.opt.gpb_acquisitions as gpb_acquisitions
+
+# for sampling initial points
+from dragonfly.exd.exd_utils import sample_from_cp_domain
+from dragonfly.utils.general_utils import transpose_list_of_lists
+
+# Maybe this needs to be replaced by a local alternative to cartesian_product_gp
 from dragonfly.gp.cartesian_product_gp import cartesian_product_gp_args, \
                                               cartesian_product_mf_gp_args, \
                                               CPGPFitter, CPMFGPFitter
-from dragonfly.exd.exd_utils import sample_from_cp_domain
-from dragonfly.utils.general_utils import transpose_list_of_lists
-# from dragonfly.exd.cp_domain_utils import sample_from_cp_domain_without_constraints
 
+from mols.cartesian_product_gp import cartesian_product_gp_args, \
+                                              cartesian_product_mf_gp_args, \
+                                              CPGPFitter, CPMFGPFitter
 
 from explore.mol_explorer import RandomExplorer
 from datasets.loaders import MolSampler
@@ -85,32 +91,36 @@ class GPBandit(GPBandit_):
 # Some additional modifications------------------------------------------------
 
 def get_cp_domain_initial_qinfos(domain, num_samples, fidel_space=None, fidel_to_opt=None,
-                                 set_to_fidel_to_opt_with_prob=None,
-                                 dom_euclidean_sample_type='latin_hc',
-                                 dom_integral_sample_type='latin_hc',
-                                 dom_nn_sample_type='rand',
-                                 fidel_space_euclidean_sample_type='latin_hc',
-                                 fidel_space_integral_sample_type='latin_hc',
-                                 fidel_space_nn_sample_type='rand'):
-    """ Get initial qinfos in Cartesian product domain.
+                                set_to_fidel_to_opt_with_prob=None,
+                                dom_euclidean_sample_type='latin_hc',
+                                dom_integral_sample_type='latin_hc',
+                                dom_nn_sample_type='rand',
+                                fidel_space_euclidean_sample_type='latin_hc',
+                                fidel_space_integral_sample_type='latin_hc',
+                                fidel_space_nn_sample_type='rand'):
+    """
+    Get initial qinfos in Cartesian product domain.
     The difference to the original function is in addition 
     of a sampler to handle MolDomain sampling.
 
     TODO:
     * implement and add a mol sampler (in datasets.loaders?)
     * maybe add an argument for different mol sampling strategies
+
     """
     sampler = MolSampler()  # Is just a function to be called: Sampler(num_samples)
+
+    ## not sure why this is not working: returns an empty list, even though sampling is done:
     # ret_dom_pts = sample_from_cp_domain_without_constraints(domain, num_samples, domain_samplers=[sampler],
     #                                                         euclidean_sample_type=dom_euclidean_sample_type,
     #                                                         integral_sample_type=dom_integral_sample_type,
     #                                                         nn_sample_type=dom_nn_sample_type)
 
-    # from sample_from_cp_domain_without_constraints
+    ## instead, directly doing the same from sample_from_cp_domain_without_constraints:
     individual_domain_samples = [sampler(num_samples)]
     ret_dom_pts = transpose_list_of_lists(individual_domain_samples)
 
-    # from original get_cp_domain_initial_qinfos
+    # from original get_cp_domain_initial_qinfos:
     ret_dom_pts = ret_dom_pts[:num_samples]
     return [Namespace(point=x) for x in ret_dom_pts]
 
@@ -162,7 +172,7 @@ class CPGPBandit(GPBandit):
         else:
             pass
             # TODO: here, domain type is 'unknown'; this can be uncommented when kernels are ready
-            
+
             # dummy_gp_fitter = CPGPFitter([], [], self.func_caller.domain,
             #      domain_kernel_ordering=self.func_caller.domain_orderings.kernel_ordering,
             #      domain_lists_of_dists=None,

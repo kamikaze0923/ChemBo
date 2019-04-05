@@ -24,7 +24,6 @@ CURRENT STOP:
 >> File "/Users/ksk/miniconda3/envs/my-rdkit-env/lib/python3.6/site-packages/dragonfly/gp/cartesian_product_gp.py", line 625, in _get_kernel_type_from_options
 raise ValueError('Unknown domain type %s.'%(dom_type))
 
------> cartesian_product_gp.py: kernel types etc
 -----> cartesian_product_gp.py:_get_kernel_type_from_options
 ----> both CP GP and Fitter are in gp.cartesian_product_gp, copy and modify it?
 	  is it sufficient?
