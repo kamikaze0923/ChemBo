@@ -1,0 +1,8 @@
+numpy
+matplotlib
+eigen
+pkg-config
+graphkernels
+networkx
+scipy
+tqdm
