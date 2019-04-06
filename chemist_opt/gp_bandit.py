@@ -31,9 +31,9 @@ from dragonfly.gp.cartesian_product_gp import cartesian_product_gp_args, \
                                               cartesian_product_mf_gp_args, \
                                               CPGPFitter, CPMFGPFitter
 
-from mols.cartesian_product_gp import cartesian_product_gp_args, \
-                                              cartesian_product_mf_gp_args, \
-                                              CPGPFitter, CPMFGPFitter
+from mols.mol_gp import cartesian_product_gp_args, MolCPGPFitter
+                        #cartesian_product_mf_gp_args, \
+                        #MolCPMFGPFitter
 
 from explore.mol_explorer import RandomExplorer
 from datasets.loaders import MolSampler
