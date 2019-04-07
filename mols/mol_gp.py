@@ -7,80 +7,52 @@ TODO: implement CPGP and CPGPFitter
 * Either redefine or inherit
 
 """
-
+# general imports
 import numpy as np
 from argparse import Namespace
-
-# dragonfly imports: TODO - not all of these will be needed
+# imports from dragonfly
 from dragonfly.exd import domains
-from dragonfly.exd.cp_domain_utils import load_cp_domain_from_config_file
 from dragonfly.gp import gp_core, mf_gp
-# from dragonfly.euclidean_gp import get_euclidean_integral_gp_kernel_with_scale, \
-                                   # prep_euclidean_integral_kernel_hyperparams
 from dragonfly.gp.kernel import CartesianProductKernel, HammingKernel
-from dragonfly.utils.general_utils import get_idxs_from_list_of_lists
 from dragonfly.utils.option_handler import get_option_specs, load_options
 from dragonfly.utils.reporters import get_reporter
 # local imports
 from mols.mol_kernels import MolKernel
 
-
 # classes and functions to redefine
+from dragonfly.gp.cartesian_product_gp import cartesian_product_gp_args,\
+    cartesian_product_mf_gp_args,\
+    _prep_kernel_hyperparams_for_euc_int_kernels,\
+    _prep_kernel_hyperparams_for_discrete_kernels,\
+    _prep_kernel_hyperparams_for_nn_kernels,\
+    get_euclidean_integral_gp_kernel_with_scale,\
+    get_discrete_kernel,\
+    get_neural_network_kernel,\
+    _get_euc_int_options
 import dragonfly.gp.cartesian_product_gp as cartesian_product_gp
 
-# options - import them
-from dragonfly.gp.cartesian_product_gp import cartesian_product_gp_args,\
-                                              cartesian_product_mf_gp_args
-# append to this list the mol-dependent args
+# TODO: append to this list the mol-dependent args
 cartesian_product_gp_args += [get_option_specs('dom_mol_kernel_type', False, 'default',
                                                'Kernel type for Mol Domains.'),]
-# in the future, may do the same for mf
-
+# Default kernel type for molecule domain
 _DFLT_DOMAIN_MOL_KERNEL_TYPE = "edgehist_kernel"
 
 ###############################################################################
- # Setup helpers new defitions
+ # Setup helpers new definitions
 
 def get_default_kernel_type(domain_type):
-    """ Returns default kernel type for the domain. """
+    """ 
+    :return: default kernel type for the domain. 
+    """
     if domain_type == 'molecule':
         return _DFLT_DOMAIN_MOL_KERNEL_TYPE
     else:
         raise ValueError('domain_type %s not yet supported'%(domain_type))
 
-def _set_up_hyperparams_for_domain(fitter, X_data, gp_domain, dom_prefix,
-                                   kernel_ordering, kernel_params_for_each_domain,
-                                   dist_computers, lists_of_dists):
-    """ This modifies the fitter object. """
-    for dom_idx, dom, kernel_type in zip(range(gp_domain.num_domains), gp_domain.list_of_domains, kernel_ordering):
-        dom_type = dom.get_type()
-        dom_identifier = '%s-%d-%s'%(dom_prefix, dom_idx, dom_type)
-        # Kernel type
-        if kernel_type == '' or kernel_type is None:
-            # If none is specified, use the one given in options
-            kernel_type = _get_kernel_type_from_options(dom_type, dom_prefix,
-                                                        fitter.options)
-        if kernel_type == 'default':
-            kernel_type = get_default_kernel_type(dom.get_type())
-        # Iterate through each individual domain and add it to the hyper parameters
-        curr_dom_Xs = get_idxs_from_list_of_lists(X_data, dom_idx)
-        # Some conditional options
-        if dom.get_type() == 'molecule':
-            if kernel_type == 'wl_kernel':
-                fitter.dscr_hp_vals.append([1, 2, 3])
-                fitter.param_order.append(['int_par', 'dscr'])
-            elif kernel_type == 'edgehist_kernel':
-                fitter.cts_hp_bounds.append([0, 5])
-                fitter.param_order.append(['cont_par'])
-            else:
-                raise ValueError('Unknown kernel type "%s" for "%s" spaces.'%(kernel_type,
-                                                                              dom.get_type()))
-        else:
-            raise ValueError('Unknown kernel type "%s" for "%s" spaces.'%(kernel_type,
-                                                                          dom.get_type()))
-
 def _get_kernel_type_from_options(dom_type, dom_prefix, options):
-    """ Returns kernel type from options. """
+    """
+    :return: kernel type from options. 
+    """
     dom_type_descr_dict = {'euclidean': 'euc',
                          'discrete_euclidean': 'euc',
                          'integral': 'int',
@@ -94,28 +66,76 @@ def _get_kernel_type_from_options(dom_type, dom_prefix, options):
     attr_name = '%s_%s_kernel_type'%(dom_prefix, dom_type_descr_dict[dom_type])
     return getattr(options, attr_name)
 
-def _prep_kernel_hyperparams_for_molecular_kernels(kernel_type, dom, kernel_params_for_dom):
-    """ Prepares the kernel hyper-parameters. """
-    ret = vars(kernel_params_for_dom)
-    ret['mol_type'] = dom.mol_type
-    ret['kernel_type'] = kernel_type
-    # TODO: from options
-    ret['int_par'] = 2
-    ret['cont_par'] = 2.
-    return ret
+def _set_up_hyperparams_for_domain(fitter, X_data, gp_domain, dom_prefix,
+                                   kernel_ordering, kernel_params_for_each_domain,
+                                   dist_computers, lists_of_dists):
+    """ 
+    Called in `MolCPGPFitter._child_set_up`
+    :side:  Add hyperparameter to `fitter.param_order`
+            Add values/bounds to `fitter.dscr_hp_vals` or `fitter.cts_hp_bounds`
+    """
+    for dom_idx, dom, kernel_type in zip(range(gp_domain.num_domains), gp_domain.list_of_domains, kernel_ordering):
+        dom_type = dom.get_type()
+        dom_identifier = '%s-%d-%s'%(dom_prefix, dom_idx, dom_type)
+        # Kernel type
+        if kernel_type == '' or kernel_type is None:
+            # If none is specified, use the one given in options
+            kernel_type = _get_kernel_type_from_options(dom_type, dom_prefix,
+                                                        fitter.options)
+        if kernel_type == 'default':
+            # Get default kernel for each domain
+            kernel_type = get_default_kernel_type(dom.get_type())
+        # Iterate through each individual domain and add it to the hyper parameters
+        curr_dom_Xs = [data[dom_idx] for data in X_data] # X_data a list of list
+        # Some conditional options
+        if dom.get_type() == 'molecule':
+            if kernel_type == 'wl_kernel':
+                fitter.dscr_hp_vals.append([1, 2, 3])
+                fitter.param_order.append(['int_par', 'dscr'])
+            elif kernel_type == 'edgehist_kernel':
+                fitter.cts_hp_bounds.append([0, 5])
+                fitter.param_order.append(['cont_par', 'cts'])
+            else:
+                raise ValueError('Unknown kernel type "%s" for "%s" spaces.'%(kernel_type,
+                                                                              dom.get_type()))
+        else:
+            raise ValueError('Unknown kernel type "%s" for "%s" spaces.'%(kernel_type,
+                                                                          dom.get_type()))
+
+def _prep_kernel_hyperparams_for_molecular_domain(kernel_type, dom, kernel_params_for_dom):
+    """ 
+    Called in `_build_kernel_for_domain`
+    Prepares the kernel hyper-parameters necessary for molecule domain
+    """
+    hyperparameters = vars(kernel_params_for_dom)
+    hyperparameters['mol_type'] = dom.mol_type
+    hyperparameters['kernel_type'] = kernel_type
+    return hyperparameters
 
 def get_molecular_kernel(kernel_type, kernel_hyperparams,
                          gp_cts_hps, gp_dscr_hps):
-    """ kernel_hyperparams: dictionary
-        gp_cts_hps, gp_dscr_hps - this may be modified and returned
+    """ 
+    Called in `_build_kernel_for_domain`
+    kernel_hyperparams: dictionary
+    gp_cts_hps, gp_dscr_hps - this may be modified and returned
     """
-    # TODO: modify gp_cts_hps, gp_dscr_hps?
+    # pop the optimized int_par/cont_par from the `gp_dscr_hps`/`gp_cts_hps`
+    if kernel_hyperparams["kernel_type"] == "wl_kernel":
+        kernel_hyperparams["int_par"] = gp_dscr_hps.pop(0)
+    elif kernel_hyperparams["kernel_type"] == "edgehist_kernel":
+        kernel_hyperparams["cont_par"] = gp_cts_hps.pop(0)
+    else:
+        raise ValueError("Unrecognized kernel type:%s for molecule domain"
+                         %kernel_hyperparams["kernel_type"])
     kern = MolKernel(kernel_type, kernel_hyperparams)
     return kern, gp_cts_hps, gp_dscr_hps
 
 def _build_kernel_for_domain(domain, dom_prefix, kernel_scale, gp_cts_hps, gp_dscr_hps,
                             other_gp_params, options, kernel_ordering, kernel_params_for_each_domain):
-    """ Builds the kernel for the domain. """
+    """ 
+    Called in `MolCPGPFitter._child_build_gp` 
+    Build kernel from continuous/discrete hyperparameter for each domain
+    """
     kernel_list = []
     # Iterate through each domain and build the corresponding kernel
     for dom_idx, dom, kernel_type in zip(range(domain.num_domains), 
@@ -155,9 +175,9 @@ def _build_kernel_for_domain(domain, dom_prefix, kernel_scale, gp_cts_hps, gp_ds
                 get_neural_network_kernel(kernel_type, curr_kernel_hyperparams, gp_cts_hps,
                                       gp_dscr_hps)
         elif dom_type == 'molecule':
-            curr_kernel_hyperparams = _prep_kernel_hyperparams_for_molecular_kernels(
+            curr_kernel_hyperparams = _prep_kernel_hyperparams_for_molecular_domain(
                                       kernel_type, dom,
-                                      kernel_params_for_each_domain[dom_idx])
+                                      kernel_params_for_each_domain[dom_idx],)
             curr_kernel, gp_cts_hps, gp_dscr_hps = \
                 get_molecular_kernel(kernel_type, curr_kernel_hyperparams, gp_cts_hps,
                                       gp_dscr_hps)
@@ -169,13 +189,13 @@ def _build_kernel_for_domain(domain, dom_prefix, kernel_scale, gp_cts_hps, gp_ds
 
 ###############################################################################
 # Resetting:
-cartesian_product_gp._DFLT_DOMAIN_MOL_KERNEL_TYPE = _DFLT_DOMAIN_MOL_KERNEL_TYPE
-cartesian_product_gp._prep_kernel_hyperparams_for_molecular_kernels = _prep_kernel_hyperparams_for_molecular_kernels
-cartesian_product_gp.get_molecular_kernel = get_molecular_kernel
-cartesian_product_gp.get_default_kernel_type.__code__ = get_default_kernel_type.__code__
-cartesian_product_gp._set_up_hyperparams_for_domain.__code__ = _set_up_hyperparams_for_domain.__code__
-cartesian_product_gp._build_kernel_for_domain.__code__ = _build_kernel_for_domain.__code__
-cartesian_product_gp._get_kernel_type_from_options.__code__ = _get_kernel_type_from_options.__code__
+# cartesian_product_gp._DFLT_DOMAIN_MOL_KERNEL_TYPE = _DFLT_DOMAIN_MOL_KERNEL_TYPE
+# cartesian_product_gp._prep_kernel_hyperparams_for_molecular_kernels = _prep_kernel_hyperparams_for_molecular_kernels
+# cartesian_product_gp.get_molecular_kernel = get_molecular_kernel
+# cartesian_product_gp.get_default_kernel_type.__code__ = get_default_kernel_type.__code__
+# cartesian_product_gp._get_kernel_type_from_options.__code__ = _get_kernel_type_from_options.__code__
+# cartesian_product_gp._build_kernel_for_domain.__code__ = _build_kernel_for_domain.__code__
+# cartesian_product_gp._set_up_hyperparams_for_domain.__code__ = _set_up_hyperparams_for_domain.__code__
 
 ###############################################################################
 # API classes: using resetted functions
@@ -185,12 +205,31 @@ class MolCPGP(cartesian_product_gp.CPGP):
         doesn't use any of the module's functions
     """
     pass
-
-
+    
 class MolCPGPFitter(cartesian_product_gp.CPGPFitter):
-    """also the same functionality as base class"""
-    pass
+    def _child_set_up(self):
+        """
+        set up parameters for the MolCPGPFitter
+        """
+        self.param_order.append(["kernel_scale", "cts"])
+        self.kernel_scale_log_bounds = [np.log(0.03 * self.Y_var), np.log(30 * self.Y_var)]
+        self.cts_hp_bounds.append(self.kernel_scale_log_bounds)
+        _set_up_hyperparams_for_domain(self, self.X, self.domain, "dom",
+            self.domain.kernel_ordering,
+            self.domain_kernel_params_for_each_domain,
+            self.domain_dist_computers,
+            self.domain_lists_of_dists)
 
+    def _child_build_gp(self, mean_func, noise_var, gp_cts_hps, gp_dscr_hps, other_gp_params=None,
+                        *args, **kwargs):
+        log_kernel_scale = gp_cts_hps.pop(0)
+        kernel_scale = np.exp(log_kernel_scale)
+        mol_kernel, gp_cts_hps, gp_dscr_hps = _build_kernel_for_domain(self.domain, 'dom',
+            kernel_scale, gp_cts_hps, gp_dscr_hps, other_gp_params, self.options,
+            self.domain_kernel_ordering, self.domain_kernel_params_for_each_domain)
+        ret_gp = MolCPGP(self.X, self.Y, mol_kernel, mean_func, noise_var,
+                  domain_lists_of_dists=self.domain_lists_of_dists, *args, **kwargs)
+        return ret_gp, gp_cts_hps, gp_dscr_hps
 
 ###############################################################################
 ####                   Old stuff, may be useful to consult                 ####
