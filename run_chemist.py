@@ -43,9 +43,9 @@ EXP_DIR = 'experiment_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
 LOG_FILE = os.path.join(EXP_DIR, 'log')
 TMP_DIR = './tmp_' + DATASET
 
-
-# Specify the budget (in seconds) -- this is 8 hours
-BUDGET = 8 * 60 * 60
+# If using realtime (seconds), use RealWorkerManager
+# if counting steps, use SyntheticWorkerManager
+BUDGET = 10  # 10 steps
 
 
 # Runner ----------------------------------------------------------------------

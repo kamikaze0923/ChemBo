@@ -1,7 +1,6 @@
 """
 Class that performs molecule space traversal.
 @author: kkorovin@cs.cmu.edu
-
 """
 
 import numpy as np
@@ -30,10 +29,12 @@ class RandomExplorer(Explorer):
     Implements a random evolutionary algorithm
     for exploring molecule space.
     """
-    def __init__(self, fitness_func, initial_pool=None, max_pool_size=None):
+    def __init__(self, fitness_func, capital_type='return_value',
+                 initial_pool=None, max_pool_size=None):
         """
         Params:
         :fitness_func: function to optimize over evolution
+        :capital_type: number of steps or other cost of exploration
         :initial_pool: just what it says
         :max_pool_size: int or None
         TODO:
@@ -42,6 +43,7 @@ class RandomExplorer(Explorer):
                     and returns one new Molecule
         """
         self.fitness_func = fitness_func
+        self.capital_type = capital_type
         self.synth = RexgenForwardSynthesizer()
         if initial_pool is None:
             initial_pool = get_initial_pool()
@@ -54,7 +56,16 @@ class RandomExplorer(Explorer):
         # choose molecules to cross-over
         r_size = np.random.randint(2,3)
         mols = np.random.choice(self.pool, size=r_size)
-        # print(mols)
+
+        # print("\t Testing if func eval works")
+        # try:
+        #     self.fitness_func(mols[0])
+        # except:
+        #     print("Pure mols does not work")
+        # try:
+        #     self.fitness_func([mols[0]])
+        # except:
+        #     print("List mols does not work either")
 
         # evolve
         outcomes = self.synth.predict_outcome(mols)
@@ -72,8 +83,13 @@ class RandomExplorer(Explorer):
         :data: start dataset (list of Molecules)
         :capital: number of steps or other cost of exploration
         """
-        for _ in range(capital):
-            self.evolve_step()
+        # for step-count capital
+        if self.capital_type == 'return_value':
+            capital = int(capital)
+            for _ in range(capital):
+                self.evolve_step()
+        else:
+            raise NotImplementedError(f"Capital type {self.capital_type} not implemented.")
 
     def get_best(self, k):
         top = sorted(self.pool, key=lambda mol: self.fitness_func(mol))[-k:]

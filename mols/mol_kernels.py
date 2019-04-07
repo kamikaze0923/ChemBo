@@ -30,9 +30,6 @@ class MolKernel(Kernel):
             self.kernel_func = compute_wl_kernel
         else:
             raise ValueError('Unknown kernel_type %s.'%kernel_type)
-
-        # for hp_name in kernel_hyperparams:
-        #     setattr(self, hp_name, kernel_hyperparams[hp_name])
         self.hyperparams = kernel_hyperparams
 
     def is_guaranteed_psd(self):

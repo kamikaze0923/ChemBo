@@ -12,11 +12,13 @@ TODO:
 * Maybe replace the CPGPFitter in line 122 with MolFitter on MolGP,
 * then also no need for Cartesian Product at all
 - Other:
-* setting up a MolSampler is time-consuming; if it's used often, better set up as global
+* setting up a MolSampler is time-consuming; 
+  if it's used often, better set up as global in dataloaders and import
 
 """
 
 from argparse import Namespace
+import numpy as np
 
 from dragonfly.opt.gp_bandit import GPBandit as GPBandit_
 from dragonfly.opt.gp_bandit import CPGPBandit
@@ -38,8 +40,10 @@ from mols.mol_gp import cartesian_product_gp_args, MolCPGPFitter
 from explore.mol_explorer import RandomExplorer
 from datasets.loaders import MolSampler
 
+
 def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
     """ returns optimal point """
+    from explore.mol_explorer import RandomExplorer  # TODO: think how to optimize import time
     acq_opt_method = anc_data.acq_opt_method
 
     if anc_data.domain.get_type() == 'euclidean':
@@ -50,12 +54,14 @@ def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
             acquisition = lambda x: acq_fn(x.reshape((1, -1)))
     elif anc_data.domain.get_type() == 'cartesian_product':
         # these methods cannot handle vectorised functions.
-        acquisition = lambda x: acq_fn([x])
+        acquisition = lambda x: acq_fn([x])  # TODO: or [[x]]?
+    else:
+        raise NotImplementedError("Choose vectorization option for acquisition.")
 
     # acquisition(lst) if euc, otherwise acquisition(val)
     if acq_opt_method == "rand_explorer":
         # arguments: acquisition, anc_data.domain, anc_data.max_evals
-        explorer = RandomExplorer(acquisition)
+        explorer = RandomExplorer(acquisition, anc_data.capital_type)
         explorer.evolve(anc_data.max_evals)
         opt_pt = explorer.get_best(k=1)
         opt_val = acquisition(opt_pt)
@@ -80,6 +86,7 @@ class GPBandit(GPBandit_):
         """ Determine the next point for evaluation. """
         curr_acq = self._get_next_acq()
         anc_data = self._get_ancillary_data_for_acquisition(curr_acq)
+        anc_data.capital_type = self.capital_type
         select_pt_func = getattr(gpb_acquisitions.asy, curr_acq)  # <---- here
         qinfo = Namespace(curr_acq=curr_acq,
                           hp_tune_method=self.gp_processor.hp_tune_method)
@@ -140,13 +147,9 @@ class CPGPBandit(GPBandit):
                 all_args = get_all_cp_gp_bandit_args()
             options = load_options(all_args, reporter)
         self.domain_dist_computers = domain_dist_computers
+        self.capital_type = options.capital_type  # store capital_type for Explorer
         super(CPGPBandit, self).__init__(func_caller, worker_manager, is_mf=is_mf,
                                          options=options, reporter=reporter)
-
-    # # TEMPORARY
-    # def __init__(self):
-    #     # for testing purposes
-    #     print("easy init")
 
     def _child_opt_method_set_up(self):
         """ Set up for child class. Override this method in child class. """
@@ -170,14 +173,11 @@ class CPGPBandit(GPBandit):
                 domain_dist_computers=None,
                 options=self.options, reporter=self.reporter)
         else:
-            pass
-            # TODO: here, domain type is 'unknown'; this can be uncommented when kernels are ready
-
-            # dummy_gp_fitter = CPGPFitter([], [], self.func_caller.domain,
-            #      domain_kernel_ordering=self.func_caller.domain_orderings.kernel_ordering,
-            #      domain_lists_of_dists=None,
-            #      domain_dist_computers=None,
-            #      options=self.options, reporter=self.reporter)
+            dummy_gp_fitter = CPGPFitter([], [], self.func_caller.domain,
+                 domain_kernel_ordering=self.func_caller.domain_orderings.kernel_ordering,
+                 domain_lists_of_dists=None,
+                 domain_dist_computers=None,
+                 options=self.options, reporter=self.reporter)
         
         # Pre-compute distances for all sub-domains in domain - not doing for fidel_space
         # since we don't expect pre-computing distances will be necessary there.
@@ -244,7 +244,8 @@ class CPGPBandit(GPBandit):
 
     def _set_up_cp_acq_opt_explorer(self):
         # explorer
-        self._set_up_cp_acq_opt_with_params(1, 300, 1e3)
+        # TODO: other parameters?
+        self._set_up_cp_acq_opt_with_params(1, 10, 1e3)
 
     def _compute_lists_of_dists(self, X1, X2):
         """ Computes lists of dists. """

@@ -18,15 +18,19 @@ Found the place where acquisition is optimized: exd/exd_utils.py maximise_with_m
 forget about generality, only need the molecular domain => use this as examples to integrate
 into maximise_acquisition
 
-
--------------------------------------------------------------------------------
-CURRENT STOP:
 >> File "/Users/ksk/miniconda3/envs/my-rdkit-env/lib/python3.6/site-packages/dragonfly/gp/cartesian_product_gp.py", line 625, in _get_kernel_type_from_options
 raise ValueError('Unknown domain type %s.'%(dom_type))
 
 -----> cartesian_product_gp.py:_get_kernel_type_from_options
 ----> both CP GP and Fitter are in gp.cartesian_product_gp, copy and modify it?
 	  is it sufficient?
+
+-------------------------------------------------------------------------------
+CURRENT STOP:
+figure out lists vs list of lists vs mols for acquisition evaluation and kernels:
+>> see gp_bandit.mol_maximise_acquisition function
+>> and explore/mol_explorer.py
+
 -------------------------------------------------------------------------------
 
 

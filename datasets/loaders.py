@@ -17,11 +17,13 @@ from mols.molecule import Molecule
 class MolSampler:
     def __init__(self, dataset="chembl"):
         # load the dataset
+        print("Creating a MolSampler")
         if dataset == "chembl":
             self.dataset = get_chembl()
 
     def __call__(self, n_samples):
         return np.random.choice(self.dataset, n_samples)
+
 
 # Helper utilities
 
