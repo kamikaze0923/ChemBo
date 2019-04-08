@@ -57,17 +57,18 @@ def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
         acquisition = lambda x: acq_fn([x])  # TODO: or [[x]]?
     else:
         raise NotImplementedError("Choose vectorization option for acquisition.")
-
+    # TODO: sometimes acq_opt_method can be `rand` here, which is weird
     # acquisition(lst) if euc, otherwise acquisition(val)
-    if acq_opt_method == "rand_explorer":
+    # if acq_opt_method == "rand_explorer":
         # arguments: acquisition, anc_data.domain, anc_data.max_evals
-        explorer = RandomExplorer(acquisition, anc_data.capital_type)
-        explorer.evolve(anc_data.max_evals)
-        opt_pt = explorer.get_best(k=1)
-        opt_val = acquisition(opt_pt)
-        return opt_pt
-    else:
-        raise NotImplementedError("Acq opt method {} not implemented.".format(acq_opt_method))
+    explorer = RandomExplorer(acquisition, anc_data.capital_type)
+    explorer.evolve(anc_data.max_evals)
+    opt_pt = explorer.get_best(k=1)
+    opt_val = acquisition(opt_pt)
+    print("Returning explorer's result")
+    return opt_pt
+    # else:
+    #     raise NotImplementedError("Acq opt method {} not implemented.".format(acq_opt_method))
 
 
 gpb_acquisitions.maximise_acquisition.__code__ = mol_maximise_acquisition.__code__
@@ -245,7 +246,7 @@ class CPGPBandit(GPBandit):
     def _set_up_cp_acq_opt_explorer(self):
         # explorer
         # TODO: other parameters?
-        self._set_up_cp_acq_opt_with_params(1, 10, 1e3)
+        self._set_up_cp_acq_opt_with_params(1, 1, 1e3)
 
     def _compute_lists_of_dists(self, X1, X2):
         """ Computes lists of dists. """

@@ -69,13 +69,13 @@ class RandomExplorer(Explorer):
 
         # evolve
         outcomes = self.synth.predict_outcome(mols)
-        top_outcome = sorted(outcomes, key=lambda mol: self.fitness_func(mol))[-1]
-        print("Newly generated mol value:", self.fitness_func(top_outcome))
+        top_outcome = sorted(outcomes, key=lambda mol: self.fitness_func([mol]))[-1]
+        print("Newly generated mol value:", self.fitness_func([top_outcome]))
         self.pool.append(top_outcome)
 
         # filter
         if self.max_pool_size is not None:
-            self.pool = sorted(self.pool, key=lambda mol: self.fitness_func(mol))[-self.max_pool_size:]
+            self.pool = sorted(self.pool, key=lambda mol: self.fitness_func([mol]))[-self.max_pool_size:]
 
     def evolve(self, capital):
         """
@@ -92,5 +92,5 @@ class RandomExplorer(Explorer):
             raise NotImplementedError(f"Capital type {self.capital_type} not implemented.")
 
     def get_best(self, k):
-        top = sorted(self.pool, key=lambda mol: self.fitness_func(mol))[-k:]
+        top = sorted(self.pool, key=lambda mol: self.fitness_func([mol]))[-k:]
         return top

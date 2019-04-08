@@ -15,8 +15,9 @@ if GRAPH_LIB == "igraph":
 else:
     import networkx
 import graphkernels.kernels as gk
-from dragonfly.gp.kernel import Kernel
 
+from dragonfly.gp.kernel import Kernel
+from mols.molecule import Molecule
 
 # Main Kernel class ---------------------------------------------------------
 
@@ -33,9 +34,15 @@ class MolKernel(Kernel):
         self.hyperparams = kernel_hyperparams
 
     def is_guaranteed_psd(self):
-        return True
+        return False
 
     def _child_evaluate(self, X1, X2):
+        """ X1, X2 - lists of Molecules """
+        assert isinstance(X1, list)
+        assert isinstance(X2, list)
+        assert isinstance(X1[0], Molecule)
+        assert isinstance(X2[0], Molecule)
+
         return self.compute_dists(X1, X2)
 
     def compute_dists(self, X1, X2):
@@ -44,7 +51,6 @@ class MolKernel(Kernel):
         all pairwise distances between them
         (of size n1 x n2)
         """
-        # print("here are params:", self.params)
         bigmat = self.kernel_func(X1 + X2, self.hyperparams)
         n1 = len(X1)
         return bigmat[:n1, n1:]
