@@ -14,6 +14,13 @@ TODO:
 - Other:
 * setting up a MolSampler is time-consuming; 
   if it's used often, better set up as global in dataloaders and import
+* find why anc_data.acq_opt_method is sometimes incorrect
+  (for some re-runs it's `rand`)
+* find the bug in sample_from_cp_domain_without_constraints
+  (returns an empty list even when sampler is passed)
+* other parameters in _set_up_cp_acq_opt_explorer
+* fix reporting (now only the end point gets reported)
+  (may not need fixing, only changing the reporting rate in options)
 
 """
 
@@ -246,7 +253,7 @@ class CPGPBandit(GPBandit):
     def _set_up_cp_acq_opt_explorer(self):
         # explorer
         # TODO: other parameters?
-        self._set_up_cp_acq_opt_with_params(1, 1, 1e3)
+        self._set_up_cp_acq_opt_with_params(1, 10, 1e3)
 
     def _compute_lists_of_dists(self, X1, X2):
         """ Computes lists of dists. """
@@ -335,17 +342,5 @@ class CPGPBandit(GPBandit):
                  domain_lists_of_dists=self.domain_lists_of_dists,
                  domain_dist_computers=self.domain_dist_computers,
                  options=self.options, reporter=self.reporter)
-
-
-###--- Unfortunately, the following much more elegant solution is not allowed by Python: ----###
-
-# # reset superclass of CPGPBandit to be GPBandit from this module
-# # this takes the immediate superclass if it's unique
-# CPGPBandit.__base__ = GPBandit
-# # now we should be able to import a poisoned CPGPBandit
-
-# # TEMP:
-# my_init = lambda *args, **kwargs: 0
-# CPGPBandit.__init__.__code__ = my_init.__code__
 
 

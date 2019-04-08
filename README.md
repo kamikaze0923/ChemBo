@@ -1,7 +1,7 @@
 # Dragonfly Chemist
-DOE framework for joint molecular optimization and synthesis
+## DOE framework for joint molecular optimization and synthesis
 
-Author: Ksenia Korovina (kkorovin@cs.cmu.edu)
+*Authors: Ksenia Korovina (kkorovin@cs.cmu.edu), Celsius Xu*
 
 
 ## Structure of the repo

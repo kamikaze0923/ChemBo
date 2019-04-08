@@ -1,11 +1,10 @@
 """
-
 Adapted from demo_nas.py
 @author: kkorovin@cs.cmu.edu
 
 TODO:
-* requires bo_from_func_caller
-* requires MolFunctionCaller
+* most of TODO-s are in chemist_opt.gp_bandit
+* visualization in mols.visualize
 
 """
 
@@ -75,9 +74,12 @@ def main():
 
     # convert to raw format
     raw_opt_point = func_caller.get_raw_domain_point_from_processed(opt_point)
-    opt_mol = raw_opt_point[0]  # Because first index in the config file is the neural net.
+    opt_mol = raw_opt_point[0]
+
     # Print the optimal value and visualise the best network.
     reporter.writeln('\nOptimum value found: %0.5f'%(opt_val))
+    reporter.writeln('Optimum molecule: %s'%(opt_mol))
+    reporter.writeln('Synthesis path: %s'%opt_mol.get_synthesis_path())
 
     if visualize_mol is not None:
         visualize_file = os.path.join(EXP_DIR, 'optimal_molecule')
@@ -85,7 +87,7 @@ def main():
         visualize_mol(opt_mol, visualize_file)
     else:
         # TODO
-        reporter.writeln('Install graphviz (pip install graphviz) to visualize the molecule.')
+        reporter.writeln('\nInstall graphviz (pip install graphviz) to visualize the molecule.')
 
 if __name__ == "__main__":
     main()

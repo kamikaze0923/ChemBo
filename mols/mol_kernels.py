@@ -3,6 +3,11 @@
 Molecular kernels.
 To be used as part of CartesianProductKernel
 
+@author: kkorovin@cs.cmu.edu
+
+TODO:
+* Implement the remaining kernels
+
 """
 
 GRAPH_LIB = "igraph"  # depending on package for graph kernels

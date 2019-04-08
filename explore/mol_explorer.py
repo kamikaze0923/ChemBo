@@ -1,6 +1,10 @@
 """
 Class that performs molecule space traversal.
 @author: kkorovin@cs.cmu.edu
+
+TODO:
+* better handling of fitness_func arguments
+  (lists vs args etc.)
 """
 
 import numpy as np
@@ -56,16 +60,6 @@ class RandomExplorer(Explorer):
         # choose molecules to cross-over
         r_size = np.random.randint(2,3)
         mols = np.random.choice(self.pool, size=r_size)
-
-        # print("\t Testing if func eval works")
-        # try:
-        #     self.fitness_func(mols[0])
-        # except:
-        #     print("Pure mols does not work")
-        # try:
-        #     self.fitness_func([mols[0]])
-        # except:
-        #     print("List mols does not work either")
 
         # evolve
         outcomes = self.synth.predict_outcome(mols)
