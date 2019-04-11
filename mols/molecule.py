@@ -6,7 +6,9 @@ Binds in the rdkit molecule definition.
 
 """
 
+import numpy as np
 from rdkit import Chem
+from rdkit.Chem.Fingerprints import FingerprintMols
 
 class Molecule:
     """
@@ -50,6 +52,18 @@ class Molecule:
         if self.graph is None:
             self.graph = Chem.MolFromSmiles(self.smiles)
         return self.graph
+
+    def to_fingerprint(self, ftype='default'):
+        """ Get numeric vectors representing a molecule.
+            Can be used in some kernels.
+        """
+        mol = self.to_rdkit()
+        if ftype == 'default':
+            """ binary vectors of length 64 """
+            fp = FingerprintMols.FingerprintMol(mol)
+            arr = np.zeros((1,))
+            DataStructs.ConvertToNumpyArray(fp, arr)
+            return arr
 
     def set_synthesis(self, inputs):
         self.begin_flag = False

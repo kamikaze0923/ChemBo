@@ -1,8 +1,8 @@
 # Dragonfly Chemist
-## DOE framework for joint molecular optimization and synthesis
 
 *Authors: Ksenia Korovina (kkorovin@cs.cmu.edu), Celsius Xu*
 
+DOE framework for joint molecular optimization and synthesis
 
 ## Structure of the repo
 
@@ -62,3 +62,7 @@ Set PYTHONPATH for imports:
 ```bash
 source setup.sh 
 ```
+
+### Datasets
+
+ChEMBL data can be found here: https://github.com/kevinid/molecule_generator/releases/download/1.0/datasets.tar.gz

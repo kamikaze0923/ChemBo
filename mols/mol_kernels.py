@@ -3,10 +3,16 @@
 Molecular kernels.
 To be used as part of CartesianProductKernel
 
+Kernels to be implemented:
+* Graph-based
+* Fingerprints as vectors
+* Fingerprints for molecular similarity
+* String-based
+
 @author: kkorovin@cs.cmu.edu
 
 TODO:
-* Implement the remaining kernels
+* Implement the remaining graph-based kernels
 
 """
 
@@ -21,7 +27,7 @@ else:
     import networkx
 import graphkernels.kernels as gk
 
-from dragonfly.gp.kernel import Kernel
+from dragonfly.gp.kernel import Kernel, MaternKernel
 from mols.molecule import Molecule
 
 # Main Kernel class ---------------------------------------------------------
@@ -34,6 +40,8 @@ class MolKernel(Kernel):
             self.kernel_func = compute_edgehist_kernel
         elif kernel_type == "wl_kernel":
             self.kernel_func = compute_wl_kernel
+        elif kernel_type == "graphlet":
+            self.kernel_func = compute_graphlet_kernel
         else:
             raise ValueError('Unknown kernel_type %s.'%kernel_type)
         self.hyperparams = kernel_hyperparams
@@ -60,6 +68,41 @@ class MolKernel(Kernel):
         n1 = len(X1)
         return bigmat[:n1, n1:]
 
+
+class FingerprintKernel(MaternKernel):
+    def __init__(self, nu=None, scale=None, dim_bandwidths=None,
+                 kernel_dim=64):
+        super(FingerprintKernel, self).__init__(kernel_dim, nu, scale, dim_bandwidths)
+
+    def _get_fps(self, X):
+        """
+        turn each molecule to its fingerprint representation
+        """
+        return [mol.to_fingerprint() for mol in X]
+
+    def _child_evaluate(self, X1, X2):
+        X1 = self._get_fps(X1)
+        X2 = self._get_fps(X2)
+        return super(FingerprintKernel, self)._child_evaluate(X1, X2)
+
+    def __str__(self):
+        return "FingerprintKernel: " + super(FingerprintKernel, self).__str__()
+
+
+class MolSimilarityKernel(Kernel):
+    def _get_fps(self, X):
+        """
+        turn each molecule to its fingerprint representation
+        """
+        return [mol.to_fingerprint() for mol in X]
+
+    def _child_evaluate(self, X1, X2):
+        # first generate the distance matrix:
+        dists = []
+        nfps = len(fps)
+        for i in range(1,nfps):
+            sims = DataStructs.BulkTanimotoSimilarity(fps[i],fps[:i])
+            dists.extend([1-x for x in sims])
 
 # Graph-based kernels ---------------------------------------------------------
 
@@ -145,6 +188,16 @@ def compute_edgehist_kernel(mols, params):
     return gk.CalculateEdgeHistKernel(mol_graphs_list,
                                       par=par)
 
+def compute_vertexedgehist_kernel(mols, params):
+    """
+    Compute edge hist kernel
+    Arguments:
+            mols {list[Molecule]} -- [description]
+    """
+    par = params["cont_par"]
+    mol_graphs_list = [mol2graph_igraph(m) for m in mols]
+    return gk.CalculateVertexEdgeHistKernel(mol_graphs_list,
+                                            par=par)
 
 def compute_wl_kernel(mols, params):
     """
@@ -157,6 +210,11 @@ def compute_wl_kernel(mols, params):
     return gk.CalculateWLKernel(mol_graphs_list,
                                 par=par)
 
+def compute_graphlet_kernel(mols, params):
+    par = int(params["int_par"])  # set default to 4
+    mol_graphs_list = [mol2graph_igraph(m) for m in mols]
+    return gk.CalculateGraphletKernel(mol_graphs_list,
+                                      par=par)
 
 
 

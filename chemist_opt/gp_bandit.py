@@ -41,9 +41,6 @@ from dragonfly.gp.cartesian_product_gp import cartesian_product_gp_args, \
                                               CPGPFitter, CPMFGPFitter
 
 from mols.mol_gp import cartesian_product_gp_args, MolCPGPFitter
-                        #cartesian_product_mf_gp_args, \
-                        #MolCPMFGPFitter
-
 from explore.mol_explorer import RandomExplorer
 from datasets.loaders import MolSampler
 
@@ -66,16 +63,16 @@ def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
         raise NotImplementedError("Choose vectorization option for acquisition.")
     # TODO: sometimes acq_opt_method can be `rand` here, which is weird
     # acquisition(lst) if euc, otherwise acquisition(val)
-    # if acq_opt_method == "rand_explorer":
-        # arguments: acquisition, anc_data.domain, anc_data.max_evals
-    explorer = RandomExplorer(acquisition, anc_data.capital_type)
-    explorer.evolve(anc_data.max_evals)
-    opt_pt = explorer.get_best(k=1)
-    opt_val = acquisition(opt_pt)
-    print("Returning explorer's result")
-    return opt_pt
-    # else:
-    #     raise NotImplementedError("Acq opt method {} not implemented.".format(acq_opt_method))
+    if acq_opt_method == "rand_explorer":
+        #arguments: acquisition, anc_data.domain, anc_data.max_evals
+        explorer = RandomExplorer(acquisition, anc_data.capital_type)
+        explorer.evolve(anc_data.max_evals)
+        opt_pt = explorer.get_best(k=1)
+        opt_val = acquisition(opt_pt)
+        print("Returning explorer's result")
+        return opt_pt
+    else:
+        raise NotImplementedError("Acq opt method {} not implemented.".format(acq_opt_method))
 
 
 gpb_acquisitions.maximise_acquisition.__code__ = mol_maximise_acquisition.__code__
@@ -94,6 +91,8 @@ class GPBandit(GPBandit_):
         """ Determine the next point for evaluation. """
         curr_acq = self._get_next_acq()
         anc_data = self._get_ancillary_data_for_acquisition(curr_acq)
+        assert anc_data.acq_opt_method == "rand_explorer",  anc_data.acq_opt_method
+
         anc_data.capital_type = self.capital_type
         select_pt_func = getattr(gpb_acquisitions.asy, curr_acq)  # <---- here
         qinfo = Namespace(curr_acq=curr_acq,
