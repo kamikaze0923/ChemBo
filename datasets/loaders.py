@@ -24,7 +24,6 @@ class MolSampler:
     def __call__(self, n_samples):
         return np.random.choice(self.dataset, n_samples)
 
-
 # Helper utilities
 
 def get_chembl_prop(n_mols=None, as_mols=False):

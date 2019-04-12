@@ -22,6 +22,11 @@ TODO:
 * fix reporting (now only the end point gets reported)
   (may not need fixing, only changing the reporting rate in options)
 
+BUG:
+* anc_data.acq_opt_method == 'rand_explorer' in _determine_next_query(),
+  but in the inner call mol_maximise_acquisition(..., anc_data):
+  anc_data.acq_opt_method == 'rand'. Acc to ids, these are different objects.
+
 """
 
 from argparse import Namespace
@@ -35,7 +40,6 @@ import dragonfly.opt.gpb_acquisitions as gpb_acquisitions
 from dragonfly.exd.exd_utils import sample_from_cp_domain
 from dragonfly.utils.general_utils import transpose_list_of_lists
 
-# Maybe this needs to be replaced by a local alternative to cartesian_product_gp
 from dragonfly.gp.cartesian_product_gp import cartesian_product_gp_args, \
                                               cartesian_product_mf_gp_args, \
                                               CPGPFitter, CPMFGPFitter
@@ -48,6 +52,8 @@ from datasets.loaders import MolSampler
 def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
     """ returns optimal point """
     from explore.mol_explorer import RandomExplorer  # TODO: think how to optimize import time
+    # print("In select point: ", anc_data.acq_opt_method)
+    # print(id(anc_data))
     acq_opt_method = anc_data.acq_opt_method
 
     if anc_data.domain.get_type() == 'euclidean':
@@ -61,18 +67,16 @@ def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
         acquisition = lambda x: acq_fn([x])  # TODO: or [[x]]?
     else:
         raise NotImplementedError("Choose vectorization option for acquisition.")
-    # TODO: sometimes acq_opt_method can be `rand` here, which is weird
-    # acquisition(lst) if euc, otherwise acquisition(val)
-    if acq_opt_method == "rand_explorer":
-        #arguments: acquisition, anc_data.domain, anc_data.max_evals
-        explorer = RandomExplorer(acquisition, anc_data.capital_type)
-        explorer.evolve(anc_data.max_evals)
-        opt_pt = explorer.get_best(k=1)
-        opt_val = acquisition(opt_pt)
-        print("Returning explorer's result")
-        return opt_pt
-    else:
-        raise NotImplementedError("Acq opt method {} not implemented.".format(acq_opt_method))
+
+    # if acq_opt_method == "rand_explorer":
+    explorer = RandomExplorer(acquisition, anc_data.capital_type)
+    explorer.evolve(anc_data.max_evals)
+    opt_pt = explorer.get_best(k=1)
+    opt_val = acquisition(opt_pt)
+    print("Returning explorer's result")
+    return opt_pt
+    # else:
+    #     raise NotImplementedError("Acq opt method {} not implemented.".format(acq_opt_method))
 
 
 gpb_acquisitions.maximise_acquisition.__code__ = mol_maximise_acquisition.__code__
@@ -88,10 +92,12 @@ class GPBandit(GPBandit_):
         print("Hi")
 
     def _determine_next_query(self):
+        print("Determining next query")
         """ Determine the next point for evaluation. """
         curr_acq = self._get_next_acq()
         anc_data = self._get_ancillary_data_for_acquisition(curr_acq)
         assert anc_data.acq_opt_method == "rand_explorer",  anc_data.acq_opt_method
+        # print(id(anc_data))
 
         anc_data.capital_type = self.capital_type
         select_pt_func = getattr(gpb_acquisitions.asy, curr_acq)  # <---- here

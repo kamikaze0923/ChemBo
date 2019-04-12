@@ -13,6 +13,7 @@ Kernels to be implemented:
 
 TODO:
 * Implement the remaining graph-based kernels
+* Graphlets do not work
 
 """
 
@@ -78,7 +79,8 @@ class FingerprintKernel(MaternKernel):
         """
         turn each molecule to its fingerprint representation
         """
-        return [mol.to_fingerprint() for mol in X]
+        res = np.array([mol.to_fingerprint() for mol in X])
+        return res
 
     def _child_evaluate(self, X1, X2):
         X1 = self._get_fps(X1)

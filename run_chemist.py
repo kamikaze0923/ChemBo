@@ -60,14 +60,14 @@ def main():
     # Obtain a reporter
     reporter = get_reporter(open(LOG_FILE, 'w'))
 
-    objective_func = get_objective_by_name("sascore")  # just a function
+    objective_func = get_objective_by_name("logp")  # just a function
     train_params = Namespace(data_dir=MOL_DATA_DIR)  # TODO: use this?
     func_caller = MolFunctionCaller(objective_func,
                                     config=None,
                                     train_params=train_params,  # maybe not needed
                                     reporter=reporter)
 
-    worker_manager = SyntheticWorkerManager(1, time_distro='const')
+    worker_manager = SyntheticWorkerManager(num_workers=1, time_distro='const')
     opt_val, opt_point, _ = bo_from_func_caller(func_caller, worker_manager, BUDGET,
                                                 is_mf=False,  # not multifidelity for now
                                                 reporter=reporter)

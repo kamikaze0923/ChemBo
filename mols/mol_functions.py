@@ -26,10 +26,6 @@ def get_objective_by_name(name):
 
 def SAScore(mol):
     """ Synthetic accessibility score """
-    # if isinstance(mol, list):
-    #   rdkit_mol = Chem.MolFromSmiles(mol[0].smiles)
-    # else:
-    #   rdkit_mol = Chem.MolFromSmiles(mol.smiles)
     if isinstance(mol, list):
         rdkit_mol = mol[0].to_rdkit()
     else:

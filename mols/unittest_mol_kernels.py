@@ -7,7 +7,6 @@ from mols.molecule import Molecule
 from mols import mol_kernels
 from dragonfly.utils.base_test_class import BaseTestClass, execute_tests
 
-S1, S2, S3 = "Cc1ccccc1", "C1OC1", "CCOC(=O)C1=C[C@@H](OC(CC)CC)[C@H](NC(C)=O)[C@@H](N)C1"
 
 class MolKernelsTestCase(BaseTestClass):
     def setUp(self):
@@ -30,20 +29,21 @@ class MolKernelsTestCase(BaseTestClass):
         graph = mol_kernels.mol2graph_igraph(mol)
         print(graph)
 
-    def _test_edgehist_kernel(self):
+    def test_edgehist_kernel(self):
         params = {"cont_par": 2.}
         print(mol_kernels.compute_edgehist_kernel(self.mols, params))
 
-    def _test_wl_kernel(self):
-        print(mol_kernels.compute_wl_kernel(self.mols))
+    def test_wl_kernel(self):
+        params = {"int_par": 2}
+        print(mol_kernels.compute_wl_kernel(self.mols, params))
 
-    def test_graphlet_kernel(self):
+    def _test_graphlet_kernel(self):
         params = {"int_par": 4}
         print(mol_kernels.compute_graphlet_kernel(self.mols, params))
 
     def test_fps_kernel(self):
-        kernel = mol_kernels.FingerprintKernel(<TODO: set hyperparameters>)
-        res = kernel._child_evaluate(self, self.mols, self.mols)
+        kernel = mol_kernels.FingerprintKernel(nu=1.5, scale=1., dim_bandwidths=[0.1]*64)
+        res = kernel._child_evaluate(self.mols, self.mols)
         print(res)
 
 

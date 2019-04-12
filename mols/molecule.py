@@ -4,10 +4,14 @@ Molecule class definition.
 
 Binds in the rdkit molecule definition.
 
+TODO:
+* fix conversion to same-sized molecular fingerprints
+
 """
 
 import numpy as np
 from rdkit import Chem
+from rdkit import DataStructs
 from rdkit.Chem.Fingerprints import FingerprintMols
 
 class Molecule:
@@ -59,11 +63,14 @@ class Molecule:
         """
         mol = self.to_rdkit()
         if ftype == 'default':
-            """ binary vectors of length 64 """
+            """ binary vectors of length 64
+            >>> TODO: is there a better way to get fixed-size vectors?
+                (e.g. below, arr may be of size 64 or 2048 for different mols)
+            """
             fp = FingerprintMols.FingerprintMol(mol)
             arr = np.zeros((1,))
             DataStructs.ConvertToNumpyArray(fp, arr)
-            return arr
+            return arr[:64]
 
     def set_synthesis(self, inputs):
         self.begin_flag = False
