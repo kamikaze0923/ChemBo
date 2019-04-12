@@ -46,7 +46,7 @@ from dragonfly.gp.cartesian_product_gp import cartesian_product_gp_args, \
 
 from mols.mol_gp import cartesian_product_gp_args, MolCPGPFitter
 from explore.mol_explorer import RandomExplorer
-from datasets.loaders import MolSampler
+from mols.mol_domains import sample_mols_from_cartesian_domain
 
 
 def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
@@ -122,25 +122,9 @@ def get_cp_domain_initial_qinfos(domain, num_samples, fidel_space=None, fidel_to
     Get initial qinfos in Cartesian product domain.
     The difference to the original function is in addition 
     of a sampler to handle MolDomain sampling.
-
-    TODO:
-    * implement and add a mol sampler (in datasets.loaders?)
-    * maybe add an argument for different mol sampling strategies
-
     """
-    sampler = MolSampler()  # Is just a function to be called: Sampler(num_samples)
-
-    ## not sure why this is not working: returns an empty list, even though sampling is done:
-    # ret_dom_pts = sample_from_cp_domain_without_constraints(domain, num_samples, domain_samplers=[sampler],
-    #                                                         euclidean_sample_type=dom_euclidean_sample_type,
-    #                                                         integral_sample_type=dom_integral_sample_type,
-    #                                                         nn_sample_type=dom_nn_sample_type)
-
-    ## instead, directly doing the same from sample_from_cp_domain_without_constraints:
-    individual_domain_samples = [sampler(num_samples)]
+    individual_domain_samples = [sample_mols_from_cartesian_domain(domain, num_samples)]
     ret_dom_pts = transpose_list_of_lists(individual_domain_samples)
-
-    # from original get_cp_domain_initial_qinfos:
     ret_dom_pts = ret_dom_pts[:num_samples]
     return [Namespace(point=x) for x in ret_dom_pts]
 

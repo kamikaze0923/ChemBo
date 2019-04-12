@@ -24,11 +24,9 @@ from mols.mol_functions import get_objective_by_name
 
 # if molecular visualization is implemented, use it
 try:
-    # this function should plot a molecule
-    # and draw a synthesis plan
+    # this function should plot a molecule and draw a synthesis plan
     from mols.visualize import visualize_mol  # TODO-3
 except ImportError as e:
-    # print(e)
     visualize_mol = None
 
 
@@ -42,9 +40,8 @@ EXP_DIR = 'experiment_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
 LOG_FILE = os.path.join(EXP_DIR, 'log')
 TMP_DIR = './tmp_' + DATASET
 
-# If using realtime (seconds), use RealWorkerManager
-# if counting steps, use SyntheticWorkerManager
-BUDGET = 10  # 10 steps
+N_WORKERS = 1
+BUDGET = 10
 
 
 # Runner ----------------------------------------------------------------------
@@ -67,7 +64,7 @@ def main():
                                     train_params=train_params,  # maybe not needed
                                     reporter=reporter)
 
-    worker_manager = SyntheticWorkerManager(num_workers=1, time_distro='const')
+    worker_manager = SyntheticWorkerManager(num_workers=N_WORKERS, time_distro='const')
     opt_val, opt_point, _ = bo_from_func_caller(func_caller, worker_manager, BUDGET,
                                                 is_mf=False,  # not multifidelity for now
                                                 reporter=reporter)

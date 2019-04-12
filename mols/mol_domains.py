@@ -6,14 +6,29 @@ An "optimization analog" of Molecule class
 that is ties together Molecules and 
 optimization over them.
 
+TODO:
+* Make the MolDomain class parametrized,
+  with a MolSampler that can sample from variable sources.
+  Maybe pass an argument to MolDomain constructor from function caller,
+  which has access to 'training data' parameters
+  (see chemist_opt.mol_function_caller)
+
 """
 
 from dragonfly.exd.domains import Domain
+from datasets.loaders import MolSampler
 
+
+# Function to be called on CP domain to sample molecules
+def sample_mols_from_cartesian_domain(domain, n_samples):
+    for dom in domain.list_of_domains:
+        if isinstance(dom, MolDomain):
+            samples = dom.sample(n_samples)
+            return samples
+    raise ValueError("MolDomain not in list of domains.")
 
 class MolConstraintChecker:
     pass
-
 
 class MolDomain(Domain):
     """ Domain for Molecules. """
@@ -21,6 +36,7 @@ class MolDomain(Domain):
         """ Constructor. """
         self.mol_type = mol_type  # e.g. can be 'drug-like'
         self.constraint_checker = constraint_checker
+        self.data_source = MolSampler()
         super(MolDomain, self).__init__()
 
     def get_type(self):
@@ -35,11 +51,14 @@ class MolDomain(Domain):
         """ Returns true if point is in the domain. """
         return True
 
-        # TODO
+        # TODO:
         # if not self.mol_type == point.mol_class:
         #     return False
         # else:
         #     return self.constraint_checker(point)
+
+    def sample(self, n_samples):
+        return self.data_source(n_samples)
 
     @classmethod
     def members_are_equal(cls, point_1, point_2):
