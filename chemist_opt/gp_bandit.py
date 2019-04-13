@@ -107,6 +107,28 @@ class GPBandit(GPBandit_):
         qinfo.point = next_eval_point
         return qinfo
 
+    def _set_up_for_acquisition(self):
+        """
+        set up the acquisition to use
+        If `self.options.acq` is "default", then use ei, ucb and ttei
+        Otherwise, use the `self.options.acq`
+        """
+        if self.options.acq == "default":
+            acq = "ei-ucb-ttei"
+        else:
+            acq = self.options.acq
+        self.acqs_to_use = [elem.lower() for elem in acq.split('-')]
+        self.acqs_to_use_counter = {key: 0 for key in self.acqs_to_use}
+        if self.options.acq_probs == 'uniform':
+            self.acq_probs = np.ones(len(self.acqs_to_use)) / float(len(self.acqs_to_use))
+        elif self.options.acq_probs == 'adaptive':
+            self.acq_uniform_sampling_prob = 0.05
+            self.acq_sampling_weights = {key: 1.0 for key in self.acqs_to_use}
+            self.acq_probs = self._get_adaptive_ensemble_acq_probs()
+        else:
+            self.acq_probs = np.array([float(x) for x in self.options.acq_probs.split('-')])
+        self.acq_probs = self.acq_probs / self.acq_probs.sum()
+        assert len(self.acq_probs) == len(self.acqs_to_use)
 
 # Some additional modifications------------------------------------------------
 
