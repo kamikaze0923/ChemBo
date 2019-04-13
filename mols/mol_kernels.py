@@ -14,18 +14,12 @@ Kernels to be implemented:
 TODO:
 * Implement the remaining graph-based kernels
 * Graphlets do not work
+* For fingerprints, do projection
 
 """
 
-GRAPH_LIB = "igraph"  # depending on package for graph kernels
-
 import numpy as np
 from rdkit import Chem
-from rdkit.Chem import rdmolops
-if GRAPH_LIB == "igraph":
-    import igraph
-else:
-    import networkx
 import graphkernels.kernels as gk
 
 from dragonfly.gp.kernel import Kernel, MaternKernel
@@ -108,53 +102,6 @@ class MolSimilarityKernel(Kernel):
 
 # Graph-based kernels ---------------------------------------------------------
 
-def mol2graph_igraph(mol):
-    """
-    Convert molecule to nx.Graph
-    Adapted from
-    https://iwatobipen.wordpress.com/2016/12/30/convert-rdkit-molecule-object-to-igraph-graph-object/
-    """
-    mol = mol.to_rdkit()
-    admatrix = rdmolops.GetAdjacencyMatrix(mol)
-    bondidxs = [(b.GetBeginAtomIdx(),b.GetEndAtomIdx() ) for b in mol.GetBonds()]
-    adlist = np.ndarray.tolist(admatrix)
-    graph = igraph.Graph()
-    g = graph.Adjacency(adlist).as_undirected()
-
-    ## set properties
-    # for idx in g.vs.indices:
-    #     g.vs[idx][ "AtomicNum" ] = mol.GetAtomWithIdx(idx).GetAtomicNum()
-    #     g.vs[idx][ "AtomicSymbole" ] = mol.GetAtomWithIdx(idx).GetSymbol()
-    
-    # for bd in bondidxs:
-    #     btype = mol.GetBondBetweenAtoms(bd[0], bd[1]).GetBondTypeAsDouble()
-    #     g.es[g.get_eid(bd[0], bd[1])]["BondType"] = btype
-    #     print( bd, mol.GetBondBetweenAtoms(bd[0], bd[1]).GetBondTypeAsDouble() )
-    return g
-
-
-def mol2graph_networkx(mol):
-    """
-    Convert molecule to nx.Graph
-    Adapted from
-    https://iwatobipen.wordpress.com/2016/12/30/convert-rdkit-molecule-object-to-igraph-graph-object/
-    """
-    mol = mol.to_rdkit()
-    admatrix = Chem.rdmolops.GetAdjacencyMatrix(mol)
-    bondidxs = [(b.GetBeginAtomIdx(),b.GetEndAtomIdx() ) for b in mol.GetBonds()]
-    graph = nx.Graph(admatrix)
-
-    for idx in graph.nodes:
-        graph.nodes[idx]["AtomicNum"] = mol.GetAtomWithIdx(idx).GetAtomicNum()
-        graph.nodes[idx]["AtomicSymbol"] = mol.GetAtomWithIdx(idx).GetSymbol()
-
-    for bd in bondidxs:
-        btype = mol.GetBondBetweenAtoms(bd[0], bd[1]).GetBondTypeAsDouble()
-        graph.edges[bd[0], bd[1]]["BondType"] = str(int(btype))
-        # print(bd, m1.GetBondBetweenAtoms(bd[0], bd[1]).GetBondTypeAsDouble())
-    return graph
-
-
 """
 Kernels available in graphkernels: TODO into functions
     K1 = gk.CalculateEdgeHistKernel(graph_list)
@@ -186,7 +133,7 @@ def compute_edgehist_kernel(mols, params):
             mols {list[Molecule]} -- [description]
     """
     par = params["cont_par"]
-    mol_graphs_list = [mol2graph_igraph(m) for m in mols]
+    mol_graphs_list = [m.to_graph() for m in mols]
     return gk.CalculateEdgeHistKernel(mol_graphs_list,
                                       par=par)
 
@@ -197,7 +144,7 @@ def compute_vertexedgehist_kernel(mols, params):
             mols {list[Molecule]} -- [description]
     """
     par = params["cont_par"]
-    mol_graphs_list = [mol2graph_igraph(m) for m in mols]
+    mol_graphs_list = [m.to_graph() for m in mols]
     return gk.CalculateVertexEdgeHistKernel(mol_graphs_list,
                                             par=par)
 
@@ -208,13 +155,13 @@ def compute_wl_kernel(mols, params):
             mols {list[Molecule]} -- [description]
     """
     par = int(params["int_par"])
-    mol_graphs_list = [mol2graph_igraph(m) for m in mols]
+    mol_graphs_list = [m.to_graph() for m in mols]
     return gk.CalculateWLKernel(mol_graphs_list,
                                 par=par)
 
 def compute_graphlet_kernel(mols, params):
     par = int(params["int_par"])  # set default to 4
-    mol_graphs_list = [mol2graph_igraph(m) for m in mols]
+    mol_graphs_list = [m.to_graph() for m in mols]
     return gk.CalculateGraphletKernel(mol_graphs_list,
                                       par=par)
 

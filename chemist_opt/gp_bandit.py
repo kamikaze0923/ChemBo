@@ -14,18 +14,11 @@ TODO:
 - Other:
 * setting up a MolSampler is time-consuming; 
   if it's used often, better set up as global in dataloaders and import
-* find why anc_data.acq_opt_method is sometimes incorrect
-  (for some re-runs it's `rand`)
 * find the bug in sample_from_cp_domain_without_constraints
   (returns an empty list even when sampler is passed)
 * other parameters in _set_up_cp_acq_opt_explorer
 * fix reporting (now only the end point gets reported)
   (may not need fixing, only changing the reporting rate in options)
-
-BUG:
-* anc_data.acq_opt_method == 'rand_explorer' in _determine_next_query(),
-  but in the inner call mol_maximise_acquisition(..., anc_data):
-  anc_data.acq_opt_method == 'rand'. Acc to ids, these are different objects.
 
 """
 
@@ -39,10 +32,7 @@ import dragonfly.opt.gpb_acquisitions as gpb_acquisitions
 # for sampling initial points
 from dragonfly.exd.exd_utils import sample_from_cp_domain
 from dragonfly.utils.general_utils import transpose_list_of_lists
-
-from dragonfly.gp.cartesian_product_gp import cartesian_product_gp_args, \
-                                              cartesian_product_mf_gp_args, \
-                                              CPGPFitter, CPMFGPFitter
+from dragonfly.gp.cartesian_product_gp import CPGPFitter, CPMFGPFitter
 
 from mols.mol_gp import cartesian_product_gp_args, MolCPGPFitter
 from explore.mol_explorer import RandomExplorer
@@ -52,8 +42,6 @@ from mols.mol_domains import sample_mols_from_cartesian_domain
 def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
     """ returns optimal point """
     from explore.mol_explorer import RandomExplorer  # TODO: think how to optimize import time
-    # print("In select point: ", anc_data.acq_opt_method)
-    # print(id(anc_data))
     acq_opt_method = anc_data.acq_opt_method
 
     if anc_data.domain.get_type() == 'euclidean':
@@ -64,19 +52,19 @@ def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
             acquisition = lambda x: acq_fn(x.reshape((1, -1)))
     elif anc_data.domain.get_type() == 'cartesian_product':
         # these methods cannot handle vectorised functions.
-        acquisition = lambda x: acq_fn([x])  # TODO: or [[x]]?
+        acquisition = lambda x: acq_fn([x])
     else:
         raise NotImplementedError("Choose vectorization option for acquisition.")
 
-    # if acq_opt_method == "rand_explorer":
-    explorer = RandomExplorer(acquisition, anc_data.capital_type)
-    explorer.evolve(anc_data.max_evals)
-    opt_pt = explorer.get_best(k=1)
-    opt_val = acquisition(opt_pt)
-    print("Returning explorer's result")
-    return opt_pt
-    # else:
-    #     raise NotImplementedError("Acq opt method {} not implemented.".format(acq_opt_method))
+    if acq_opt_method == "rand_explorer":
+        explorer = RandomExplorer(acquisition, anc_data.capital_type)
+        explorer.evolve(anc_data.max_evals)
+        opt_pt = explorer.get_best(k=1)
+        opt_val = acquisition(opt_pt)
+        print("Returning explorer's result")
+        return opt_pt
+    else:
+        raise NotImplementedError("Acq opt method {} not implemented.".format(acq_opt_method))
 
 
 gpb_acquisitions.maximise_acquisition.__code__ = mol_maximise_acquisition.__code__
@@ -96,8 +84,6 @@ class GPBandit(GPBandit_):
         """ Determine the next point for evaluation. """
         curr_acq = self._get_next_acq()
         anc_data = self._get_ancillary_data_for_acquisition(curr_acq)
-        assert anc_data.acq_opt_method == "rand_explorer",  anc_data.acq_opt_method
-        # print(id(anc_data))
 
         anc_data.capital_type = self.capital_type
         select_pt_func = getattr(gpb_acquisitions.asy, curr_acq)  # <---- here
@@ -130,13 +116,14 @@ class GPBandit(GPBandit_):
         self.acq_probs = self.acq_probs / self.acq_probs.sum()
         assert len(self.acq_probs) == len(self.acqs_to_use)
 
-# Some additional modifications------------------------------------------------
+# Sampling initial data from the domain ---------------------------------------
 
 def get_cp_domain_initial_qinfos(domain, num_samples, fidel_space=None, fidel_to_opt=None,
                                 set_to_fidel_to_opt_with_prob=None,
                                 dom_euclidean_sample_type='latin_hc',
                                 dom_integral_sample_type='latin_hc',
                                 dom_nn_sample_type='rand',
+                                # dom_mol_sample_type='rand', <-- one option
                                 fidel_space_euclidean_sample_type='latin_hc',
                                 fidel_space_integral_sample_type='latin_hc',
                                 fidel_space_nn_sample_type='rand'):
@@ -158,7 +145,7 @@ class CPGPBandit(GPBandit):
     def __init__(self, func_caller, worker_manager, is_mf=False,
                  domain_dist_computers=None, options=None, reporter=None):
         """ Constructor. """
-        if options is None:
+        if options is None:  # never gets called, otherwise imports would fail below:
             reporter = get_reporter(reporter)
             if is_mf:
                 all_args = get_all_mf_euc_gp_bandit_args()

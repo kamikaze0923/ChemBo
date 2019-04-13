@@ -2,7 +2,11 @@
 CartesianProductGP implementation working on molecular domains.
 Kernels are in mols/mol_kernels.py
 @author: kkorovin@cs.cmu.edu
+
+TODO:
+* check values in get_molecular_kernel
 """
+
 # general imports
 import numpy as np
 from argparse import Namespace
@@ -30,6 +34,7 @@ import dragonfly.gp.cartesian_product_gp as cartesian_product_gp
 # TODO: append to this list the mol-dependent args
 cartesian_product_gp_args += [get_option_specs('dom_mol_kernel_type', False, 'default',
                                                'Kernel type for Mol Domains.'),]
+
 # Default kernel type for molecule domain
 _DFLT_DOMAIN_MOL_KERNEL_TYPE = "edgehist_kernel"
 
@@ -119,12 +124,12 @@ def get_molecular_kernel(kernel_type, kernel_hyperparams,
     # (if those are lists)
     if kernel_hyperparams["kernel_type"] == "wl_kernel":
         #kernel_hyperparams["int_par"] = gp_dscr_hps.pop(0)
-        kernel_hyperparams["int_par"] = gp_dscr_hps[-1]
-        gp_dscr_hps = gp_dscr_hps[:-1]
+        kernel_hyperparams["int_par"] = gp_dscr_hps[0]
+        gp_dscr_hps = gp_dscr_hps[1:]
     elif kernel_hyperparams["kernel_type"] == "edgehist_kernel":
         #kernel_hyperparams["cont_par"] = gp_cts_hps.pop(0)
-        kernel_hyperparams["cont_par"] = gp_cts_hps[-1]
-        gp_cts_hps = gp_cts_hps[:-1]
+        kernel_hyperparams["cont_par"] = gp_cts_hps[0]
+        gp_cts_hps = gp_cts_hps[1:]
     else:
         raise ValueError("Unrecognized kernel type:%s for molecule domain"
                          %kernel_hyperparams["kernel_type"])

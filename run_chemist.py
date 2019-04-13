@@ -58,7 +58,7 @@ def main():
     reporter = get_reporter(open(LOG_FILE, 'w'))
 
     objective_func = get_objective_by_name("logp")  # just a function
-    train_params = Namespace(data_dir=MOL_DATA_DIR)  # TODO: use this?
+    train_params = Namespace(data_dir=MOL_DATA_DIR, dataset=DATASET)  # TODO: use this?
     func_caller = MolFunctionCaller(objective_func,
                                     config=None,
                                     train_params=train_params,  # maybe not needed
