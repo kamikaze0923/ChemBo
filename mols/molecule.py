@@ -61,8 +61,22 @@ class Molecule:
         return smiles
 
     def to_rdkit(self):
+        """
+        Converter to rdkit library format, which is
+        used for computation of molecular properties
+        and for synthesis. Performs a validity check.
+
+        Returns:
+            rdkit.Mol -- molecule in RDKit format
+        
+        Raises:
+            ValueError -- if SMILES cannot be decoded
+                        into a chemically valid molecule.
+        """
         if self.rdk is None:
             self.rdk = Chem.MolFromSmiles(self.smiles)
+        if self.rdk is None:
+            raise ValueError(f"Molecule {self.smiles} is not valid.")
         return self.rdk
 
     def to_graph(self, gformat="igraph", set_properties=False):
