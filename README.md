@@ -6,7 +6,7 @@ DOE framework for joint molecular optimization and synthesis
 
 ## Structure of the repo
 
-* `run_chemist.py` script illustrates usage of the classes.
+* `experiments` directory contains experiment scripts. In particular, `run_chemist.py` script illustrates usage of the classes.
 * `chemist_opt` directory isolates the Chemist class which performs joint optimization and synthesis. Contains harnesses for calling molecular functions (`MolFunctionCaller`) and handling optimization over molecular domains (`MolDomain`). Calls for `mols` and `explore`.
 * `explore` implements the exploration of molecular domain. Calls for `synth`.
 * `mols` contains the `Molecule` class and a few example of objective function definitions, as well as implementations of molecular versions of all components needed for BO to work: `MolCPGP` and `MolCPGPFitter` class and molecular kernels.

@@ -1,1 +1,1 @@
-export PYTHONPATH=":$PWD/rdkit_contrib:$PWD/synth/:$PWD/synth/rexgen_direct"
+export PYTHONPATH="$PWD:$PWD/rdkit_contrib:$PWD/synth/:$PWD/synth/rexgen_direct"

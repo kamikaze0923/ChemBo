@@ -3,8 +3,10 @@ Class that performs molecule space traversal.
 @author: kkorovin@cs.cmu.edu
 
 TODO:
+* add function evaluation counting
 * better handling of fitness_func arguments
   (lists vs args etc.)
+
 """
 
 import numpy as np
@@ -22,11 +24,10 @@ from datasets.loaders import get_chembl_prop, get_initial_pool
 
 
 class Explorer:
-    """
-    TODO: common interface to-be
-    """
-    pass
-
+    def __init__(self):
+        pass
+    def evolve(self):
+        pass
 
 class RandomExplorer(Explorer):
     """

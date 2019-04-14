@@ -36,12 +36,11 @@ DATASET = "" # TODO
 MOL_DATA_DIR = 'chembl-data'
 
 # Where to store temporary model checkpoints
-EXP_DIR = 'experiment_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
+EXP_DIR = './experiment_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
 LOG_FILE = os.path.join(EXP_DIR, 'log')
-TMP_DIR = './tmp_' + DATASET
 
 N_WORKERS = 1
-BUDGET = 10
+BUDGET = 100
 
 
 # Runner ----------------------------------------------------------------------
@@ -51,7 +50,6 @@ def main():
         shutil.rmtree(TMP_DIR)
     if os.path.exists(EXP_DIR):
         shutil.rmtree(EXP_DIR)
-    os.mkdir(TMP_DIR)
     os.mkdir(EXP_DIR)
 
     # Obtain a reporter
