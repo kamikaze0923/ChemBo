@@ -10,15 +10,11 @@ import numpy as np
 from mols.molecule import Molecule
 
 
-class ChemDistComputer(object):
+class ChemDistanceComputer:
   """ An abstract class for distance computation among chemical molecules. Adapted
       from NNDistanceComputer class in
       github.com/kirthevasank/nasbot/blob/master/nn/nn_comparators.py
   """
-
-  def __init__(self):
-    """ Constructor. """
-    super(ChemDistanceComputer, self).__init__()
 
   def __call__(self, X1, X2, *args, **kwargs):
     """ Evaluates the distances by calling evaluate. """
@@ -29,27 +25,27 @@ class ChemDistComputer(object):
         If X1 and X2 are single chemical molecules, returns a scalar. """
     if isinstance(X1, Molecule) and isinstance(X2, Molecule):
       return self.evaluate_single(X1, X2, *args, **kwargs)
-    else:
-      n1 = len(X1)
-      n2 = len(X2)
-      X2 = X2 if X2 is not None else X1
-      x1_is_x2 = X1 is X2
+    # Otherwise, compute a matrix of dissimilarities --------------------
+    n1 = len(X1)
+    n2 = len(X2)
+    X2 = X2 if X2 is not None else X1
+    x1_is_x2 = X1 is X2
 
-      all_ret = None
-      es_is_iterable = None
-      for i, x1 in enumerate(X1):
-        X2_idxs = range(i, n2) if x1_is_x2 else range(n2)
-        for j in X2_idxs:
-          x2 = X2[j]
-          # Compute the distances
-          curr_ret = self.evaluate_single(x1, x2, *args, **kwargs)
-          all_ret, es_is_iterable = self._add_to_all_ret(curr_ret, i, j, n1, n2,
+    all_ret = None
+    es_is_iterable = None
+    for i, x1 in enumerate(X1):
+      X2_idxs = range(i, n2) if x1_is_x2 else range(n2)
+      for j in X2_idxs:
+        x2 = X2[j]
+        # Compute the distances
+        curr_ret = self.evaluate_single(x1, x2, *args, **kwargs)
+        all_ret, es_is_iterable = self._add_to_all_ret(curr_ret, i, j, n1, n2,
+                                                       all_ret, es_is_iterable)
+        # Check if we need to do j and i as well.
+        if x1_is_x2:
+          all_ret, es_is_iterable = self._add_to_all_ret(curr_ret, j, i, n1, n2,
                                                          all_ret, es_is_iterable)
-          # Check if we need to do j and i as well.
-          if x1_is_x2:
-            all_ret, es_is_iterable = self._add_to_all_ret(curr_ret, j, i, n1, n2,
-                                                           all_ret, es_is_iterable)
-      return all_ret
+    return all_ret
 
   @classmethod
   def _add_to_all_ret(cls, curr_ret, i, j, n1, n2, all_ret=None, es_is_iterable=None):
@@ -62,8 +58,8 @@ class ChemDistComputer(object):
         es_is_iterable = False
         all_ret = np.zeros((n1, n2))
     if es_is_iterable:
-      for k in range(len(curr_ret)):
-        all_ret[k][i, j] = curr_ret[k]
+      for k, curr_ret_elem in enumerate(curr_ret):
+        all_ret[k][i, j] = curr_ret_elem
     else:
       all_ret[i, j] = curr_ret
     return all_ret, es_is_iterable
