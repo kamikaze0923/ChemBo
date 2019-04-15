@@ -46,8 +46,6 @@ BUDGET = 100
 # Runner ----------------------------------------------------------------------
 def main():
     # Make directories
-    if os.path.exists(TMP_DIR):
-        shutil.rmtree(TMP_DIR)
     if os.path.exists(EXP_DIR):
         shutil.rmtree(EXP_DIR)
     os.mkdir(EXP_DIR)

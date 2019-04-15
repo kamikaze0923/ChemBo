@@ -35,13 +35,13 @@ from dragonfly.utils.general_utils import transpose_list_of_lists
 from dragonfly.gp.cartesian_product_gp import CPGPFitter, CPMFGPFitter
 
 from mols.mol_gp import cartesian_product_gp_args, MolCPGPFitter
-from explore.mol_explorer import RandomExplorer
+from explorer.mol_explorer import RandomExplorer
 from mols.mol_domains import sample_mols_from_cartesian_domain
 
 
 def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
     """ returns optimal point """
-    from explore.mol_explorer import RandomExplorer  # TODO: think how to optimize import time
+    from explorer.mol_explorer import RandomExplorer  # TODO: think how to optimize import time
     acq_opt_method = anc_data.acq_opt_method
 
     if anc_data.domain.get_type() == 'euclidean':

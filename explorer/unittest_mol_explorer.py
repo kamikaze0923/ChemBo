@@ -10,7 +10,7 @@ from time import time
 from rdkit import Chem
 
 # Local imports
-from explore.mol_explorer import RandomExplorer
+from explorer.mol_explorer import RandomExplorer
 from datasets.loaders import get_chembl_prop
 from mols.molecule import Molecule
 from rdkit_contrib.sascorer import calculateScore as calculateSAScore

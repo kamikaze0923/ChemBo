@@ -2,16 +2,16 @@
 
 *Authors: Ksenia Korovina (kkorovin@cs.cmu.edu), Celsius Xu*
 
-DOE framework for joint molecular optimization and synthesis
+Dragonfly Chemist is library for joint molecular optimization and synthesis. It is based on Dragonfly - a framework for scalable Bayesian optimization.
 
 ## Structure of the repo
 
-* `experiments` directory contains experiment scripts. In particular, `run_chemist.py` script illustrates usage of the classes.
-* `chemist_opt` directory isolates the Chemist class which performs joint optimization and synthesis. Contains harnesses for calling molecular functions (`MolFunctionCaller`) and handling optimization over molecular domains (`MolDomain`). Calls for `mols` and `explore`.
-* `explore` implements the exploration of molecular domain. Calls for `synth`.
-* `mols` contains the `Molecule` class and a few example of objective function definitions, as well as implementations of molecular versions of all components needed for BO to work: `MolCPGP` and `MolCPGPFitter` class and molecular kernels.
-* `synth` is responsible for performing forward synthesis (using a third-party repo).
-* `rdkit_contrib` is an extension to rdkit that provides computation of a few molecular scores.
+* `experiments` package contains experiment scripts. In particular, `run_chemist.py` script illustrates usage of the classes.
+* `chemist_opt` package isolates the Chemist class which performs joint optimization and synthesis. Contains harnesses for calling molecular functions (`MolFunctionCaller`) and handling optimization over molecular domains (`MolDomain`). Calls for `mols` and `explore`.
+* `explorer` implements the exploration of molecular domain. Currently, a `RandomExplorer` is implemented, which explores reactions randoml, starting from a given pool. Calls for `synth`.
+* `mols` contains the `Molecule` class, the `Reaction` class, a few examples of objective function definitions, as well as implementations of molecular versions of all components needed for BO to work: `MolCPGP` and `MolCPGPFitter` class and molecular kernels.
+* `synth` is responsible for performing forward synthesis.
+* `rdkit_contrib` is an extension to rdkit that provides computation of a few molecular scores (for older versions of `rdkit`).
 
 
 ## Getting started
