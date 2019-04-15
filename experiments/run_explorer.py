@@ -12,7 +12,7 @@ import numpy as np
 from explore.mol_explorer import RandomExplorer
 from mols.mol_functions import get_objective_by_name
 from datasets.loaders import get_chembl
-from synth.validators import compute_min_sa_score
+from synth.validators import compute_min_sa_score, check_validity
 
 
 def explore_and_validate_synth(n_steps):
@@ -31,16 +31,15 @@ def explore_and_validate_synth(n_steps):
     exp.evolve(n_steps)
 
     top = exp.get_best(1)[0]
-    syn_path = top.get_synthesis_path()
+    print(f"Is a valid molecule: {check_validity(top)}")
     print(f"Top score: {sas_func(top)}")
-    min_sa_score = compute_min_sa_score(syn_path)
-    print(f"Minimum synthesis score over the path: {min_sa_score}")
+    print(f"Minimum synthesis score over the path: {compute_min_sa_score(top)}")
 
     sorted_by_prop = sorted(pool, key=sas_func)[-5:]
     for opt_mol in sorted_by_prop:
-        min_sa_score = compute_min_sa_score(opt_mol.get_synthesis_path())
+        min_sa_score = compute_min_sa_score(opt_mol)
         print(f"Minimum synthesis score of optimal molecules: {min_sa_score}")
 
 
 if __name__ == "__main__":
-    explore_and_validate_synth(10)
+    explore_and_validate_synth(3)
