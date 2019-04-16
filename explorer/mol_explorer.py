@@ -19,7 +19,7 @@ from time import time
 from synth.forward_synth import RexgenForwardSynthesizer
 from rdkit import Chem
 from rdkit_contrib.sascorer import calculateScore as calculateSAScore
-from mols.molecule import Molecule
+from mols.molecule import Molecule, Reaction
 from datasets.loaders import get_chembl_prop, get_initial_pool
 
 
@@ -63,7 +63,8 @@ class RandomExplorer(Explorer):
         mols = np.random.choice(self.pool, size=r_size)
 
         # evolve
-        outcomes = self.synth.predict_outcome(mols)
+        reaction = Reaction(mols)
+        outcomes = self.synth.predict_outcome(reaction)
         top_outcome = sorted(outcomes, key=lambda mol: self.fitness_func([mol]))[-1]
         print("Newly generated mol value:", self.fitness_func([top_outcome]))
         self.pool.append(top_outcome)

@@ -1,8 +1,11 @@
 """
-Molecule class definition.
+Molecule and Reaction classes definitions.
 @author: kkorovin@cs.cmu.edu
 
-Binds in the rdkit molecule definition.
+Molecule provides conversions between string, graph-based
+and rdkit.Mol representations of a molecule.
+Reaction wraps together reagents, conditions (e.g. reactants),
+and products of the reaction (need to be set).
 
 TODO:
 * fix conversion to same-sized molecular fingerprints
@@ -33,11 +36,11 @@ class Molecule:
             smiles {str} -- SMILES representation of a molecule (default: {None})
             rdk {rdkit Mol} -- molecule as an RDKit object (default: {None})
             conv_enabled {bool} -- whether to set both smiles and graph
-                                   arguments here or lazily defer until called
-                                   (default: {False})
+               arguments here or lazily defer until called
+               (default: {False})
         Raises:
             ValueError -- if neither a correct smiles string
-                            or a rdkit mol are provided
+                or a rdkit mol are provided
         """
         if conv_enabled:
             if isinstance(smiles, str):
@@ -171,9 +174,26 @@ def mol2graph_networkx(mol, set_properties=False):
     return graph
 
 
-# class Reaction:
-#     def __init__(self, inputs, outputs):
-#         self.inputs = inputs  # list of Molecules
-#         self.outputs = outputs  # list of Molecules
+class Reaction:
+    def __init__(self, inputs, products=None, conditions=None):
+        """Class to represent a chemical reaction.
+
+        Reactants vs reagents: former contribute atoms, latter don't.
+
+        Arguments:
+            inputs {list[Molecule]} -- list of reactants
+
+        Keyword Arguments:
+            products {[type]} -- predicted results of reaction,
+                ranked by likelihood (default: {None})
+            conditions {[type]} -- reagents (default: {None})
+        """
+        self.inputs = inputs
+        self.products = products
+        self.conditions = conditions
+
+    def set_products(self, ranked_outcomes):
+        if self.products is None:
+            self.products = ranked_outcomes
 
 

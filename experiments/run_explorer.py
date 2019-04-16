@@ -9,7 +9,7 @@ and for validation of explored output.
 from time import time
 import numpy as np
 
-from explore.mol_explorer import RandomExplorer
+from explorer.mol_explorer import RandomExplorer
 from mols.mol_functions import get_objective_by_name
 from datasets.loaders import get_chembl
 from synth.validators import compute_min_sa_score, check_validity

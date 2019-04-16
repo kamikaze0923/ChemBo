@@ -4,9 +4,9 @@ Module for BO with graph kernel and synthesizeable exploration.
 
 Available Explorers: 'rand_explorer', ...
 
-TODO: may need to implement:
-* Molecular domain (if cart prod does not work)
-* corresponding MolGPBandit
+TODO:
+* make a class with options for different explorers,
+  starter datasets, etc.
 
 """
 
@@ -22,6 +22,11 @@ from dragonfly.exd.worker_manager import RealWorkerManager, SyntheticWorkerManag
 from dragonfly.exd.exd_utils import get_cp_domain_initial_qinfos
 
 from chemist_opt.gp_bandit import CPGPBandit, get_cp_domain_initial_qinfos
+
+
+class Chemist:
+    def __init__(self):
+        raise NotImplementedError
 
 
 def optimize_chemist(func_caller, worker_manager, max_capital, is_mf=False, mode=None,
