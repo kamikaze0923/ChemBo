@@ -98,7 +98,7 @@ class QPChemDistanceComputer(ChemDistanceComputer):
 
   def __init__(self, struct_pen_coeffs, mislabel_pen_coeffs=None,
                mass_assignment_methods='equal-atomic_mass-sqrt_atomic_mass',
-               non_assignment_penalty=1.0, nonexist_non_assignment_penalty=1.0):
+               non_assignment_penalty=1.0, nonexist_non_assignment_penalty_vals=1.0):
     """ Constructor.
         struct_pen_coeffs: A list of coefficients for the structural penalty term.
         mislabel_pen_coeffs: A list of coefficients for the mislabel penalty.
@@ -117,36 +117,47 @@ class QPChemDistanceComputer(ChemDistanceComputer):
       raise ValueError(('struct_pen_coeffs(%d) and mislabel_pen_coeffs(%d) should be' +
                         'of same length.')%(
                             len(struct_pen_coeffs), len(mislabel_pen_coeffs)))
+    if not hasattr(nonexist_non_assignment_penalty_vals, '__iter__'):
+      nonexist_non_assignment_penalty_vals = [nonexist_non_assignment_penalty_vals]
     # Assign attributes
     self.struct_pen_coeffs = struct_pen_coeffs
     self.mislabel_pen_coeffs = mislabel_pen_coeffs
     self.mass_assignment_methods = mass_assignment_methods.split('-')
     self.non_assignment_penalty = non_assignment_penalty
-    self.nonexist_non_assignment_penalty = nonexist_non_assignment_penalty
+    self.nonexist_non_assignment_penalty_vals = nonexist_non_assignment_penalty_vals
     super(QPChemDistanceComputer, self).__init__()
 
   def evaluate_single(self, x1, x2, *args, **kwargs):
     """ Evaluates the distance between two chemical molecules x1 and x2. """
     x1_graph_data = get_graph_data_for_distance_computation(x1)
     x2_graph_data = get_graph_data_for_distance_computation(x2)
-    matching_matrix = self._get_matching_matrix(x1_graph_data.atomic_symbols,
-                                                x2_graph_data.atomic_symbols)
-    print(matching_matrix)
-    import pdb; pdb.set_trace()
+    dissimilarity_matrices = self._get_dissimilarity_matrices(
+        x1_graph_data.atomic_symbols, x2_graph_data.atomic_symbols)
+    # First iterate through each nonexist_non_assignment_penalty_vals value
     ret = []
-    for mass_assignment_method in self.mass_assignment_methods:
-      # Total mass vectors
-      x1_masses = self._get_mass_vector(x1_graph_data, mass_assignment_method)
-      x2_masses = self._get_mass_vector(x2_graph_data, mass_assignment_method)
-      for stru_coef, misl_coef in zip(self.struct_pen_coeffs, self.mislabel_pen_coeffs):
-        curr_dist = 0.0
-        ret.append(curr_dist)
-    return ret
+    print(self.nonexist_non_assignment_penalty_vals)
+    for nonexist_nas_pen in self.nonexist_non_assignment_penalty_vals:
+      matching_matrix = \
+          self._get_matching_matrix_from_dissimilarity_matrices_and_non_assignment_coeffs(
+              self.non_assignment_penalty, nonexist_nas_pen, *dissimilarity_matrices)
+      print(x1, x2)
+      print(matching_matrix)
+      import pdb; pdb.set_trace()
+#       for mass_assignment_method in self.mass_assignment_methods:
+#         # Total mass vectors
+#         x1_masses = self._get_mass_vector(x1_graph_data, mass_assignment_method)
+#         x2_masses = self._get_mass_vector(x2_graph_data, mass_assignment_method)
+#         for stru_coef, misl_coef in zip(self.struct_pen_coeffs,
+#                                         self.mislabel_pen_coeffs):
+#           curr_dist = 0.0
+#           ret.append(curr_dist)
+      return ret
 
-  def _get_matching_matrix(self, list_of_atoms_1, list_of_atoms_2):
-    """ Returns matching matrices. """
+  def _get_dissimilarity_matrices(self, list_of_atoms_1, list_of_atoms_2):
+    """ Returns the dissimilarity matrices. """
     x1_x2_sim_mat, unique_atoms, x1_unique_sim_mat, x2_unique_sim_mat = \
         self._get_similarity_matrices(list_of_atoms_1, list_of_atoms_2)
+    print('unique_atoms', unique_atoms)
     mol_1_mol_2_dissim_mat = get_matching_matrix_from_similarity_matrix(
         x1_x2_sim_mat, 0.0, np.inf)
     raw_mol_1_unique_dissim_mat = get_matching_matrix_from_similarity_matrix(
@@ -156,25 +167,43 @@ class QPChemDistanceComputer(ChemDistanceComputer):
     # Checking for atoms in one that do not exist in another.
     x1_unique_atoms = get_unique_elements(list_of_atoms_1)
     x2_unique_atoms = get_unique_elements(list_of_atoms_2)
-    mol_1_unique_multiplier = np.ones((len(unique_atoms), )) * self.non_assignment_penalty
-    mol_2_unique_multiplier = np.ones((len(unique_atoms), )) * self.non_assignment_penalty
+    mol_1_unique_nonexist_multiplier = [False] * len(unique_atoms)
+    mol_2_unique_nonexist_multiplier = [False] * len(unique_atoms)
     for idx, atom in enumerate(unique_atoms):
       if atom not in x2_unique_atoms:
-        mol_1_unique_multiplier[idx] = self.nonexist_non_assignment_penalty
+        mol_1_unique_nonexist_multiplier[idx] = True
       if atom not in x1_unique_atoms:
-        mol_2_unique_multiplier[idx] = self.nonexist_non_assignment_penalty
-    mol_1_unique_dissim_mat = raw_mol_1_unique_dissim_mat * mol_1_unique_multiplier
-    mol_2_unique_dissim_mat = raw_mol_2_unique_dissim_mat * mol_2_unique_multiplier
+        mol_2_unique_nonexist_multiplier[idx] = True
     # Construct last block of the matching matrix
     num_unique = len(unique_atoms)
-    last_block = np.inf * (np.ones((num_unique, num_unique)) - np.eye(num_unique))
+    last_block = np.inf * np.ones((num_unique, num_unique))
+    np.fill_diagonal(last_block, 0.0)
+    return (mol_1_mol_2_dissim_mat,
+            raw_mol_1_unique_dissim_mat, raw_mol_2_unique_dissim_mat,
+            mol_1_unique_nonexist_multiplier, mol_2_unique_nonexist_multiplier,
+            last_block)
+
+  @classmethod
+  def _get_matching_matrix_from_dissimilarity_matrices_and_non_assignment_coeffs(
+      cls, non_assignment_penalty, nonexist_non_assignment_penalty,
+      mol_1_mol_2_dissim_mat,
+      raw_mol_1_unique_dissim_mat, raw_mol_2_unique_dissim_mat,
+      mol_1_unique_nonexist_multiplier, mol_2_unique_nonexist_multiplier, last_block):
+    """ Return the matching matrices from the dissimilarity matrices. """
+    mol_1_unique_multiplier = np.array([
+        nonexist_non_assignment_penalty if elem else non_assignment_penalty
+        for elem in mol_1_unique_nonexist_multiplier])
+    mol_2_unique_multiplier = np.array([
+        nonexist_non_assignment_penalty if elem else non_assignment_penalty
+        for elem in mol_2_unique_nonexist_multiplier])
+    mol_1_unique_dissim_mat = raw_mol_1_unique_dissim_mat * mol_1_unique_multiplier
+    mol_2_unique_dissim_mat = raw_mol_2_unique_dissim_mat * mol_2_unique_multiplier
     # Stack them together
     matching_matrix = np.vstack(
         (np.hstack((mol_1_mol_2_dissim_mat, mol_1_unique_dissim_mat)),
          np.hstack((mol_2_unique_dissim_mat.T, last_block)))
         )
     return matching_matrix
-
 
   @classmethod
   def _get_similarity_matrices(cls, list_of_atoms_1, list_of_atoms_2):

@@ -29,9 +29,9 @@ class DistComputerTestCases(BaseTestClass):
     """ Set up. """
     self.data_file_names = ['data_alkanes.txt', 'data_prop.txt']
 #     self.data_file_names = ['data_prop.txt']
-    self.qp_dist_computer = QPChemDistanceComputer([0.5, 1.0, 2.0],
-                                                   non_assignment_penalty=1.0,
-                                                   nonexist_non_assignment_penalty=3.0)
+    self.qp_dist_computer = QPChemDistanceComputer(
+        [0.5, 1.0, 2.0], non_assignment_penalty=1.0,
+        nonexist_non_assignment_penalty_vals=[3.0, 6.0])
 
   def test_distance_computation(self):
     """ Test for distance computation. """
