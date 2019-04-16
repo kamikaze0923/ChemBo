@@ -96,68 +96,67 @@ def get_graph_data_for_distance_computation(mol):
 class QPChemDistanceComputer(ChemDistanceComputer):
   """ A distance between chemical molecules based on Quadratic Programming. """
 
-  def __init__(self, struct_pen_coeffs, mislabel_pen_coeffs=None,
-               mass_assignment_methods='equal-atomic_mass-sqrt_atomic_mass',
-               non_assignment_penalty=1.0, nonexist_non_assignment_penalty_vals=1.0):
+  def __init__(self,
+               struct_pen_coeffs,
+               mass_assignment_method='equal-atomic_mass',
+               normalisation_method='num_carbon_atoms',
+               non_assignment_penalty=1.0,
+               nonexist_non_assignment_penalty_vals=1.0):
     """ Constructor.
         struct_pen_coeffs: A list of coefficients for the structural penalty term.
-        mislabel_pen_coeffs: A list of coefficients for the mislabel penalty.
         mass_assignment_method: A string indicating how the masses should be assigned
                                 to each atom. If equal, we will use equal (unit) mass
                                 for all atoms. If atomic_mass, we will use atomic mass.
+        normalisation_method: How to normalise for the different sizes of the molecules.
         non_assignment_penalty: The non-assignment penalty.
         nonexist_non_assignment_penalty: The non-assignment penalty if the particular
                                          atom does not exist in the other molecule.
     """
-    if mislabel_pen_coeffs is None:
-      mislabel_pen_coeffs = 1.0
-    if not hasattr(mislabel_pen_coeffs, '__iter__'):
-      mislabel_pen_coeffs = [mislabel_pen_coeffs] * len(struct_pen_coeffs)
-    if len(struct_pen_coeffs) != len(mislabel_pen_coeffs):
-      raise ValueError(('struct_pen_coeffs(%d) and mislabel_pen_coeffs(%d) should be' +
-                        'of same length.')%(
-                            len(struct_pen_coeffs), len(mislabel_pen_coeffs)))
     if not hasattr(nonexist_non_assignment_penalty_vals, '__iter__'):
       nonexist_non_assignment_penalty_vals = [nonexist_non_assignment_penalty_vals]
     # Assign attributes
     self.struct_pen_coeffs = struct_pen_coeffs
-    self.mislabel_pen_coeffs = mislabel_pen_coeffs
-    self.mass_assignment_methods = mass_assignment_methods.split('-')
+    self.mass_assignment_methods = mass_assignment_method.split('-')
+    self.normalisation_methods = normalisation_method.split('-')
     self.non_assignment_penalty = non_assignment_penalty
     self.nonexist_non_assignment_penalty_vals = nonexist_non_assignment_penalty_vals
     super(QPChemDistanceComputer, self).__init__()
 
   def evaluate_single(self, x1, x2, *args, **kwargs):
     """ Evaluates the distance between two chemical molecules x1 and x2. """
+    # The following are the same to compute for all different options
     x1_graph_data = get_graph_data_for_distance_computation(x1)
     x2_graph_data = get_graph_data_for_distance_computation(x2)
+    unique_atoms = get_unique_elements(x1_graph_data.atomic_symbols +
+                                       x2_graph_data.atomic_symbols)
     dissimilarity_matrices = self._get_dissimilarity_matrices(
-        x1_graph_data.atomic_symbols, x2_graph_data.atomic_symbols)
-    # First iterate through each nonexist_non_assignment_penalty_vals value
+        unique_atoms, x1_graph_data.atomic_symbols, x2_graph_data.atomic_symbols)
     ret = []
-    print(self.nonexist_non_assignment_penalty_vals)
+    # nonexist_non_assignment_penalty_vals -----------------------------------------------
     for nonexist_nas_pen in self.nonexist_non_assignment_penalty_vals:
       matching_matrix = \
           self._get_matching_matrix_from_dissimilarity_matrices_and_non_assignment_coeffs(
               self.non_assignment_penalty, nonexist_nas_pen, *dissimilarity_matrices)
-      print(x1, x2)
+      print(x1, x2, unique_atoms, nonexist_nas_pen)
       print(matching_matrix)
-      import pdb; pdb.set_trace()
-#       for mass_assignment_method in self.mass_assignment_methods:
-#         # Total mass vectors
-#         x1_masses = self._get_mass_vector(x1_graph_data, mass_assignment_method)
-#         x2_masses = self._get_mass_vector(x2_graph_data, mass_assignment_method)
-#         for stru_coef, misl_coef in zip(self.struct_pen_coeffs,
-#                                         self.mislabel_pen_coeffs):
-#           curr_dist = 0.0
-#           ret.append(curr_dist)
-      return ret
+      print()
+#       import pdb; pdb.set_trace()
+      # mass_assignment_methods ----------------------------------------------------------
+      for mass_asgn_meth in self.mass_assignment_methods:
+        # normalisation_methods ----------------------------------------------------------
+        for norm_meth in self.normalisation_methods:
+          x1_masses = self._get_mass_vector(x1_graph_data, mass_asgn_meth, norm_meth)
+          x2_masses = self._get_mass_vector(x2_graph_data, mass_asgn_meth, norm_meth)
+          # struct_pen_coeffs ------------------------------------------------------------
+          for stru_coef in zip(self.struct_pen_coeffs):
+            curr_dist = 0.0
+            ret.append(curr_dist)
+    return ret
 
-  def _get_dissimilarity_matrices(self, list_of_atoms_1, list_of_atoms_2):
+  def _get_dissimilarity_matrices(self, unique_atoms, list_of_atoms_1, list_of_atoms_2):
     """ Returns the dissimilarity matrices. """
-    x1_x2_sim_mat, unique_atoms, x1_unique_sim_mat, x2_unique_sim_mat = \
-        self._get_similarity_matrices(list_of_atoms_1, list_of_atoms_2)
-    print('unique_atoms', unique_atoms)
+    x1_x2_sim_mat, x1_unique_sim_mat, x2_unique_sim_mat = \
+        self._get_similarity_matrices(unique_atoms, list_of_atoms_1, list_of_atoms_2)
     mol_1_mol_2_dissim_mat = get_matching_matrix_from_similarity_matrix(
         x1_x2_sim_mat, 0.0, np.inf)
     raw_mol_1_unique_dissim_mat = get_matching_matrix_from_similarity_matrix(
@@ -206,25 +205,34 @@ class QPChemDistanceComputer(ChemDistanceComputer):
     return matching_matrix
 
   @classmethod
-  def _get_similarity_matrices(cls, list_of_atoms_1, list_of_atoms_2):
+  def _get_similarity_matrices(cls, unique_atoms, list_of_atoms_1, list_of_atoms_2):
     """ Return similrity matrices. """
     x1_x2_sim_mat = get_atom_type_similarity_matrix(list_of_atoms_1, list_of_atoms_2)
-    unique_atoms = get_unique_elements(list_of_atoms_1 + list_of_atoms_2)
     x1_unique_sim_mat = get_atom_type_similarity_matrix(list_of_atoms_1, unique_atoms)
     x2_unique_sim_mat = get_atom_type_similarity_matrix(list_of_atoms_2, unique_atoms)
-    return x1_x2_sim_mat, unique_atoms, x1_unique_sim_mat, x2_unique_sim_mat
-
+    return x1_x2_sim_mat, x1_unique_sim_mat, x2_unique_sim_mat
 
   @classmethod
-  def _get_mass_vector(cls, graph_data, mass_assignment_method):
+  def _get_mass_vector(cls, graph_data, mass_assignment_method, normalisation_method):
     """ Returns mass vector. """
     # pylint: disable=no-else-return
+    # Compute masses
     if mass_assignment_method == 'equal':
-      return [1.0] * graph_data.num_atoms
+      ret = [1.0] * graph_data.num_atoms
     elif mass_assignment_method == 'atomic_mass':
-      return graph_data.atomic_numbers
+      ret = graph_data.atomic_numbers
     elif mass_assignment_method == 'sqrt_atomic_mass':
-      return [np.sqrt(x) for x in graph_data.atomic_numbers]
+      ret = [np.sqrt(x) for x in graph_data.atomic_numbers]
     else:
       raise ValueError('Unknown mass_assignment_method %s.'%(mass_assignment_method))
+    # Normalise
+    if normalisation_method == 'none':
+      pass
+    elif normalisation_method == 'num_carbon_atoms':
+      num_carbon_atoms = sum([elem == 'C' for elem in graph_data.atomic_symbols])
+      ret = [x/float(num_carbon_atoms) for x in ret]
+    elif normalisation_method == 'molecular_mass':
+      tot_molecular_mass = sum(graph_data.atomic_masses)
+      ret = [x/float(tot_molecular_mass) for x in ret]
+    return ret
 

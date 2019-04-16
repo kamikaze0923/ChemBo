@@ -1,4 +1,4 @@
-N
+CC(=N)N
 C
 CC
 CCC
