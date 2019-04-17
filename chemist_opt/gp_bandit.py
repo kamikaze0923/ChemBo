@@ -30,7 +30,7 @@ from dragonfly.opt.gp_bandit import CPGPBandit
 import dragonfly.opt.gpb_acquisitions as gpb_acquisitions
 
 # for sampling initial points
-from dragonfly.exd.exd_utils import sample_from_cp_domain
+from dragonfly.utils.general_utils import block_augment_array
 from dragonfly.utils.general_utils import transpose_list_of_lists
 from dragonfly.gp.cartesian_product_gp import CPGPFitter, CPMFGPFitter
 

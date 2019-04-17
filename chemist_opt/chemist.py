@@ -10,17 +10,11 @@ TODO:
 
 """
 
-import numpy as np
-
-from dragonfly.opt.blackbox_optimiser import blackbox_opt_args
-from dragonfly.opt.gp_bandit import GPBandit, gp_bandit_args, \
-                                    get_all_cp_gp_bandit_args
-from dragonfly.utils.general_utils import block_augment_array
+from dragonfly.opt.gp_bandit import get_all_cp_gp_bandit_args
 from dragonfly.utils.reporters import get_reporter
-from dragonfly.utils.option_handler import get_option_specs, load_options
+from dragonfly.utils.option_handler import load_options
 from dragonfly.exd.worker_manager import RealWorkerManager, SyntheticWorkerManager
 from dragonfly.exd.exd_utils import get_cp_domain_initial_qinfos
-
 from chemist_opt.gp_bandit import CPGPBandit, get_cp_domain_initial_qinfos
 
 
@@ -30,8 +24,26 @@ class Chemist:
 
 
 def optimize_chemist(func_caller, worker_manager, max_capital, is_mf=False, mode=None,
-                     acq=None, mf_strategy=None, domain_add_max_group_size=-1,
+                     acq=None, mf_strategy=None,
+                     domain_add_max_group_size=-1,
+                     domain_dist_computers=None,
                      options=None, reporter='default'):
+    """
+    :param func_caller:
+    :param worker_manager:
+    :param max_capital:
+    :param is_mf: whether multi-fidelity
+    :param mode:
+    :param acq: the default acquisition to use, if not None, will override the `options.acq`
+    :param mf_strategy:
+    :param domain_add_max_group_size:
+    :param domain_dist_computers:
+        a list of functions for each domain to compute the pairwise distance between two lists of data
+        i.e.: for two lists of length $n_1$ and $n_2$ respectively, return a $(n_1, n_2)$ matrix of pair-wise distance
+    :param options:
+    :param reporter:
+    :return:
+    """
     optimiser_constructor = CPGPBandit
     dflt_list_of_options = get_all_cp_gp_bandit_args()
 
@@ -56,7 +68,13 @@ def optimize_chemist(func_caller, worker_manager, max_capital, is_mf=False, mode
     options.get_initial_qinfos = get_initial_qinfos
 
     # create optimiser and return
-    optimiser = optimiser_constructor(func_caller, worker_manager, is_mf=is_mf,
-                                      options=options, reporter=reporter)
+    optimiser = optimiser_constructor(
+        func_caller,
+        worker_manager,
+        is_mf=is_mf,
+        options=options,
+        reporter=reporter,
+        domain_dist_computers=domain_dist_computers
+    )
     return optimiser.optimise(max_capital)
 
