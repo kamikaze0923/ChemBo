@@ -25,38 +25,38 @@ from chemist_opt.gp_bandit import CPGPBandit, get_cp_domain_initial_qinfos
 
 
 class Chemist:
-    def __init__(self):
-        raise NotImplementedError
+    def __init__(self, func_caller, worker_manager, data_source,
+                options=None, reporter='default',
+                is_mf=False, mf_strategy=None):
+        self.func_caller = func_caller
+        self.worker_manager = worker_manager
+        self.data_source = data_source
+        self.is_mf = is_mf
+        self.reporter = get_reporter(reporter)
 
+        if options is None:
+            dflt_list_of_options = get_all_cp_gp_bandit_args()
+            self.options = load_options(dflt_list_of_options,
+                                        reporter=reporter)
+        # TODO: passing explorer options
+        self.options.acq_opt_method = 'rand_explorer'
+        if mf_strategy is not None:
+            self.options.mf_strategy = mf_strategy
+        if isinstance(worker_manager, RealWorkerManager):
+            self.options.capital_type = 'realtime'
+        elif isinstance(worker_manager, SyntheticWorkerManager):
+            self.options.capital_type = 'return_value'
 
-def optimize_chemist(func_caller, worker_manager, max_capital, is_mf=False, mode=None,
-                     acq=None, mf_strategy=None, domain_add_max_group_size=-1,
-                     options=None, reporter='default'):
-    optimiser_constructor = CPGPBandit
-    dflt_list_of_options = get_all_cp_gp_bandit_args()
+        def get_initial_qinfos(num):
+            return get_cp_domain_initial_qinfos(func_caller.domain, num)
+        self.options.get_initial_qinfos = get_initial_qinfos
 
-    # TODO --------------------------------------------------------------------
-    reporter = get_reporter(reporter)
-    if options is None:
-        options = load_options(dflt_list_of_options, reporter=reporter)
-    options.acq_opt_method = 'rand_explorer'
-    if acq is not None:
-        options.acq = acq
-    if mode is not None:
-        options.mode = mode
-    if mf_strategy is not None:
-        options.mf_strategy = mf_strategy
-    if isinstance(worker_manager, RealWorkerManager):
-        options.capital_type = 'realtime'
-    elif isinstance(worker_manager, SyntheticWorkerManager):
-        options.capital_type = 'return_value'
+    def run(self, max_capital):
+        optimiser_constructor = CPGPBandit
 
-    def get_initial_qinfos(num):
-        return get_cp_domain_initial_qinfos(func_caller.domain, num)
-    options.get_initial_qinfos = get_initial_qinfos
+        # create optimiser and return
+        optimiser = optimiser_constructor(self.func_caller, self.worker_manager, is_mf=self.is_mf,
+                                          options=self.options, reporter=self.reporter)
+        return optimiser.optimise(max_capital)
 
-    # create optimiser and return
-    optimiser = optimiser_constructor(func_caller, worker_manager, is_mf=is_mf,
-                                      options=options, reporter=reporter)
-    return optimiser.optimise(max_capital)
 
