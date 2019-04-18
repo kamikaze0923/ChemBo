@@ -9,6 +9,10 @@ from rdkit.Chem import Draw
 from mols.molecule import Molecule
 
 
+def visualize_mol(mol, path):
+    img = draw_molecule(mol)
+    img.save(path)
+
 def draw_molecule(mol):
     """ Elementary drawing utility.
 

@@ -22,7 +22,7 @@ def compute_min_sa_score(mol):
         for mol, syn_graph in syn.items():
             if mol.begin_flag:
                 return sa_score(mol)
-            res = min(res, get_min_score(sn_graph))
+            res = min(res, get_min_score(syn_graph))
         return res
     synthesis_path = mol.get_synthesis_path()
     if isinstance(synthesis_path, dict):

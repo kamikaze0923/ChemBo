@@ -12,7 +12,7 @@ Dragonfly Chemist is library for joint molecular optimization and synthesis. It 
 * `mols` contains the `Molecule` class, the `Reaction` class, a few examples of objective function definitions, as well as implementations of molecular versions of all components needed for BO to work: `MolCPGP` and `MolCPGPFitter` class and molecular kernels.
 * `synth` is responsible for performing forward synthesis.
 * `rdkit_contrib` is an extension to rdkit that provides computation of a few molecular scores (for older versions of `rdkit`).
-
+* `baselines` contains wrappers for models we compare against.
 
 ## Getting started
 

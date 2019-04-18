@@ -75,7 +75,7 @@ class RexgenForwardSynthesizer(ForwardSynthesizer):
 
         res = []
         for out in outcomes[:k]:
-            smiles = out["smiles"][0]
+            smiles = out["smiles"][0]  # may be empty for some reason?
             mol = Molecule(smiles)
             mol.set_synthesis(reaction.inputs)
             res.append(mol)
