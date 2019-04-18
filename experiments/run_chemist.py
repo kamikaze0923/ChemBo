@@ -40,7 +40,7 @@ EXP_DIR = 'experiments/experiment_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
 LOG_FILE = os.path.join(EXP_DIR, 'log')
 
 N_WORKERS = 1
-BUDGET = 5
+BUDGET = 10
 
 
 # Runner ----------------------------------------------------------------------
@@ -69,9 +69,9 @@ def main():
     opt_mol = raw_opt_point[0]
 
     # Print the optimal value and visualize the molecule and path.
-    reporter.writeln('\nOptimum value found: %0.5f'%(opt_val))
-    reporter.writeln('Optimum molecule: %s'%(opt_mol))
-    reporter.writeln('Synthesis path: %s'%opt_mol.get_synthesis_path())
+    reporter.writeln(f'\nOptimum value found: {opt_val}')
+    reporter.writeln(f'Optimum molecule: {opt_mol}')
+    reporter.writeln(f'Synthesis path: {opt_mol.get_synthesis_path()}')
 
     if visualize_mol is not None:
         visualize_file = os.path.join(EXP_DIR, 'optimal_molecule.png')

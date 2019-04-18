@@ -52,6 +52,11 @@ class Chemist:
         self.options.get_initial_qinfos = get_initial_qinfos
 
     def run(self, max_capital):
+        """ Main Chemist method
+        
+        Returns:
+            opt_val, opt_point, history
+        """
         optimiser_constructor = CPGPBandit
 
         # create optimiser and return
