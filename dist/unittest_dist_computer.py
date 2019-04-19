@@ -28,19 +28,20 @@ class DistComputerTestCases(BaseTestClass):
   def setUp(self):
     """ Set up. """
     self.data_file_names = ['data_alkanes.txt', 'data_prop.txt']
-#     self.data_file_names = ['data_prop.txt']
     self.qp_dist_computer = QPChemDistanceComputer(
-        [0.5, 1.0, 2.0], non_assignment_penalty=1.0,
+        non_assignment_penalty=1.0,
         nonexist_non_assignment_penalty_vals=[3.0, 6.0])
 
   def test_distance_computation(self):
     """ Test for distance computation. """
+    self.report('Testing distance computation with dist_computer %s.'%(
+                self.qp_dist_computer))
     for data_file_name in self.data_file_names:
       smile_strings = get_smile_strings_from_file(data_file_name)
       distances = self.qp_dist_computer(smile_strings, smile_strings)
-      print(distances)
-      import pdb; pdb.set_trace()
-
+      for idx, dist in enumerate(distances):
+        self.report('Distances for %s using parametrisation %d:\n%s\n'%(
+            data_file_name, idx, str(dist)), 'test_result')
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
-CC(=N)N
 C
 CC
 CCC
 CCCC
 CCCCC
+CC(=N)N
