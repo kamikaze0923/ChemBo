@@ -10,6 +10,7 @@ TODO:
 # general imports
 import numpy as np
 from argparse import Namespace
+
 # imports from dragonfly
 from dragonfly.exd import domains
 from dragonfly.gp import gp_core, mf_gp
@@ -89,7 +90,7 @@ def _set_up_hyperparams_for_domain(fitter, X_data, gp_domain, dom_prefix,
         # Iterate through each individual domain and add it to the hyper parameters
         curr_dom_Xs = [data[dom_idx] for data in X_data] # X_data a list of list
         # Some conditional options
-        if dom.get_type() == 'molecule':
+        if dom_type == 'molecule':
             if kernel_type == 'wl_kernel':
                 fitter.dscr_hp_vals.append([1, 2, 3])
                 fitter.param_order.append(['int_par', 'dscr'])
