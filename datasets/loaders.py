@@ -8,16 +8,15 @@ This is a poorly structured module and needs re-thinking.
 
 import numpy as np
 import pandas as pd
+import logging
 from collections import defaultdict
 from mols.molecule import Molecule
 
-
-# Class used in CartesianGP 
-
+# Class used in CartesianGP
 class MolSampler:
     def __init__(self, dataset="chembl"):
         # load the dataset
-        print("Creating a MolSampler")
+        logging.info("Creating a MolSampler")
         if dataset == "chembl":
             self.dataset = get_chembl()
 

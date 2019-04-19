@@ -49,4 +49,4 @@ def explore_and_validate_synth(init_pool_size, n_steps,
 
 
 if __name__ == "__main__":
-    explore_and_validate_synth(init_pool_size=5, n_steps=20)
+    explore_and_validate_synth(init_pool_size=5, n_steps=30, objective="qed")

@@ -12,6 +12,7 @@ from argparse import Namespace
 import time
 import os
 import shutil
+import logging
 
 # dragonfly imports
 from dragonfly.exd.worker_manager import SyntheticWorkerManager
@@ -29,18 +30,18 @@ try:
 except ImportError as e:
     visualize_mol = None
 
-
-DATASET = "" # TODO
-
-# data directory
-MOL_DATA_DIR = 'datasets'
-
 # Where to store temporary model checkpoints
 EXP_DIR = 'experiments/experiment_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
-LOG_FILE = os.path.join(EXP_DIR, 'log')
+MOL_DATA_DIR = 'datasets'
 
+EXP_LOG_FILE = os.path.join(EXP_DIR, 'exp_log')
+RUN_LOG_FILE = os.path.join(EXP_DIR, 'run_log')
+LOGGING_LEVEL = logging.ERROR
+
+DATASET = "" # TODO
 N_WORKERS = 1
-BUDGET = 10
+OBJECTIVE = "qed"
+BUDGET = 20
 
 
 # Runner ----------------------------------------------------------------------
@@ -50,19 +51,22 @@ def main():
         shutil.rmtree(EXP_DIR)
     os.mkdir(EXP_DIR)
 
-    # Obtain a reporter
-    reporter = get_reporter(open(LOG_FILE, 'w'))
+    logging.basicConfig(filename=RUN_LOG_FILE, filemode='w',
+                        format='%(asctime)s - %(message)s',
+                        datefmt='%d-%b-%y %H:%M:%S',
+                        level=LOGGING_LEVEL)
 
-    objective_func = get_objective_by_name("logp")  # just a function
-    func_caller = MolFunctionCaller(objective_func,
-                                    config=None,
-                                    reporter=reporter)
+    # Obtain a reporter
+    reporter = get_reporter(open(EXP_LOG_FILE, 'w'))
+
+    objective_func = get_objective_by_name(OBJECTIVE)
+    func_caller = MolFunctionCaller(objective_func, config=None, reporter=reporter)
     worker_manager = SyntheticWorkerManager(num_workers=N_WORKERS, time_distro='const')
     data_params = Namespace(data_dir=MOL_DATA_DIR, dataset=DATASET)
 
     chemist = Chemist(func_caller, worker_manager, data_source=data_params,
                       is_mf=False, reporter=reporter)
-    opt_val, opt_point, _ = chemist.run(BUDGET)
+    opt_val, opt_point, history = chemist.run(BUDGET)
 
     # convert to raw format
     raw_opt_point = func_caller.get_raw_domain_point_from_processed(opt_point)
