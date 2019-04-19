@@ -8,7 +8,7 @@
 
 from dragonfly.utils.base_test_class import BaseTestClass, execute_tests
 # Local imports
-from dist.qp_dist_computer import QPChemDistanceComputer
+from dist.ot_dist_computer import OTChemDistanceComputer
 
 
 def get_smile_strings_from_file(data_file_name):
@@ -28,7 +28,7 @@ class DistComputerTestCases(BaseTestClass):
   def setUp(self):
     """ Set up. """
     self.data_file_names = ['data_alkanes.txt', 'data_prop.txt']
-    self.qp_dist_computer = QPChemDistanceComputer(
+    self.qp_dist_computer = OTChemDistanceComputer(
         non_assignment_penalty=1.0,
         nonexist_non_assignment_penalty_vals=[3.0, 6.0])
 

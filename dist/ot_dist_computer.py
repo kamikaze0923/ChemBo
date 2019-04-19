@@ -104,7 +104,7 @@ def get_dissimiliary_matrix_with_non_assignment(orig_dissim_matrix,
 
 
 # Now define the distance computer =======================================================
-class QPChemDistanceComputer(ChemDistanceComputer):
+class OTChemDistanceComputer(ChemDistanceComputer):
   """ A distance between chemical molecules based on Quadratic Programming. """
 
   def __init__(self,
@@ -135,7 +135,7 @@ class QPChemDistanceComputer(ChemDistanceComputer):
     self.non_assignment_penalty = non_assignment_penalty
     self.struct_pen_coeffs = struct_pen_coeffs
     self.nonexist_non_assignment_penalty_vals = nonexist_non_assignment_penalty_vals
-    super(QPChemDistanceComputer, self).__init__()
+    super(OTChemDistanceComputer, self).__init__()
 
   def evaluate_single(self, x1, x2, *args, **kwargs):
     """ Evaluates the distance between two chemical molecules x1 and x2. """
