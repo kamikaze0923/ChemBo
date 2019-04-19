@@ -4,6 +4,12 @@ Author: kkorovin@cs.cmu.edu
 
 This is a poorly structured module and needs re-thinking.
 
+TODO:
+* Is it possible to set random seed only for one object?
+  a bad solution: use random.getstate() and random.setstate()
+  before and after sampling calls in MolSampler, so that the resulting
+  sampling sequences are the same.
+
 """
 
 import numpy as np
@@ -14,17 +20,18 @@ from mols.molecule import Molecule
 
 # Class used in CartesianGP
 class MolSampler:
-    def __init__(self, dataset="chembl"):
+    def __init__(self, dataset="chembl", seed=42):
         # load the dataset
         logging.info("Creating a MolSampler")
+        np.random.seed(seed)  # set the seed upon creation of the object
         if dataset == "chembl":
             self.dataset = get_chembl()
 
     def __call__(self, n_samples):
-        return np.random.choice(self.dataset, n_samples)
+        ret = list(np.random.choice(self.dataset, n_samples))
+        return ret
 
 # Helper utilities
-
 def get_chembl_prop(n_mols=None, as_mols=False):
     """ Returns (pool, smile->prop mappings) """
     path = "./datasets/ChEMBL_prop.txt"

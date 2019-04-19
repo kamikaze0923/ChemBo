@@ -6,6 +6,8 @@ initial pool size is determined by init_capital (it's either that or 2 * init_ca
 in ExperimentDesigner, it is set depending on available capital and dimension of domain, but no less than 5
 (in our case, always chosen to be 5)
 
+TODO: how to set it in options instead?
+
 ## TODO: set up logging
 - https://docs.python.org/3/howto/logging.html#logging-advanced-tutorial
 
