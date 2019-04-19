@@ -1,0 +1,6 @@
+C
+CC
+CCC
+CCCC
+CCCCC
+CC(=N)N
