@@ -1,13 +1,9 @@
 """
-
 Molecular function callers.
 @author: kkorovin@cs.cmu.edu
 
 A harness for calling functions defined over Molecules.
 Makes use of the mols/mol_functions.py
-
-TODO:
-* set sampling to be dependent on train_params
 """
 
 from argparse import Namespace
@@ -24,7 +20,7 @@ from dragonfly.exd.domains import CartesianProductDomain
 from mols.mol_domains import MolDomain
 
 
-def _get_cpfc_args():
+def get_cp_func_caller_args():
     """ TODO: use params for MolDomain constructor """
     index_ordering = [0]
 
@@ -48,7 +44,6 @@ def _get_cpfc_args():
     # Create a cartesian product domain
     cp_domain = CartesianProductDomain(list_of_domains, domain_info)
 
-    # TODO
     fidel_space, fidel_to_opt, fidel_space_orderings = None, None, None
 
     ret = {'domain': cp_domain,
@@ -58,25 +53,18 @@ def _get_cpfc_args():
           'fidel_space_orderings': fidel_space_orderings}
     return ret
 
+
 class MolFunctionCaller(CPFunctionCaller):
     """ Function Caller for Mol evaluations. """
-    def __init__(self, objective, config, train_params, 
-                 descr='', debug_mode=False,
-                 reporter='silent'):
-        """ train_params is a Namespace with .data_dir field """
-        constructor_args = _get_cpfc_args()  # TODO: use conig argument and train_params here
+    def __init__(self, objective, config, descr='', debug_mode=False, reporter='silent'):
+        constructor_args = get_cp_func_caller_args()  # TODO: use config argument here
         super(MolFunctionCaller, self).__init__(objective, descr=descr, **constructor_args)
-        self.train_params = deepcopy(train_params)  # unclear if this is needed
         self.debug_mode = debug_mode
         self.reporter = get_reporter(reporter)
 
         # other methods? ----------------------------
-
         @classmethod
         def is_mf(cls):
             """ Returns True if Multi-fidelity. """
             return False
-
-
-
 

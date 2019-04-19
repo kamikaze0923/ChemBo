@@ -5,9 +5,9 @@
 datasets/*
 !datasets/loaders.py
 **/__pycache__
-**/model-300-3-direct
+# **/model-300-3-direct
 synth/rexgen_direct/data
-synth/rexgen_direct/rank_diff_wln/model-core16-500-3-max150-direct-useScores/*
+# synth/rexgen_direct/rank_diff_wln/model-core16-500-3-max150-direct-useScores
 experiment_dir*
 tmp_
 .vs_code

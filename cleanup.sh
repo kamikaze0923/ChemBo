@@ -1,3 +1,2 @@
 # cleanup after unfinished run
-rm -rf experiment_dir*
-rm -rf tmp_
+rm -rf ./experiments/experiment_dir*
