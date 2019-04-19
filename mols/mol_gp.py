@@ -76,6 +76,7 @@ def _set_up_hyperparams_for_domain(fitter, X_data, gp_domain, dom_prefix,
     :side:  Add hyperparameter to `fitter.param_order`
             Add values/bounds to `fitter.dscr_hp_vals` or `fitter.cts_hp_bounds`
     """
+    #print('_set_up_hyperparams_for_domain')
     for dom_idx, dom, kernel_type in zip(range(gp_domain.num_domains), gp_domain.list_of_domains, kernel_ordering):
         dom_type = dom.get_type()
         dom_identifier = '%s-%d-%s'%(dom_prefix, dom_idx, dom_type)
@@ -143,6 +144,7 @@ def _build_kernel_for_domain(domain, dom_prefix, kernel_scale, gp_cts_hps, gp_ds
     Called in `MolCPGPFitter._child_build_gp` 
     Build kernel from continuous/discrete hyperparameter for each domain
     """
+    # print('building kernel for domain')
     kernel_list = []
     # Iterate through each domain and build the corresponding kernel
     for dom_idx, dom, kernel_type in zip(range(domain.num_domains), 

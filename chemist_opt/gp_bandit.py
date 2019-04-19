@@ -26,6 +26,7 @@ TODO:
 
 from argparse import Namespace
 import numpy as np
+import logging
 
 from dragonfly.opt.gp_bandit import GPBandit as GPBandit_
 from dragonfly.opt.gp_bandit import CPGPBandit
@@ -43,7 +44,9 @@ from mols.mol_domains import sample_mols_from_cartesian_domain
 
 def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
     """ returns optimal point """
-    from explorer.mol_explorer import RandomExplorer  # TODO: think how to optimize import time
+    from explorer.mol_explorer import RandomExplorer
+    import logging
+
     acq_opt_method = anc_data.acq_opt_method
 
     if anc_data.domain.get_type() == 'euclidean':
@@ -63,7 +66,7 @@ def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
         explorer.evolve(anc_data.max_evals)
         opt_pt = explorer.get_best(k=1)
         opt_val = acquisition(opt_pt)
-        print("Returning explorer's result")
+        logging.info("Returning explorer's result")
         return opt_pt
     else:
         raise NotImplementedError("Acq opt method {} not implemented.".format(acq_opt_method))
@@ -82,7 +85,7 @@ class GPBandit(GPBandit_):
         print("Hi")
 
     def _determine_next_query(self):
-        print("Determining next query")
+        logging.info("Determining next query")
         """ Determine the next point for evaluation. """
         curr_acq = self._get_next_acq()
         anc_data = self._get_ancillary_data_for_acquisition(curr_acq)

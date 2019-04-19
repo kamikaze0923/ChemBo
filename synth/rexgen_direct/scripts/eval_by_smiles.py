@@ -10,9 +10,7 @@ from optparse import OptionParser
 from rdkit import RDLogger
 lg = RDLogger.logger()
 lg.setLevel(4)
-
-VERBOSE = False  # silencing the unparseable molecule warning
-
+import logging
 
 # Define some post-sanitization reaction cleaning scripts
 # These are to align our graph edit representation of a reaction with the data for improved coverage
@@ -169,8 +167,7 @@ def edit_mol(rmol, edits):
 
         # Check if we failed/succeeded in previous step
         if mol is None:
-            if VERBOSE:
-                print('##### Unparseable mol: {}'.format(pred_list[i]))
+            logging.debug('##### Unparseable mol: {}'.format(pred_list[i]))
             continue
 
         # Else, try post-sanitiztion fixes in structure

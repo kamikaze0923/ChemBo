@@ -5,7 +5,9 @@ Module for BO with graph kernel and synthesizeable exploration.
 Available Explorers: 'rand_explorer', ...
 
 TODO:
-* make a class with options for different explorers,
+* Make the reporter report prepared options, not the initial ones
+  ()
+* options for different explorers,
   starter datasets, etc.
 
 """
@@ -20,43 +22,52 @@ from chemist_opt.gp_bandit import CPGPBandit, get_cp_domain_initial_qinfos
 
 class Chemist:
     def __init__(self, func_caller, worker_manager, data_source,
-                 options=None, reporter='default',
-                 is_mf=False, mf_strategy=None, domain_dist_computers=None):
-        """
-        :param func_caller:
-        :param worker_manager:
-        :param data_source:
-        :param options:
-        :param reporter:
-        :param is_mf: whether multi-fidelity
-        :param mf_strategy:
-        :param domain_dist_computers:
-            a list of functions for each domain to compute the pairwise distance between two lists of data
-            i.e.: for two lists of length $n_1$ and $n_2$ respectively, return a $(n_1, n_2)$ matrix of pair-wise distance
-        """
+                 chemist_args=None, reporter='default', 
+                 is_mf=False, mf_strategy=None,
+                 domain_dist_computers=None):
         self.func_caller = func_caller
         self.worker_manager = worker_manager
         self.data_source = data_source
         self.is_mf = is_mf
+        self.mf_strategy = mf_strategy
         self.reporter = get_reporter(reporter)
         self.domain_dist_computers = domain_dist_computers
+        if chemist_args is None:
+            chemist_args = self.get_default_chemist_args()
+        self.options = self.prepare_chemist_options(**chemist_args)
 
-        if options is None:
-            dflt_list_of_options = get_all_cp_gp_bandit_args()
-            self.options = load_options(dflt_list_of_options,
-                                        reporter=reporter)
-        # TODO: passing explorer options
-        self.options.acq_opt_method = 'rand_explorer'
-        if mf_strategy is not None:
-            self.options.mf_strategy = mf_strategy
-        if isinstance(worker_manager, RealWorkerManager):
-            self.options.capital_type = 'realtime'
-        elif isinstance(worker_manager, SyntheticWorkerManager):
-            self.options.capital_type = 'return_value'
+    def get_default_chemist_args(self):
+        chemist_args = {'acq_opt_method': 'rand_explorer',
+                        'init_capital': 'default'}
+        return chemist_args
 
-        def get_initial_qinfos(num):
-            return get_cp_domain_initial_qinfos(func_caller.domain, num)
-        self.options.get_initial_qinfos = get_initial_qinfos
+    def reset_default_options(self, list_of_options, chemist_args):
+        """ Reset entries in list with entries in kwargs
+            if name matches. Hence non-matching entries will be ignored.
+        """
+        for d in list_of_options:
+            if d['name'] in chemist_args:
+                d['default'] = chemist_args[d['name']]
+        return list_of_options
+
+    def prepare_chemist_options(self, **kwargs):
+        """ Resets default gp_bandit options with chemist arguments """
+        dflt_list_of_options = get_all_cp_gp_bandit_args()
+        list_of_options = self.reset_default_options(dflt_list_of_options, kwargs)
+        options = load_options(list_of_options, reporter=self.reporter)
+ 
+        if self.mf_strategy is not None:
+            options.mf_strategy = self.mf_strategy
+        if isinstance(self.worker_manager, RealWorkerManager):
+            options.capital_type = 'realtime'
+        elif isinstance(self.worker_manager, SyntheticWorkerManager):
+            options.capital_type = 'return_value'
+        options.get_initial_qinfos = lambda num: \
+                                        get_cp_domain_initial_qinfos(
+                                            self.func_caller.domain, num
+                                            )
+        return options
+
 
     def run(self, max_capital):
         """ Main Chemist method

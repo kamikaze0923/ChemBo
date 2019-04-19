@@ -17,11 +17,11 @@ TODO:
 
 from dragonfly.exd.domains import Domain
 from datasets.loaders import MolSampler
-
+import logging
 
 # Function to be called on CP domain to sample molecules
 def sample_mols_from_cartesian_domain(domain, n_samples):
-    print(f"Sampling {n_samples} molecules.")
+    logging.info(f"Sampling {n_samples} molecules.")
     for dom in domain.list_of_domains:
         if isinstance(dom, MolDomain):
             samples = dom.sample(n_samples)
@@ -68,8 +68,8 @@ class MolDomain(Domain):
 
     def __str__(self):
         """ Returns a string representation. """
-        cc_attrs = {key:getattr(self.constraint_checker, key) for
-                                key in self.constraint_checker.constraint_names}
+        cc_attrs = {key:getattr(self.constraint_checker, key)
+                    for key in self.constraint_checker.constraint_names}
         return 'Mol(%s):%s'%(self.mol_type, cc_attrs)
 
 
