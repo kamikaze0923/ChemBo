@@ -24,6 +24,7 @@ def get_cp_func_caller_args():
     """ TODO: use params for MolDomain constructor """
     index_ordering = [0]
 
+    # TODO: specify the kernel to use for the mol domain, None and '' will choose the default wl_kernel
     kernel_ordering = ['']
     name_ordering = ['mol']
     dim_ordering = [1]
@@ -46,11 +47,13 @@ def get_cp_func_caller_args():
 
     fidel_space, fidel_to_opt, fidel_space_orderings = None, None, None
 
-    ret = {'domain': cp_domain,
-          'domain_orderings': orderings,
-          'fidel_space': fidel_space,
-          'fidel_to_opt': fidel_to_opt,
-          'fidel_space_orderings': fidel_space_orderings}
+    ret = {
+        'domain': cp_domain,
+        'domain_orderings': orderings,
+        'fidel_space': fidel_space,
+        'fidel_to_opt': fidel_to_opt,
+        'fidel_space_orderings': fidel_space_orderings
+    }
     return ret
 
 
@@ -62,9 +65,8 @@ class MolFunctionCaller(CPFunctionCaller):
         self.debug_mode = debug_mode
         self.reporter = get_reporter(reporter)
 
-        # other methods? ----------------------------
-        @classmethod
-        def is_mf(cls):
-            """ Returns True if Multi-fidelity. """
-            return False
+    @classmethod
+    def is_mf(cls):
+        """ Returns True if Multi-fidelity. """
+        return False
 

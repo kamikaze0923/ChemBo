@@ -63,12 +63,9 @@ class Chemist:
             options.capital_type = 'realtime'
         elif isinstance(self.worker_manager, SyntheticWorkerManager):
             options.capital_type = 'return_value'
-        options.get_initial_qinfos = lambda num: \
-                                        get_cp_domain_initial_qinfos(
-                                            self.func_caller.domain, num
-                                            )
+        options.get_initial_qinfos = \
+            lambda num: get_cp_domain_initial_qinfos(self.func_caller.domain, num)
         return options
-
 
     def run(self, max_capital):
         """ Main Chemist method
