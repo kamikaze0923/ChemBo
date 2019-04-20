@@ -326,6 +326,7 @@ class CPGPBandit(GPBandit):
     def _get_mf_gp_fitter(self, reg_data, use_additive=False):
         """ Returns the Multi-fidelity GP Fitter. Can be overridded by a child class. """
         # We are not maintaining a list of distances for the domain or the fidelity space.
+        raise NotImplementedError("Multi-fidelity currently unimplemented for molecule")
         fs_orderings = self.func_caller.fidel_space_orderings
         return CPMFGPFitter(reg_data[0], reg_data[1], reg_data[2], config=None,
                  fidel_space=self.func_caller.fidel_space,
