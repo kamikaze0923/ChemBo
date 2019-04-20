@@ -27,8 +27,11 @@ from dragonfly.gp.kernel import Kernel
 from mols.molecule import Molecule
 
 
-MOL_GRAPH_KERNEL_TYPES = [
-    "edgehist_kernel", "vertexhist_kernel", "vehist_kernel", "vvehist_kernel", "edgehistgauss_kerenl",
+MOL_GRAPH_CONT_KERNEL_TYPES = [
+    "edgehist_kernel", "vertexhist_kernel", "vehist_kernel"
+]
+MOL_GRAPH_INT_KERNEL_TYPES = [
+    "vvehist_kernel", "edgehistgauss_kerenl",
     "vertexhistgauss_kernel", "vehistgauss_kernel", "georandwalk_kernel", "exprandwalk_kernel",
     "steprandwalk_kernel", "wl_kernel", "graphlet_kernel", "conngraphlet_kernel", "shortestpath_kernel"
 ]
@@ -37,14 +40,14 @@ MOL_SIMILARITY_KERNEL_TYPES = ["similarity_kernel"]
 MOL_DISTANCE_KERNEL_TYPES = ["distance_kernel"]
 
 
-def mol_kern_factory(kernel_type, *args, **kwargs):
+def mol_kern_factory(kernel_type:str, *args, **kwargs):
     """
     factory method for generate a proper kernel
     :param kernel_type:
     :return: a proper kernel with `args` and `kwargs` that matches `kernel_type`
     """
     kernel_to_kernel_type = {
-        MolGraphKernel: MOL_GRAPH_KERNEL_TYPES,
+        MolGraphKernel: MOL_GRAPH_CONT_KERNEL_TYPES + MOL_GRAPH_INT_KERNEL_TYPES,
         MolFingerprintKernel: MOL_FINGERPRINT_KERNEL_TYPES,
         MolDistanceKernel: MOL_DISTANCE_KERNEL_TYPES
     }
@@ -53,15 +56,14 @@ def mol_kern_factory(kernel_type, *args, **kwargs):
         for kernel, kernel_type_list in kernel_to_kernel_type.items()
         for kernel_type in kernel_type_list
     }
-
     if kernel_type not in kernel_type_to_kernel:
         raise ValueError("Not recognized kernel type: {}".format(kernel_type))
     kernel = kernel_type_to_kernel[kernel_type]
-    return kernel(*args, **kwargs)
+    return kernel(kernel_type, *args, **kwargs)
 
 
 class MolKernel(Kernel):
-    def __init__(self, kernel_type, **kwargs):
+    def __init__(self, kernel_type: str, **kwargs):
         self.kernel_type = kernel_type
         super(MolKernel, self).__init__()
 
@@ -70,13 +72,10 @@ class MolKernel(Kernel):
 
 
 class MolGraphKernel(MolKernel):
-    _cont_par_kernel_calculator = {
+    _kernel_calculator = {
         "edgehist_kernel": gk.CalculateEdgeHistKernel,
         "vertexhist_kernel": gk.CalculateVertexHistKernel,
         "vehist_kernel": gk.CalculateVertexEdgeHistKernel,
-    }
-
-    _int_par_kernel_calculator = {
         "vvehist_kernel": gk.CalculateVertexVertexEdgeHistKernel,
         "vertexhistgauss_kernel": gk.CalculateVertexHistGaussKernel,
         "vehistgauss_kernel": gk.CalculateVertexEdgeHistGaussKernel,
@@ -89,48 +88,42 @@ class MolGraphKernel(MolKernel):
         "shorestpath_kernel": gk.CalculateShortestPathKernel
     }
 
-    def __init__(self, kernel_type, par: Union[int, float]):
+    def __init__(self, kernel_type: str, par: Union[int, float], **kwargs):
         """
         :param kernel_type: graph kernel type, refer to "https://github.com/BorgwardtLab/GraphKernels"
         :param par: `int` for integer parametrized graph kernels
                     `float` for float parametrized graph kernels
         """
-        super(MolGraphKernel, self).__init__(kernel_type)
+        super(MolGraphKernel, self).__init__(kernel_type, **kwargs)
         self.set_hyperparams(par=par)
-        if kernel_type in self._cont_par_kernel_calculator:
-            self.kernel_calculator = self._cont_par_kernel_calculator[kernel_type]
-        elif kernel_type in self._int_par_kernel_calculator:
-            self.kernel_calculator = self._int_par_kernel_calculator[kernel_type]
-        else:
-            raise ValueError('Unknown kernel_type %s.' % kernel_type)
+        if kernel_type not in self._kernel_calculator:
+            raise ValueError("Unknown kernel_type {}".format(kernel_type))
+        self.kernel_calculator = self._kernel_calculator[kernel_type]
 
     def _child_evaluate(self, X1: List[Molecule], X2: List[Molecule]) -> np.array:
-        X1_X2 = X1 + X2
-        graph_list = [m.to_graph() for m in X1_X2]
-        # prepare hyper parameter
-        if self.kernel_type in self._cont_par_kernel_calculator:
-            par = self.hyperparams["par"]
-        else:
+        complete_graph_list = [m.to_graph() for m in X1 + X2]
+        if self.kernel_type in MOL_GRAPH_INT_KERNEL_TYPES:
             par = int(self.hyperparams["par"])
-        complete_ker = self.kernel_calculator(graph_list, par=par)
+        else:
+            par = self.hyperparams["par"]
+        complete_ker = self.kernel_calculator(complete_graph_list, par=par)
         n1 = len(X1)
         return complete_ker[:n1, n1:]
 
 
-# TODO: shall it inherit Matern Kernel or simply have a matern kernel as a field
 class MolFingerprintKernel(MolKernel):
-    def __init__(self, kernel_type: str, base_kernel: Kernel):
-        super(MolFingerprintKernel, self).__init__(kernel_type)
+    def __init__(self, kernel_type: str, base_kernel: Kernel, **kwargs):
+        super(MolFingerprintKernel, self).__init__(kernel_type, **kwargs)
         self.base_kernel = base_kernel
 
     def is_guaranteed_psd(self):
         return self.base_kernel.is_guaranteed_psd()
 
-    def _get_fps(self, X):
+    def _get_fps(self, X: List[Molecule]):
         res = np.array([mol.to_fingerprint() for mol in X])
         return res
 
-    def _child_evaluate(self, X1, X2):
+    def _child_evaluate(self, X1: List[Molecule], X2: List[Molecule]):
         X1 = self._get_fps(X1)
         X2 = self._get_fps(X2)
         return self.base_kernel.evalute(X1, X2)
@@ -140,14 +133,14 @@ class MolFingerprintKernel(MolKernel):
 
 
 class MolDistanceKernel(MolKernel):
-    def __init__(self, kernel_type:str, base_kernel:Kernel):
-        super(MolDistanceKernel, self).__init__(kernel_type)
+    def __init__(self, kernel_type: str, base_kernel: Kernel, **kwargs):
+        super(MolDistanceKernel, self).__init__(kernel_type, **kwargs)
         self.base_kernel = base_kernel
 
     def is_guaranteed_psd(self):
         return self.base_kernel.is_guaranteed_psd()
 
-    def evaluate_from_dists(self, dists):
+    def evaluate_from_dists(self, dists: List[np.array]):
         return self.base_kernel.evaluate_from_dists(dists)
 
     def __str__(self):
