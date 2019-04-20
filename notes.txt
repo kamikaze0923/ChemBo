@@ -11,7 +11,11 @@ TODO: how to set it in options instead?
 ## TODO: set up logging
 - https://docs.python.org/3/howto/logging.html#logging-advanced-tutorial
 
-## ...
+## Adding molecular kernels:
+
+at least currently need to modify function `get_molecular_kernel` in `mols/mol_gp.py`,
+which has configurations set for each kernel individually
+
 
 ## Example history of Chemist:
 

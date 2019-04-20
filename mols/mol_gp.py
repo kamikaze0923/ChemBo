@@ -197,13 +197,13 @@ def _build_kernel_for_domain(domain, dom_prefix, kernel_scale, gp_cts_hps, gp_ds
 
 ###############################################################################
 # Resetting:
-cartesian_product_gp._DFLT_DOMAIN_MOL_KERNEL_TYPE = _DFLT_DOMAIN_MOL_KERNEL_TYPE
-cartesian_product_gp._prep_kernel_hyperparams_for_molecular_domain = _prep_kernel_hyperparams_for_molecular_domain
-cartesian_product_gp.get_molecular_kernel = get_molecular_kernel
-cartesian_product_gp.get_default_kernel_type.__code__ = get_default_kernel_type.__code__
-cartesian_product_gp._get_kernel_type_from_options.__code__ = _get_kernel_type_from_options.__code__
-cartesian_product_gp._build_kernel_for_domain.__code__ = _build_kernel_for_domain.__code__
-cartesian_product_gp._set_up_hyperparams_for_domain.__code__ = _set_up_hyperparams_for_domain.__code__
+# cartesian_product_gp._DFLT_DOMAIN_MOL_KERNEL_TYPE = _DFLT_DOMAIN_MOL_KERNEL_TYPE
+# cartesian_product_gp._prep_kernel_hyperparams_for_molecular_domain = _prep_kernel_hyperparams_for_molecular_domain
+# cartesian_product_gp.get_molecular_kernel = get_molecular_kernel
+# cartesian_product_gp.get_default_kernel_type.__code__ = get_default_kernel_type.__code__
+# cartesian_product_gp._get_kernel_type_from_options.__code__ = _get_kernel_type_from_options.__code__
+# cartesian_product_gp._build_kernel_for_domain.__code__ = _build_kernel_for_domain.__code__
+# cartesian_product_gp._set_up_hyperparams_for_domain.__code__ = _set_up_hyperparams_for_domain.__code__
 
 ###############################################################################
 # API classes: using resetted functions
@@ -223,14 +223,17 @@ class MolCPGPFitter(cartesian_product_gp.CPGPFitter):
         self.kernel_scale_log_bounds = [np.log(0.03 * self.Y_var), np.log(30 * self.Y_var)]
         self.cts_hp_bounds.append(self.kernel_scale_log_bounds)
         _set_up_hyperparams_for_domain(self, self.X, self.domain, "dom",
-            self.domain.kernel_ordering,
+            self.domain_kernel_ordering,
             self.domain_kernel_params_for_each_domain,
             self.domain_dist_computers,
             self.domain_lists_of_dists)
 
     def _child_build_gp(self, mean_func, noise_var, gp_cts_hps, gp_dscr_hps, other_gp_params=None,
                         *args, **kwargs):
-        log_kernel_scale = gp_cts_hps.pop(0)
+        # log_kernel_scale = gp_cts_hps.pop(0)  # TODO: why is this a numpy array?
+        log_kernel_scale = gp_cts_hps[0]
+        gp_cts_hps = gp_cts_hps[1:]
+        
         kernel_scale = np.exp(log_kernel_scale)
         mol_kernel, gp_cts_hps, gp_dscr_hps = _build_kernel_for_domain(self.domain, 'dom',
             kernel_scale, gp_cts_hps, gp_dscr_hps, other_gp_params, self.options,
