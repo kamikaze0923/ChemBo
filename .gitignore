@@ -11,3 +11,5 @@ synth/rexgen_direct/data
 experiment_dir*
 tmp_
 .vs_code
+*.swp
+**/archive/*

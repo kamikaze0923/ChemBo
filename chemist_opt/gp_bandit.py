@@ -35,7 +35,7 @@ import dragonfly.opt.gpb_acquisitions as gpb_acquisitions
 # for sampling initial points
 from dragonfly.utils.general_utils import block_augment_array
 from dragonfly.utils.general_utils import transpose_list_of_lists
-from dragonfly.gp.cartesian_product_gp import CPGPFitter, CPMFGPFitter
+# from dragonfly.gp.cartesian_product_gp import CPGPFitter, CPMFGPFitter
 
 from mols.mol_gp import cartesian_product_gp_args, MolCPGPFitter
 from explorer.mol_explorer import RandomExplorer
@@ -184,7 +184,7 @@ class CPGPBandit(GPBandit):
                 domain_dist_computers=None,
                 options=self.options, reporter=self.reporter)
         else:
-            dummy_gp_fitter = CPGPFitter([], [], self.func_caller.domain,
+            dummy_gp_fitter = MolCPGPFitter([], [], self.func_caller.domain,
                  domain_kernel_ordering=self.func_caller.domain_orderings.kernel_ordering,
                  domain_lists_of_dists=None,
                  domain_dist_computers=None,
@@ -340,7 +340,7 @@ class CPGPBandit(GPBandit):
 
     def _get_non_mf_gp_fitter(self, reg_data, use_additive=False):
         """ Returns the NOn-Multi-fidelity GP Fitter. Can be overridded by a child class. """
-        return CPGPFitter(reg_data[0], reg_data[1], self.func_caller.domain,
+        return MolCPGPFitter(reg_data[0], reg_data[1], self.func_caller.domain,
                  domain_kernel_ordering=self.func_caller.domain_orderings.kernel_ordering,
                  domain_lists_of_dists=self.domain_lists_of_dists,
                  domain_dist_computers=self.domain_dist_computers,

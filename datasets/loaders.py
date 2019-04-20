@@ -23,12 +23,17 @@ class MolSampler:
     def __init__(self, dataset="chembl", seed=42):
         # load the dataset
         logging.info("Creating a MolSampler")
-        np.random.seed(seed)  # set the seed upon creation of the object
+        self.rnd_generator = None
+        if seed is not None:
+            self.rnd_generator = np.random.RandomState(seed)
         if dataset == "chembl":
             self.dataset = get_chembl()
 
     def __call__(self, n_samples):
-        ret = list(np.random.choice(self.dataset, n_samples))
+        if self.rnd_generator is not None:
+            ret = list(self.rnd_generator.choice(self.dataset, n_samples))
+        else:
+            ret = list(np.random.choice(self.dataset, n_samples))
         return ret
 
 # Helper utilities

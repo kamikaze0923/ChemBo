@@ -38,7 +38,8 @@ class Chemist:
 
     def get_default_chemist_args(self):
         chemist_args = {'acq_opt_method': 'rand_explorer',
-                        'init_capital': 'default'}
+                        'init_capital': 'default',
+                        'dom_mol_kernel_type': 'default'}
         return chemist_args
 
     def reset_default_options(self, list_of_options, chemist_args):
