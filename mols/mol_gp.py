@@ -18,7 +18,7 @@ from dragonfly.gp.kernel import CartesianProductKernel, HammingKernel
 from dragonfly.utils.option_handler import get_option_specs, load_options
 from dragonfly.utils.reporters import get_reporter
 # local imports
-from mols.mol_kernels import MolKernel
+from mols.mol_kernels import mol_kern_factory
 
 # classes and functions to redefine
 from dragonfly.gp.cartesian_product_gp import cartesian_product_gp_args,\
@@ -123,18 +123,17 @@ def get_molecular_kernel(kernel_type, kernel_hyperparams,
     gp_cts_hps, gp_dscr_hps - this may be modified and returned
     """
     # pop the optimized int_par/cont_par from the `gp_dscr_hps`/`gp_cts_hps`
-    # (if those are lists)
+    print("get_molecular_kernel: gp_cts_hps: {}, gp_dscr_hps: {}".format(gp_cts_hps, gp_dscr_hps))
     if kernel_hyperparams["kernel_type"] == "wl_kernel":
-        #kernel_hyperparams["int_par"] = gp_dscr_hps.pop(0)
         kernel_hyperparams["int_par"] = gp_dscr_hps[0]
         gp_dscr_hps = gp_dscr_hps[1:]
     elif kernel_hyperparams["kernel_type"] == "edgehist_kernel":
-        #kernel_hyperparams["cont_par"] = gp_cts_hps.pop(0)
         kernel_hyperparams["cont_par"] = gp_cts_hps[0]
         gp_cts_hps = gp_cts_hps[1:]
     else:
         raise ValueError("Unrecognized kernel type:%s for molecule domain"
                          %kernel_hyperparams["kernel_type"])
+    kern = mol_kern_factory(kernel_type, **kernel_hyperparams)
     kern = MolKernel(kernel_type, kernel_hyperparams)
     return kern, gp_cts_hps, gp_dscr_hps
 
