@@ -25,7 +25,7 @@ else:
     import networkx
 
 
-class Molecule:
+class Molecule(object):
     """
     Class to hold both representations,
     as well as synthesis path, of a molecule.
@@ -174,7 +174,7 @@ def mol2graph_networkx(mol, set_properties=False):
     return graph
 
 
-class Reaction:
+class Reaction(object):
     def __init__(self, inputs, products=None, conditions=None):
         """Class to represent a chemical reaction.
 
