@@ -68,8 +68,10 @@ class MolDomain(Domain):
 
     def __str__(self):
         """ Returns a string representation. """
-        cc_attrs = {key:getattr(self.constraint_checker, key)
-                    for key in self.constraint_checker.constraint_names}
+        cc_attrs = ""
+        if hasattr(self, "constraint_checker") and self.constraint_checker is not None:
+            cc_attrs = {key:getattr(self.constraint_checker, key)
+                        for key in self.constraint_checker.constraint_names}
         return 'Mol(%s):%s'%(self.mol_type, cc_attrs)
 
 

@@ -10,7 +10,7 @@ import numpy as np
 from mols.molecule import Molecule
 
 
-class ChemDistanceComputer:
+class ChemDistanceComputer(object):
   """ An abstract class for distance computation among chemical molecules. Adapted
       from NNDistanceComputer class in
       github.com/kirthevasank/nasbot/blob/master/nn/nn_comparators.py
