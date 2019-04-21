@@ -65,13 +65,18 @@ def main():
     chemist_args = {
         'acq_opt_method': 'rand_explorer',
         'init_capital': 10,
-        'dom_mol_kernel_type': 'wl_kernel' #TODO: change this
+        'dom_mol_kernel_type': 'wl_kernel'
     }
 
     domain_dist_computers = []
     for domain, kernel_type in zip(func_caller.domain.list_of_domains, func_caller.domain_orderings.kernel_ordering):
         domain_type = domain.get_type()
         if domain_type == "molecule":
+            # TODO: kernel resolve order
+            if kernel_type is None or '':
+                kernel_type = chemist_args["dom_mol_kernel_type"]
+            if kernel_type == "default":
+                pass
             if kernel_type in MOL_DISTANCE_KERNEL_TYPES:
                 computer = OTChemDistanceComputer()
                 domain_dist_computers.append(computer.evaluate)
