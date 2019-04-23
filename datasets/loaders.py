@@ -3,13 +3,6 @@ Loading and handling chemical data
 Author: kkorovin@cs.cmu.edu
 
 This is a poorly structured module and needs re-thinking.
-
-TODO:
-* Is it possible to set random seed only for one object?
-  a bad solution: use random.getstate() and random.setstate()
-  before and after sampling calls in MolSampler, so that the resulting
-  sampling sequences are the same.
-
 """
 
 import numpy as np
@@ -32,6 +25,8 @@ class MolSampler(object):
             self.rnd_generator = np.random.RandomState(seed)
         if dataset == "chembl":
             self.dataset = get_chembl()
+        else:
+            raise ValueError(f"Dataset {dataset} not supported.")
 
     def __call__(self, n_samples):
         if self.rnd_generator is not None:
@@ -41,7 +36,7 @@ class MolSampler(object):
         return ret
 
 
-# Helper utilities
+# Helper utilities ------------------------------------------------------------
 def get_chembl_prop(n_mols=None, as_mols=False):
     """ Returns (pool, smile->prop mappings) """
     path = os.path.join(__location__, "ChEMBL_prop.txt")
@@ -51,9 +46,12 @@ def get_chembl_prop(n_mols=None, as_mols=False):
     smile_to_prop = defaultdict(int, smile_to_prop)
     return df[0].values, smile_to_prop
 
-
 def get_chembl(n_mols=None, as_mols=True):
-    """ Return list of SMILES """
+    """ 
+        Return list of SMILES.
+        NOTE: this function should be located
+        in the same directory as data files.
+    """
     path = os.path.join(__location__, "ChEMBL.txt")
     with open(path, "r") as f:
         if n_mols is None:
@@ -61,7 +59,6 @@ def get_chembl(n_mols=None, as_mols=True):
         else:
             res = [f.readline().strip() for _ in range(n_mols)]
     return [Molecule(smile) for smile in res]
-
 
 def get_initial_pool():
     """Used in chemist_opt.chemist"""

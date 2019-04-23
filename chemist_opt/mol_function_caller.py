@@ -20,22 +20,22 @@ from dragonfly.exd.domains import CartesianProductDomain
 from mols.mol_domains import MolDomain
 
 
-def get_cp_func_caller_args():
+def get_cp_func_caller_args(domain_config):
     """ TODO: use params for MolDomain constructor """
     index_ordering = [0]
 
     # TODO: specify the kernel to use for the mol domain, None and '' will choose the default wl_kernel
     kernel_ordering = ['']
-    name_ordering = ['mol']
+    name_ordering = ['molecule']
     dim_ordering = [1]
-    raw_name_ordering = ['mol']
+    raw_name_ordering = ['molecule']
 
     orderings = Namespace(index_ordering=index_ordering,
                           kernel_ordering=kernel_ordering,
                           dim_ordering=dim_ordering,
                           name_ordering=name_ordering,
                           raw_name_ordering=raw_name_ordering)
-    list_of_domains = [MolDomain()]
+    list_of_domains = [MolDomain(**domain_config)]
 
     # Create a namespace with additional information
     domain_info = Namespace()
@@ -59,10 +59,9 @@ def get_cp_func_caller_args():
 
 class MolFunctionCaller(CPFunctionCaller):
     """ Function Caller for Mol evaluations. """
-    def __init__(self, objective, config, descr='', debug_mode=False, reporter='silent'):
-        constructor_args = get_cp_func_caller_args()  # TODO: use config argument here
+    def __init__(self, objective, domain_config, descr='', reporter='silent'):
+        constructor_args = get_cp_func_caller_args(domain_config)
         super(MolFunctionCaller, self).__init__(objective, descr=descr, **constructor_args)
-        self.debug_mode = debug_mode
         self.reporter = get_reporter(reporter)
 
     @classmethod
