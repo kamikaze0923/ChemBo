@@ -35,13 +35,17 @@ class MolDomain(Domain):
     """ Domain for Molecules. """
     def __init__(self, mol_type=None,
                  constraint_checker=None,
-                 data_source='chembl'):
+                 data_source='chembl', sampling_seed=None):
         """ Constructor. The arguments are all kwd and come from
             domain_config in mol_function_caller.
+
+            mol_type -- [TODO] e.g. can be 'drug-like'
+            constraint_checker -- [TODO]
+            data_source, sampling_seed -- MolSampler parameters
         """
-        self.mol_type = mol_type  # e.g. can be 'drug-like'
+        self.mol_type = mol_type
         self.constraint_checker = constraint_checker  # TODO: make a from-string constructor
-        self.data_source = MolSampler(data_source)
+        self.data_source = MolSampler(data_source, sampling_seed)
         super(MolDomain, self).__init__()
 
     def get_type(self):

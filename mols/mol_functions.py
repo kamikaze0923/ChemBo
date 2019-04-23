@@ -57,7 +57,10 @@ def LogP(mol):
     return Descriptors.MolLogP(rdkit_mol)
 
 def QED(mol):
-    """ Quantative estimation of drug-likeliness """
+    """ Quantative estimation of drug-likeliness.
+    `High` ranges - [0.9, 1.]
+
+    """
     rdkit_mol = to_rdkit(mol)
     return qed(rdkit_mol)
 

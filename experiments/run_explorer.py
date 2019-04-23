@@ -27,7 +27,7 @@ def explore_and_validate_synth(init_pool_size, n_steps,
 
     obj_func = get_objective_by_name(objective)
     sampler = MolSampler("chembl")
-    pool = sampler(init_pool_size)
+    pool = sampler(init_pool_size, sampling_seed=42)
     exp = RandomExplorer(obj_func, initial_pool=pool)
 
     props = [obj_func(mol) for mol in pool]
@@ -51,4 +51,4 @@ def explore_and_validate_synth(init_pool_size, n_steps,
 
 
 if __name__ == "__main__":
-    explore_and_validate_synth(init_pool_size=5, n_steps=30, objective="qed")
+    explore_and_validate_synth(init_pool_size=10, n_steps=100, objective="qed")

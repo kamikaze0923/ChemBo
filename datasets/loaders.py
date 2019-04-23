@@ -17,12 +17,20 @@ __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file
 
 # Class used in CartesianGP
 class MolSampler(object):
-    def __init__(self, dataset="chembl", seed=42):
+    def __init__(self, dataset="chembl", sampling_seed=None):
+        """
+        Keyword Arguments:
+            dataset {str} -- dataset to sample from (default: {"chembl"})
+            sampling_seed {int or None} -- (default: {None})
+        
+        Raises:
+            ValueError -- if invalid dataset name is passed.
+        """
         # load the dataset
         logging.info("Creating a MolSampler")
         self.rnd_generator = None
-        if seed is not None:
-            self.rnd_generator = np.random.RandomState(seed)
+        if sampling_seed is not None:
+            self.rnd_generator = np.random.RandomState(sampling_seed)
         if dataset == "chembl":
             self.dataset = get_chembl()
         else:

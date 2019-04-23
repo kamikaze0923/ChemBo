@@ -9,6 +9,7 @@ TODO:
 
 # general imports
 import numpy as np
+import logging
 
 # imports from dragonfly
 from dragonfly.exd import domains
@@ -90,7 +91,7 @@ def _set_up_hyperparams_for_domain(fitter, X_data, gp_domain, dom_prefix,
 
         # Some conditional options
         if dom_type == 'molecule':
-            print(f"_set_up_hyperparams_for_domain: Selected kernel_type: {kernel_type}")
+            logging.debug(f"_set_up_hyperparams_for_domain: Selected kernel_type: {kernel_type}")
             if kernel_type in MOL_GRAPH_CONT_KERNEL_TYPES:
                 fitter.cts_hp_bounds.append([0, 5])
                 fitter.param_order.append(["par", "cts"])

@@ -64,7 +64,7 @@ def main():
     # Problem settings
     objective_func = get_objective_by_name(OBJECTIVE)
     # check MolDomain constructor for full argument list:
-    domain_config = {'data_source': DATASET}
+    domain_config = {'data_source': DATASET, 'sampling_seed': 42}
     chemist_args = {
         'acq_opt_method': 'rand_explorer',
         'init_capital': 10,
