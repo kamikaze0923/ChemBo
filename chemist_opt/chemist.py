@@ -4,12 +4,11 @@ Module for BO with graph kernel and synthesizeable exploration.
 
 Available Explorers: 'rand_explorer', ...
 
-TODO:
-* Make the reporter report prepared options, not the initial ones
-  ()
-* options for different explorers,
-  starter datasets, etc.
-
+NOTE:
+* Currently unneded options are filtered from options list;
+  however, they may be needed when more complicated CP domains appear,
+  so better filtering regulation might be needed later
+  (see reset_default_options method in Chemist)
 """
 
 import logging
@@ -79,10 +78,30 @@ class Chemist:
         """ Reset entries in list with entries in kwargs
             if name matches. Hence non-matching entries will be ignored.
         """
+        new_list_of_options = []
         for d in list_of_options:
             if d['name'] in chemist_args:
                 d['default'] = chemist_args[d['name']]
-        return list_of_options
+                new_list_of_options.append(d)
+            # TODO: regexp for filtering unneeded options
+            elif 'dom_int' in d['name']:
+                continue
+            elif 'dom_disc' in d['name']:
+                continue
+            elif 'dom_int' in d['name']:
+                continue
+            elif 'dom_euc' in d['name']:
+                continue
+            elif 'dom_nn' in d['name']:
+                continue
+            elif 'otmann' in d['name']:
+                continue
+            elif 'nn_report' in d['name']:
+                continue
+            else:
+                # just keep it as is
+                new_list_of_options.append(d)
+        return new_list_of_options
 
     def prepare_chemist_options(self, **kwargs):
         """ Resets default gp_bandit options with chemist arguments """

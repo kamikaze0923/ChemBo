@@ -63,6 +63,11 @@ Set PYTHONPATH for imports:
 source setup.sh 
 ```
 
-### Datasets
+### Getting data
 
-ChEMBL data can be found here: https://github.com/kevinid/molecule_generator/releases/download/1.0/datasets.tar.gz
+ChEMBL data can be found [here](https://github.com/kevinid/molecule_generator/releases/download/1.0/datasets.tar.gz). ZINC database can be downloaded from [the official site](http://zinc.docking.org/browse/subsets/). Run the following to automatically download the datasets and put it into the right directory:
+
+```bash
+bash download_data.sh
+```
+

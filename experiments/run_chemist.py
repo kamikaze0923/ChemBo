@@ -40,7 +40,7 @@ TF_LOGGING_LEVEL = tf.logging.ERROR
 DATASET = "chembl"  # May add "zinc" in the future
 N_WORKERS = 1
 OBJECTIVE = "qed"
-BUDGET = 100
+BUDGET = 10
 
 
 # Runner ----------------------------------------------------------------------
@@ -69,6 +69,7 @@ def main():
         'acq_opt_method': 'rand_explorer',
         'init_capital': 10,
         'dom_mol_kernel_type': 'wl_kernel',  # 'distance_kernel'
+        'acq_opt_max_evals' : 19
     }
 
     chemist = Chemist(
@@ -87,7 +88,7 @@ def main():
 
     # Print the optimal value and visualize the molecule and path.
     reporter.writeln(f'\nOptimum value found: {opt_val}')
-    reporter.writeln(f'Optimum molecule: {opt_mol}')
+    reporter.writeln(f'Optimum molecule: {opt_mol} with formula {opt_mol.to_formula()}')
     reporter.writeln(f'Synthesis path: {opt_mol.get_synthesis_path()}')
 
     # visualize mol/synthesis path

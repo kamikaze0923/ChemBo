@@ -27,7 +27,7 @@ class ExplorerTestCase(BaseTestClass):
         test_pool = [Molecule(smiles) for smiles in test_pool]
         exp = RandomExplorer(dummy_func, initial_pool=test_pool)
         print("Starting len of SMILES optimization")
-        exp.evolve(2)
+        exp.run(2)
 
         #check
         print(exp.pool)
@@ -40,7 +40,7 @@ class ExplorerTestCase(BaseTestClass):
         exp = RandomExplorer(sas_func, initial_pool=test_pool)
         print("Starting SA score optimization")
         t0 = time()
-        exp.evolve(10)
+        exp.run(10)
 
         #check
         print("Completed SA score optimization, time elapsed: %.3fs" % (time()-t0))
@@ -68,13 +68,12 @@ class ExplorerTestCase(BaseTestClass):
         print_props(pool_all)
         print_props(start_pool)
 
-
         func = lambda mol: dd[mol.smiles]
-        exp = RandomExplorer(func, initial_pool=start_pool)
+        exp = RandomExplorer(lambda mol_list: func(mol_list[0]), initial_pool=start_pool)
 
         print("Starting ChEMBL score 1 optimization")
         t0 = time()
-        exp.evolve(30)
+        exp.run(30)
         print("Completed ChEMBL score 1 optimization, time elapsed: %.3fs" % (time()-t0))
 
         # print(exp.pool)

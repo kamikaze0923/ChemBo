@@ -3,10 +3,10 @@ Class that performs molecule space traversal.
 @author: kkorovin@cs.cmu.edu
 
 TODO:
-* add function evaluation counting
+* add better caching of evaluations
+  (for the case of 'expensive' functions and enabled filtering)
 * better handling of fitness_func arguments
   (lists vs args etc.)
-
 """
 
 import numpy as np
@@ -27,7 +27,7 @@ class Explorer:
     def __init__(self):
         pass
 
-    def evolve(self, capital):
+    def run(self, capital):
         """ Main method of Explorers.
 
         Arguments:
@@ -47,7 +47,8 @@ class RandomExplorer(Explorer):
                  n_outcomes=1):
         """
         Params:
-            fitness_func {function} - objective to optimize over evolution
+            fitness_func {function} - objective to optimize over evolution,
+                expected format: func(List[Molecule]) -> value
             capital_type {int/float} - number of steps or other cost of exploration
             initial_pool {list} - just what it says
             max_pool_size {int or None} - whether to keep the pool to top k most fit
@@ -63,7 +64,7 @@ class RandomExplorer(Explorer):
         self.n_outcomes = n_outcomes
         # TODO: think whether to add additional *synthesized* pool
 
-    def evolve_step(self):
+    def run_step(self):
         # choose molecules to cross-over
         r_size = np.random.randint(2,3)
         mols = np.random.choice(self.pool, size=r_size)
@@ -89,7 +90,7 @@ class RandomExplorer(Explorer):
             top_value = max(top_val, self.history['objective_vals'][-1])
             self.history['objective_vals'].append(top_value)
 
-    def evolve(self, capital):
+    def run(self, capital):
         """
         Params:
         :data: start dataset (list of Molecules)
@@ -100,7 +101,7 @@ class RandomExplorer(Explorer):
         if self.capital_type == 'return_value':
             capital = int(capital)
             for _ in range(capital):
-                self.evolve_step()
+                self.run_step()
         else:
             raise NotImplementedError(f"Capital type {self.capital_type} not implemented.")
 

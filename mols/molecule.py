@@ -17,6 +17,7 @@ from rdkit import Chem
 from rdkit.Chem import rdmolops
 from rdkit import DataStructs
 from rdkit.Chem.Fingerprints import FingerprintMols
+from rdkit.Chem.rdMolDescriptors import CalcMolFormula, CalcExactMolWt
 
 GRAPH_LIB = "igraph"  # depending on package for graph kernels
 if GRAPH_LIB == "igraph":
@@ -106,6 +107,10 @@ class Molecule(object):
             arr = np.zeros((1,))
             DataStructs.ConvertToNumpyArray(fp, arr)
             return arr[:64]
+
+    def to_formula(self):
+        rdk = self.to_rdkit()
+        return CalcMolFormula(rdk)
 
     def set_synthesis(self, inputs):
         self.begin_flag = False

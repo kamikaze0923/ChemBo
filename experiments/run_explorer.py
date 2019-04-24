@@ -33,7 +33,7 @@ def explore_and_validate_synth(init_pool_size, n_steps,
     props = [obj_func(mol) for mol in pool]
     print(f"Properties of pool: quantity {len(pool)}, min {np.min(props)}, avg {np.mean(props)}, max {np.max(props)}")
     print(f"Starting {objective} optimization")
-    top_value, top_point, history = exp.evolve(n_steps)
+    top_value, top_point, history = exp.run(n_steps)
 
     print(f"Is a valid molecule: {check_validity(top_point)}")
     print(f"Top score: {obj_func(top_point)}")

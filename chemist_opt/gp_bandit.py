@@ -63,11 +63,10 @@ def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
 
     if acq_opt_method == "rand_explorer":
         explorer = RandomExplorer(acquisition, anc_data.capital_type)
-        explorer.evolve(anc_data.max_evals)
-        opt_pt = explorer.get_best(k=1)
-        opt_val = acquisition(opt_pt)
+        logging.info(f'Running explorer for {anc_data.max_evals} steps')
+        top_value, top_point, history = explorer.run(anc_data.max_evals)
         logging.info("Returning explorer's result")
-        return opt_pt
+        return [top_point]
     else:
         raise NotImplementedError("Acq opt method {} not implemented.".format(acq_opt_method))
 
@@ -85,7 +84,6 @@ class GPBandit(GPBandit_):
         print("Hi")
 
     def _determine_next_query(self):
-        logging.info("Determining next query")
         """ Determine the next point for evaluation. """
         curr_acq = self._get_next_acq()
         anc_data = self._get_ancillary_data_for_acquisition(curr_acq)
