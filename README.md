@@ -21,26 +21,24 @@ Dragonfly Chemist is library for joint molecular optimization and synthesis. It 
 First, set up environment for RDKit and Dragonfly:
 
 ```bash
-conda create -c rdkit -n my-rdkit-env rdkit
-conda activate my-rdkit-env
+conda create -n chemist-env python=3.6
+# optionally: export PATH="/opt/miniconda3/bin:$PATH"
+conda activate chemist-env
 ```
 
-Install basic requirements with conda:
+<!-- Install basic requirements with conda:
 
 ```bash
 while read requirement; do conda install --yes $requirement; done < requirements.txt
 ```
+ -->
 
-or pip:
+First, need to install `eigen3`, `pkg-config`: [see instructions here](https://github.com/BorgwardtLab/GraphKernels). Then install basic requirements with pip (graphkernels already installs igraph and other dependencies):
 
 ```bash
+sudo apt-get install libeigen3-dev; sudo apt-get install pkg-config  # on Linux
+brew install eigen; brew install pkg-config  # on MacOS
 pip install -r requirements.txt
-```
-
-In addition to these requirements, a `graphkernels` package should be installed. It automatically installs `igraph` and other dependencies. However, it does not install `eigen3`, `pkg-config`, therefore those are included into requirements. Install `graphkernels` via pip (on Mac):
-
-```bash
-pip install graphkernels
 ```
 
 If the above fails on MacOS (see [stackoverflow](https://stackoverflow.com/questions/16229297/why-is-the-c-standard-library-not-working)), the simplest solution is

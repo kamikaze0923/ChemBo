@@ -1,7 +1,6 @@
+rdkit
 numpy
 matplotlib
-eigen
-pkg-config
 graphkernels
 networkx
 scipy

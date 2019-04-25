@@ -1,21 +1,17 @@
 # Notes
 
-## On initial pool size:
-
-initial pool size is determined by init_capital (it's either that or 2 * init_capital). In options, it is set to default;
-in ExperimentDesigner, it is set depending on available capital and dimension of domain, but no less than 5
-(in our case, always chosen to be 5)
-
-TODO: how to set it in options instead?
-
-## TODO: set up logging
-- https://docs.python.org/3/howto/logging.html#logging-advanced-tutorial
-
 ## Adding molecular kernels:
 
 at least currently need to modify function `get_molecular_kernel` in `mols/mol_gp.py`,
 which has configurations set for each kernel individually
 
+## Seemingly, a problem with tf.nn.top_k:
+
+InvalidArgumentError (see above for traceback): input must have at least k columns. Had 20, needed 80
+	 [[node TopKV2 (defined at /Users/ksk/Desktop/CMU/DOE/dragonfly_chemist/synth/rexgen_direct/core_wln_global/directcorefinder.py:76)  = TopKV2[T=DT_FLOAT, sorted=true, _device="/job:localhost/replica:0/task:0/device:CPU:0"](sub, TopKV2/k)]]
+
+Currently is fixed with taking a min of NK3 (80) and incoming shape. Problem appears more often
+when the pool is saved, so must be related to some validity issue.
 
 ## Example history of Chemist:
 

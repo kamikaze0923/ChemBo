@@ -73,9 +73,14 @@ class DirectCoreFinder():
             score = linearND(pair_hidden, 5, scope="scores")
             score = tf.reshape(score, [batch_size, -1])
             bmask = tf.to_float(tf.equal(self.label, INVALID_BOND)) * 10000
-            topk_scores, topk = tf.nn.top_k(score - bmask, k=NK3)
+
+            # fixing some mysterious error here,
+            # whereby only 20 predictions (?) are given instead of >= 80 (NK3)
+            actual_dim = tf.shape(score - bmask)[1]
+            k_safe = tf.math.minimum(actual_dim, NK3)
+            topk_scores, topk = tf.nn.top_k(score - bmask, k=k_safe)
             label_dim = tf.shape(self.label)[1]
-            
+
             # What will be used for inference?
             self.predict_vars = [topk, topk_scores, label_dim, att_score]
             
