@@ -22,6 +22,9 @@ TODO:
 * fix reporting (now only the end point gets reported)
   (may not need fixing, only changing the reporting rate in options)
 
+NOTE:
+* adding a new explorer, add it to GPBandit._opt_method_optimise_initalise
+
 """
 
 from argparse import Namespace
@@ -62,7 +65,9 @@ def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
         raise NotImplementedError("Choose vectorization option for acquisition.")
 
     if acq_opt_method == "rand_explorer":
-        explorer = RandomExplorer(acquisition, anc_data.capital_type)
+        # explorer = RandomExplorer(acquisition, anc_data.capital_type)
+        explorer = anc_data.acq_optimizer
+        explorer.reset_params(acquisition, anc_data.capital_type)
         logging.info(f'Running explorer for {anc_data.max_evals} steps')
         top_value, top_point, history = explorer.run(anc_data.max_evals)
         logging.info("Returning explorer's result")
@@ -78,6 +83,20 @@ gpb_acquisitions.maximise_acquisition.__code__ = mol_maximise_acquisition.__code
 # one option is to override it in child class                                 #
 ###############################################################################
 
+# Sampling initial data from the domain ----------------------------------------------
+def get_cp_domain_initial_qinfos(domain, num_samples, dom_mol_sample_type='rand'):
+    """
+    Get initial qinfos in Cartesian product domain.
+    The difference to the original function is in addition 
+    of a sampler to handle MolDomain sampling.
+    """
+    initial_pool = sample_mols_from_cartesian_domain(domain, num_samples)
+    individual_domain_samples = [initial_pool]
+    ret_dom_pts = transpose_list_of_lists(individual_domain_samples)
+    ret_dom_pts = ret_dom_pts[:num_samples]
+    return [Namespace(point=x) for x in ret_dom_pts]
+
+
 class GPBandit(GPBandit_):
     def say_hi(self):
         # testing function to see if the tricks worked
@@ -89,6 +108,7 @@ class GPBandit(GPBandit_):
         anc_data = self._get_ancillary_data_for_acquisition(curr_acq)
 
         anc_data.capital_type = self.capital_type
+        anc_data.acq_optimizer = self.acq_optimizer
         select_pt_func = getattr(gpb_acquisitions.asy, curr_acq)  # <---- here
         qinfo = Namespace(curr_acq=curr_acq,
                           hp_tune_method=self.gp_processor.hp_tune_method)
@@ -119,26 +139,14 @@ class GPBandit(GPBandit_):
         self.acq_probs = self.acq_probs / self.acq_probs.sum()
         assert len(self.acq_probs) == len(self.acqs_to_use)
 
-# Sampling initial data from the domain ---------------------------------------
-
-def get_cp_domain_initial_qinfos(domain, num_samples, fidel_space=None, fidel_to_opt=None,
-                                set_to_fidel_to_opt_with_prob=None,
-                                dom_euclidean_sample_type='latin_hc',
-                                dom_integral_sample_type='latin_hc',
-                                dom_nn_sample_type='rand',
-                                # dom_mol_sample_type='rand', <-- one option
-                                fidel_space_euclidean_sample_type='latin_hc',
-                                fidel_space_integral_sample_type='latin_hc',
-                                fidel_space_nn_sample_type='rand'):
-    """
-    Get initial qinfos in Cartesian product domain.
-    The difference to the original function is in addition 
-    of a sampler to handle MolDomain sampling.
-    """
-    individual_domain_samples = [sample_mols_from_cartesian_domain(domain, num_samples)]
-    ret_dom_pts = transpose_list_of_lists(individual_domain_samples)
-    ret_dom_pts = ret_dom_pts[:num_samples]
-    return [Namespace(point=x) for x in ret_dom_pts]
+    def _opt_method_optimise_initalise(self):
+        """ Important setup: creating the optimization object """
+        initial_pool = [mol_lst[0] for mol_lst in self.history.query_points]
+        logging.info(f'Length of initial pool {len(initial_pool)}, should be equal to init_capital.')
+        if self.acq_opt_method == 'rand_explorer':
+            self.acq_optimizer = RandomExplorer(initial_pool=initial_pool)
+        else:
+            raise NotImplementedError("Acq opt method {} not implemented.".format(self.acq_opt_method))
 
 
 # CPGP Class to use------------------------------------------------------------
@@ -252,8 +260,7 @@ class CPGPBandit(GPBandit):
             self._set_up_cp_acq_opt_with_params(1, 1000, 3e4)
 
     def _set_up_cp_acq_opt_explorer(self):
-        # explorer
-        # TODO: other parameters?
+        """ If number of evaluations is not set (-1), it will be set here. """
         self._set_up_cp_acq_opt_with_params(1, 10, 1e3)
 
     def _compute_lists_of_dists(self, X1, X2):
@@ -304,22 +311,8 @@ class CPGPBandit(GPBandit):
             self.gp.build_posterior()
 
     def _get_initial_qinfos(self, num_init_evals):
-        """ Returns initial qinfos. """
-        if self.is_an_mf_method():
-            return get_cp_domain_initial_qinfos(self.domain, num_init_evals,
-                                                fidel_space=self.fidel_space, fidel_to_opt=self.func_caller.fidel_to_opt,
-                                                set_to_fidel_to_opt_with_prob=self.options.init_set_to_fidel_to_opt_with_prob,
-                                                dom_euclidean_sample_type='latin_hc',
-                                                dom_integral_sample_type='latin_hc',
-                                                dom_nn_sample_type='rand',
-                                                fidel_space_euclidean_sample_type='latin_hc',
-                                                fidel_space_integral_sample_type='latin_hc',
-                                                fidel_space_nn_sample_type='rand')
-        else:
-            return get_cp_domain_initial_qinfos(self.domain, num_init_evals,
-                                                dom_euclidean_sample_type='latin_hc',
-                                                dom_integral_sample_type='latin_hc',
-                                                dom_nn_sample_type='rand')
+        """ Returns initial qinfos. Currently this is not used """
+        return get_cp_domain_initial_qinfos(self.domain, num_init_evals)
 
     def _get_mf_gp_fitter(self, reg_data, use_additive=False):
         """ Returns the Multi-fidelity GP Fitter. Can be overridded by a child class. """

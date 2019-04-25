@@ -42,7 +42,7 @@ class RandomExplorer(Explorer):
     Implements a random evolutionary algorithm
     for exploring molecule space.
     """
-    def __init__(self, fitness_func, capital_type='return_value',
+    def __init__(self, fitness_func=None, capital_type='return_value',
                  initial_pool=None, max_pool_size=None,
                  n_outcomes=1):
         """
@@ -63,6 +63,10 @@ class RandomExplorer(Explorer):
         self.max_pool_size = max_pool_size
         self.n_outcomes = n_outcomes
         # TODO: think whether to add additional *synthesized* pool
+
+    def reset_params(self, fitness_func, capital_type, **kwargs):
+        self.fitness_func = fitness_func
+        self.capital_type = capital_type
 
     def run_step(self):
         # choose molecules to cross-over

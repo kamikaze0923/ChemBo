@@ -40,7 +40,7 @@ TF_LOGGING_LEVEL = tf.logging.ERROR
 DATASET = "chembl"  # May add "zinc" in the future
 N_WORKERS = 1
 OBJECTIVE = "qed"
-BUDGET = 10
+BUDGET = 20
 
 
 # Runner ----------------------------------------------------------------------
@@ -67,7 +67,7 @@ def main():
     domain_config = {'data_source': DATASET, 'sampling_seed': 42}
     chemist_args = {
         'acq_opt_method': 'rand_explorer',
-        'init_capital': 10,
+        'init_capital': 11,
         'dom_mol_kernel_type': 'wl_kernel',  # 'distance_kernel'
         'acq_opt_max_evals' : 19
     }

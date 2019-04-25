@@ -65,7 +65,7 @@ source setup.sh
 
 ### Getting data
 
-ChEMBL data can be found [here](https://github.com/kevinid/molecule_generator/releases/download/1.0/datasets.tar.gz). ZINC database can be downloaded from [the official site](http://zinc.docking.org/browse/subsets/). Run the following to automatically download the datasets and put it into the right directory:
+ChEMBL data as txt can be found [in kevinid's repo](https://github.com/kevinid/molecule_generator/releases/), [official downloads](https://chembl.gitbook.io/chembl-interface-documentation/downloads). ZINC database can be downloaded from [the official site](http://zinc.docking.org/browse/subsets/). Run the following to automatically download the datasets and put them into the right directory:
 
 ```bash
 bash download_data.sh
