@@ -268,8 +268,8 @@ class CPGPBandit(GPBandit):
         ret = [None] * self.domain.num_domains
         for idx, dist_comp in enumerate(self.domain_dist_computers):
             if dist_comp is not None:
-                X1_idx = get_idxs_from_list_of_lists(X1, idx)
-                X2_idx = X1_idx if X1 is X2 else get_idxs_from_list_of_lists(X2, idx)
+                X1_idx = [X1_dim[idx] for X1_dim in X1]
+                X2_idx = X1_idx if X1 is X2 else [X2_dim[idx] for X2_dim in X2]
                 ret[idx] = dist_comp(X1_idx, X2_idx)
         return ret
 
