@@ -20,8 +20,12 @@ TODO:
 
 import numpy as np
 from typing import List, Union
+from rdkit import DataStructs
 
-import graphkernels.kernels as gk
+try:
+    import graphkernels.kernels as gk
+except ImportError as e:
+    logging.info("Graphkernels package is not available, don't use graph-based kernels.")
 
 from dragonfly.gp.kernel import Kernel
 from mols.molecule import Molecule
@@ -36,7 +40,8 @@ MOL_GRAPH_INT_KERNEL_TYPES = [
     "steprandwalk_kernel", "wl_kernel", "graphlet_kernel", "conngraphlet_kernel", "shortestpath_kernel"
 ]
 MOL_FINGERPRINT_KERNEL_TYPES = ["fingerprint_kernel"]
-MOL_SIMILARITY_KERNEL_TYPES = ["similarity_kernel"]
+MOL_SIMILARITY_KERNEL_TYPES = ["similarity_kernel"]  # <-- may differentiate to Tanimoto 
+                                                     #     and other similarities later
 MOL_DISTANCE_KERNEL_TYPES = ["distance_kernel"]
 
 
@@ -49,7 +54,8 @@ def mol_kern_factory(kernel_type:str, *args, **kwargs):
     kernel_to_kernel_type = {
         MolGraphKernel: MOL_GRAPH_CONT_KERNEL_TYPES + MOL_GRAPH_INT_KERNEL_TYPES,
         MolFingerprintKernel: MOL_FINGERPRINT_KERNEL_TYPES,
-        MolDistanceKernel: MOL_DISTANCE_KERNEL_TYPES
+        MolDistanceKernel: MOL_DISTANCE_KERNEL_TYPES,
+        MolSimilarityKernel: MOL_SIMILARITY_KERNEL_TYPES
     }
     kernel_type_to_kernel = {
         kernel_type: kernel
@@ -111,7 +117,61 @@ class MolGraphKernel(MolKernel):
         return complete_ker[:n1, n1:]
 
 
+class MolSimilarityKernel(MolKernel):
+    """ Kernel using fingerprint representations 
+        and pre-defined similarity of them.
+    """
+    def __init__(self, kernel_type: str, **kwargs):
+        """
+        :param kernel_type: graph kernel type, currently just one
+                            ("similarity_kernel")
+        """
+        super(MolSimilarityKernel, self).__init__(kernel_type, **kwargs)
+
+    def _get_fps(self, X):
+        """
+        turn each molecule to its fingerprint representation
+        """
+        return [mol.to_fingerprint(ftype="fp") for mol in X]
+
+    def _construct_sim_matrix(self, fps):
+        """ X - list of fps """
+        rows = []
+        nfps = len(fps)
+        for i in range(nfps):
+            sims = DataStructs.BulkTanimotoSimilarity(fps[i], fps)
+            rows.append(sims)
+        res = np.array(rows)
+        assert res.shape == (nfps, nfps)
+        return res
+
+    def _child_evaluate(self, X1, X2):
+        X1 = self._get_fps(X1)
+        X2 = self._get_fps(X2)
+        complete_ker = self._construct_sim_matrix(X1 + X2)
+        n1 = len(X1)
+        return complete_ker[:n1, n1:]
+
+
+class MolDistanceKernel(MolKernel):
+    def __init__(self, kernel_type: str, base_kernel: Kernel, **kwargs):
+        super(MolDistanceKernel, self).__init__(kernel_type, **kwargs)
+        self.base_kernel = base_kernel
+
+    def is_guaranteed_psd(self):
+        return self.base_kernel.is_guaranteed_psd()
+
+    def evaluate_from_dists(self, dists: List[np.array]):
+        return self.base_kernel.evaluate_from_dists(dists)
+
+    def __str__(self):
+        return "MolDistanceKernel: " + str(self.base_kernel)
+
+
 class MolFingerprintKernel(MolKernel):
+    """ Kernel based on vectorized representations of molecules.
+        In TODO mode.
+    """
     def __init__(self, kernel_type: str, base_kernel: Kernel, **kwargs):
         super(MolFingerprintKernel, self).__init__(kernel_type, **kwargs)
         self.base_kernel = base_kernel
@@ -132,24 +192,10 @@ class MolFingerprintKernel(MolKernel):
         return "FingerprintKernel: " + str(self.base_kernel)
 
 
-class MolDistanceKernel(MolKernel):
-    def __init__(self, kernel_type: str, base_kernel: Kernel, **kwargs):
-        super(MolDistanceKernel, self).__init__(kernel_type, **kwargs)
-        self.base_kernel = base_kernel
-
-    def is_guaranteed_psd(self):
-        return self.base_kernel.is_guaranteed_psd()
-
-    def evaluate_from_dists(self, dists: List[np.array]):
-        return self.base_kernel.evaluate_from_dists(dists)
-
-    def __str__(self):
-        return "MolDistanceKernel: " + str(self.base_kernel)
-
-
 class MolStringKernel(MolKernel):
     # TODO: implement this
     pass
+
 
 # class MolFingerprintKernel(MaternKernel):
 #     def __init__(self, kernel_type, nu=None, scale=None, dim_bandwidths=None,
@@ -171,20 +217,4 @@ class MolStringKernel(MolKernel):
 #
 #     def __str__(self):
 #         return "FingerprintKernel: " + super(FingerprintKernel, self).__str__()
-
-
-# class MolSimilarityKernel(Kernel):
-#     def _get_fps(self, X):
-#         """
-#         turn each molecule to its fingerprint representation
-#         """
-#         return [mol.to_fingerprint() for mol in X]
-#
-#     def _child_evaluate(self, X1, X2):
-#         # first generate the distance matrix:
-#         dists = []
-#         nfps = len(fps)
-#         for i in range(1, nfps):
-#             sims = DataStructs.BulkTanimotoSimilarity(fps[i], fps[:i])
-#             dists.extend([1-x for x in sims])
 

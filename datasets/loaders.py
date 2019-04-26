@@ -27,7 +27,7 @@ class MolSampler(object):
             ValueError -- if invalid dataset name is passed.
         """
         # load the dataset
-        logging.info("Creating a MolSampler")
+        logging.info(f"Creating a MolSampler from dataset {dataset}")
         self.rnd_generator = None
         if sampling_seed is not None:
             self.rnd_generator = np.random.RandomState(sampling_seed)

@@ -104,7 +104,9 @@ def _set_up_hyperparams_for_domain(fitter, X_data, gp_domain, dom_prefix,
             elif kernel_type in MOL_FINGERPRINT_KERNEL_TYPES:
                 raise NotImplementedError("Not implemented setting up hyperparameters for {}".format(kernel_type))
             elif kernel_type in MOL_SIMILARITY_KERNEL_TYPES:
-                raise NotImplementedError("Not implemented setting up hyperparameters for {}".format(kernel_type))
+                # these kernels don't have hyperparameters
+                pass
+                # raise NotImplementedError("Not implemented setting up hyperparameters for {}".format(kernel_type))
             else:
                 raise ValueError('Unknown kernel type "%s" for "%s" spaces.'%(kernel_type, dom_type))
         else:
@@ -140,7 +142,7 @@ def get_molecular_kernel(kernel_hyperparams,
         raise NotImplementedError("Distance kernel hyperparameter setter is not implemented.")
         # smth like: kernel_hyperparams["base_kernel"] = SEKernel(dim=10)
     elif kernel_type in MOL_SIMILARITY_KERNEL_TYPES:
-        raise NotImplementedError
+        pass
     elif kernel_type in MOL_FINGERPRINT_KERNEL_TYPES:
         raise NotImplementedError
     else:

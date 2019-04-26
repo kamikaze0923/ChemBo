@@ -70,7 +70,7 @@ def edit_mol(rmol, edits):
             if t <= 0:
                 # originally: new_mol.RemoveBond(amap[x],amap[y])  # TODO: is this causing the c++ crash?
                 # if we won't enter the next branch; otherwise we'll just reset the thing
-                bonds_to_remove.append(bond)  # can also use bond.GetIdx()
+                bonds_to_remove.append( (bond.GetIdx(), bond) )
 
             # Are we losing a bond on an aromatic nitrogen?
             if bond.GetBondTypeAsDouble() == 1.0:
@@ -120,7 +120,8 @@ def edit_mol(rmol, edits):
                 elif amap[y] in aromatic_carbondeg3_adj_to_aromatic_nH0:
                     new_mol.GetAtomWithIdx(aromatic_carbondeg3_adj_to_aromatic_nH0[amap[y]]).SetNumExplicitHs(1)
 
-    for bond in bonds_to_remove:
+    bonds_to_remove.sort(key=lambda x: x[0], reverse=True)
+    for (idx, bond) in bonds_to_remove:
         start = bond.GetBeginAtomIdx()
         end = bond.GetEndAtomIdx()
         new_mol.RemoveBond(start, end)
