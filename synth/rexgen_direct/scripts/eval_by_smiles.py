@@ -2,6 +2,12 @@
 This script evaluates the quality of predictions from the rank_diff_wln model by applying the predicted
 graph edits to the reactants, cleaning up the generated product, and comparing it to what was recorded
 as the true (major) product of that reaction
+
+NOTE:
+* Author's implementation was exhibiting crashes like here:
+  https://github.com/rdkit/rdkit/issues/1366
+  Fixed with taking the bond removal out of the loop.
+
 """
 
 import rdkit
@@ -55,12 +61,16 @@ def edit_mol(rmol, edits):
         amap[atom.GetIntProp('molAtomMapNumber')] = atom.GetIdx()
 
     # Apply the edits as predicted
+    bonds_to_remove = []
     for x,y,t in edits:
         bond = new_mol.GetBondBetweenAtoms(amap[x],amap[y])
         a1 = new_mol.GetAtomWithIdx(amap[x])
         a2 = new_mol.GetAtomWithIdx(amap[y])
         if bond is not None:
-            new_mol.RemoveBond(amap[x],amap[y])
+            if t <= 0:
+                # originally: new_mol.RemoveBond(amap[x],amap[y])  # TODO: is this causing the c++ crash?
+                # if we won't enter the next branch; otherwise we'll just reset the thing
+                bonds_to_remove.append(bond)  # can also use bond.GetIdx()
 
             # Are we losing a bond on an aromatic nitrogen?
             if bond.GetBondTypeAsDouble() == 1.0:
@@ -83,7 +93,12 @@ def edit_mol(rmol, edits):
                     new_mol.GetAtomWithIdx(aromatic_carbonyl_adj_to_aromatic_nH[amap[y]]).SetNumExplicitHs(0)
 
         if t > 0:
-            new_mol.AddBond(amap[x],amap[y],BOND_TYPE[t])
+            # TODO: instead of removing that bond, just change its type?
+            if bond is not None:
+                bond.SetBondType(BOND_TYPE[t])
+            else:
+                new_mol.AddBond(amap[x],amap[y],BOND_TYPE[t])
+            # originally: new_mol.AddBond(amap[x],amap[y],BOND_TYPE[t])
 
             # Special alkylation case?
             if t == 1:
@@ -105,6 +120,10 @@ def edit_mol(rmol, edits):
                 elif amap[y] in aromatic_carbondeg3_adj_to_aromatic_nH0:
                     new_mol.GetAtomWithIdx(aromatic_carbondeg3_adj_to_aromatic_nH0[amap[y]]).SetNumExplicitHs(1)
 
+    for bond in bonds_to_remove:
+        start = bond.GetBeginAtomIdx()
+        end = bond.GetEndAtomIdx()
+        new_mol.RemoveBond(start, end)
     pred_mol = new_mol.GetMol()
 
     # Clear formal charges to make molecules valid
@@ -159,7 +178,7 @@ def edit_mol(rmol, edits):
                 atom.SetNumExplicitHs(max(0, 4 - len(bond_vals)))
 
     # Bounce to/from SMILES to try to sanitize
-    pred_smiles = Chem.MolToSmiles(pred_mol)
+    pred_smiles = Chem.MolToSmiles(pred_mol)  # <--- TODO: error occurs here
     pred_list = pred_smiles.split('.')
     pred_mols = [Chem.MolFromSmiles(pred_smiles) for pred_smiles in pred_list]
 

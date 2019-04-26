@@ -12,6 +12,7 @@ NOTE:
 """
 
 import logging
+from argparse import Namespace
 
 from dragonfly.opt.gp_bandit import get_all_cp_gp_bandit_args
 from dragonfly.utils.reporters import get_reporter
@@ -35,15 +36,14 @@ class Chemist:
         self.func_caller = MolFunctionCaller(objective_func,
                                             domain_config=domain_config,
                                             reporter=self.reporter)
-        # self.domain_config = domain_config
         self.is_mf = is_mf
         self.mf_strategy = mf_strategy
         # kernel and explorer-related settings:
-        chemist_args = self.get_default_chemist_args(chemist_args)
+        chemist_args = self.fill_with_default_chemist_args(chemist_args)
         self.domain_dist_computers = self.get_dist_computers(chemist_args)
-        self.options = self.prepare_chemist_options(**chemist_args)
+        self.options = self.prepare_chemist_options(chemist_args, domain_config)
 
-    def get_default_chemist_args(self, chemist_args):
+    def fill_with_default_chemist_args(self, chemist_args):
         """ Updates options that may not be set by user """
         if chemist_args is None:
             chemist_args = {}
@@ -103,10 +103,13 @@ class Chemist:
                 new_list_of_options.append(d)
         return new_list_of_options
 
-    def prepare_chemist_options(self, **kwargs):
+    def prepare_chemist_options(self, chemist_args, domain_config):
         """ Resets default gp_bandit options with chemist arguments """
         dflt_list_of_options = get_all_cp_gp_bandit_args()
-        list_of_options = self.reset_default_options(dflt_list_of_options, kwargs)
+        list_of_options = self.reset_default_options(dflt_list_of_options, chemist_args)
+
+        for name, value in domain_config.items():
+            list_of_options += [{'name': name, 'default': value}]
         options = load_options(list_of_options, reporter=self.reporter)
  
         if self.mf_strategy is not None:

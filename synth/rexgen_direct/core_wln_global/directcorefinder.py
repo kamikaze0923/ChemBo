@@ -1,3 +1,7 @@
+"""
+This module defines the DirectCoreFinder class, which is for deploying the core finding model
+"""
+
 import tensorflow as tf
 from rexgen_direct.core_wln_global.nn import linearND, linear
 from rexgen_direct.core_wln_global.models import *
@@ -10,12 +14,8 @@ import threading
 from multiprocessing import Queue
 import os
 
-'''
-This module defines the DirectCoreFinder class, which is for deploying the core finding model
-'''
-
 NK3 = 80
-batch_size = 2 # just fake it, make two 
+batch_size = 2  # just fake it, make two 
 hidden_size = 300
 depth = 3
 model_path = os.path.join(os.path.dirname(__file__), "model-300-3-direct/model.ckpt-140000")
@@ -116,8 +116,8 @@ class DirectCoreFinder():
         feed_map.update({self.label:cur_label, self.binary:cur_bin})
 
         cur_topk, cur_sco, cur_dim, cur_att_score = self.session.run(self.predict_vars,
-            feed_dict=feed_map)
-        cur_dim = int(math.sqrt(cur_dim/5)) # important! changed to divide by 5
+                                                        feed_dict=feed_map)
+        cur_dim = int(math.sqrt(cur_dim/5))  # important! changed to divide by 5
 
         cur_topk = cur_topk[0,:]
         cur_sco = cur_sco[0]
@@ -130,17 +130,16 @@ class DirectCoreFinder():
         # molecules known to be reagents/solvents are not allowed to be involved with bond
         # changes.
 
-        for j in range(NK3):
-            k = cur_topk[j]
-            bindex = k % nbos
-            y = ((k - bindex) / nbos) % cur_dim + 1
-            x = (k - bindex - (y-1) * nbos) / cur_dim / nbos + 1
+        for topk, sco in zip(cur_topk, cur_sco):
+            bindex = topk % nbos
+            y = ((topk - bindex) / nbos) % cur_dim + 1
+            x = (topk - bindex - (y-1) * nbos) / cur_dim / nbos + 1
             if x < y: # keep canonical
                 # x = k / cur_dim + 1 # was for 2D case
                 # y = k % cur_dim + 1 # was for 2D case
                 bo = bindex_to_o[bindex]
                 bond_preds.append("{}-{}-{:.1f}".format(x, y, bo))
-                bond_scores.append(cur_sco[j])
+                bond_scores.append(sco)
 
         return (react, bond_preds, bond_scores, cur_att_score)
 

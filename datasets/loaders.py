@@ -33,6 +33,8 @@ class MolSampler(object):
             self.rnd_generator = np.random.RandomState(sampling_seed)
         if dataset == "chembl":
             self.dataset = get_chembl()
+        elif dataset == "zinc250":
+            self.dataset = get_zinc250()
         else:
             raise ValueError(f"Dataset {dataset} not supported.")
 
@@ -67,6 +69,13 @@ def get_chembl(n_mols=None, as_mols=True):
         else:
             res = [f.readline().strip() for _ in range(n_mols)]
     return [Molecule(smile) for smile in res]
+
+def get_zinc250():
+    path = os.path.join(__location__, "zinc250k.csv")
+    zinc_df = pd.read_csv(path)
+    list_of_smiles = list(map(lambda x: x.strip(), zinc_df.smiles.values))
+    # other columns are logP, qed, and sas
+    return [Molecule(smile) for smile in list_of_smiles]
 
 def get_initial_pool():
     """Used in chemist_opt.chemist"""

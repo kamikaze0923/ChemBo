@@ -12,6 +12,7 @@ TODO:
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+import logging
 
 from collections import defaultdict
 from time import time
@@ -57,8 +58,8 @@ class RandomExplorer(Explorer):
         self.fitness_func = fitness_func
         self.capital_type = capital_type
         self.synth = RexgenForwardSynthesizer()
-        if initial_pool is None:
-            initial_pool = get_initial_pool()
+        # if initial_pool == 'default':
+        #     initial_pool = get_initial_pool()
         self.pool = initial_pool
         self.max_pool_size = max_pool_size
         self.n_outcomes = n_outcomes
@@ -69,13 +70,16 @@ class RandomExplorer(Explorer):
         self.capital_type = capital_type
 
     def run_step(self):
-        # choose molecules to cross-over
-        r_size = np.random.randint(2,3)
-        mols = np.random.choice(self.pool, size=r_size)
-
-        # evolve
-        reaction = Reaction(mols)
-        outcomes = self.synth.predict_outcome(reaction, k=self.n_outcomes)
+        outcomes = []
+        while not outcomes:
+            # choose molecules to cross-over
+            r_size = np.random.randint(2,3)
+            mols = np.random.choice(self.pool, size=r_size)
+            # evolve
+            reaction = Reaction(mols)
+            outcomes = self.synth.predict_outcome(reaction, k=self.n_outcomes)
+            if not outcomes:
+                logging.info('Synthesizer returned empty set of results, restarting.')
 
         if self.n_outcomes == 1:
             top_pt = outcomes[0]

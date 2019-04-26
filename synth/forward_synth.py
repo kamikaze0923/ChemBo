@@ -74,11 +74,15 @@ class RexgenForwardSynthesizer(ForwardSynthesizer):
         outcomes = self.directcandranker.predict(react, bond_preds, bond_scores)
 
         res = []
-        for out in outcomes[:k]:
-            smiles = out["smiles"][0]  # may be empty for some reason?
-            mol = Molecule(smiles)
-            mol.set_synthesis(reaction.inputs)
-            res.append(mol)
+        for out in outcomes:
+            if out["smiles"]:  # may be empty for some reason?
+                smiles = out["smiles"][0]
+                mol = Molecule(smiles)
+                mol.set_synthesis(reaction.inputs)
+                res.append(mol)
+            else:
+                continue
+        res = res[:k]
 
         # setting predicted products, if not already set:
         reaction.set_products(res)

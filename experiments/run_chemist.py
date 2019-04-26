@@ -37,7 +37,7 @@ RUN_LOG_FILE = os.path.join(EXP_DIR, 'run_log')
 LOGGING_LEVEL = logging.INFO
 TF_LOGGING_LEVEL = tf.logging.ERROR
 
-DATASET = "chembl"  # May add "zinc" in the future
+DATASET = "zinc250"  # chembl or zinc250
 N_WORKERS = 1
 OBJECTIVE = "qed"
 BUDGET = 100
@@ -64,12 +64,12 @@ def main():
     # Problem settings
     objective_func = get_objective_by_name(OBJECTIVE)
     # check MolDomain constructor for full argument list:
-    domain_config = {'data_source': DATASET, 'sampling_seed': 42}
+    domain_config = {'data_source': DATASET, 'sampling_seed': 100}
     chemist_args = {
         'acq_opt_method': 'rand_explorer',
         'init_capital': 10,
         'dom_mol_kernel_type': 'wl_kernel',  # 'distance_kernel'
-        'acq_opt_max_evals' : 30
+        'acq_opt_max_evals' : 10
     }
 
     chemist = Chemist(
