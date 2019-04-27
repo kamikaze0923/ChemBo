@@ -93,12 +93,15 @@ class Molecule(object):
                 raise ValueError(f"Graph format {gformat} not supported")
         return self.graph
 
-    def to_fingerprint(self, ftype='default'):
+    def to_fingerprint(self, ftype='fp'):
         """ Get numeric vectors representing a molecule.
             Can be used in some kernels.
         """
         mol = self.to_rdkit()
-        if ftype == 'default':
+        fp = FingerprintMols.FingerprintMol(mol)
+        if ftype == 'fp':
+            return fp
+        elif ftype == 'numeric':
             """ binary vectors of length 64
             >>> TODO: is there a better way to get fixed-size vectors?
                 (e.g. below, arr may be of size 64 or 2048 for different mols)
@@ -107,6 +110,8 @@ class Molecule(object):
             arr = np.zeros((1,))
             DataStructs.ConvertToNumpyArray(fp, arr)
             return arr[:64]
+        else:
+            raise ValueError(f"Invalid fingerprint format {ftype}")
 
     def to_formula(self):
         rdk = self.to_rdkit()
