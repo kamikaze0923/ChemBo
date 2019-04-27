@@ -166,8 +166,14 @@ class OTChemDistanceComputer(ChemDistanceComputer):
           for mass_asgn_meth in self.mass_assignment_methods:
             # normalisation_methods ------------------------------------------------------
             for norm_meth in self.normalisation_methods:
-              x1_masses = self._get_mass_vector(x1_graph_data, mass_asgn_meth, norm_meth)
-              x2_masses = self._get_mass_vector(x2_graph_data, mass_asgn_meth, norm_meth)
+              try:
+                x1_masses = self._get_mass_vector(x1_graph_data, mass_asgn_meth, norm_meth)
+              except:
+                print(x1)
+              try:
+                x2_masses = self._get_mass_vector(x2_graph_data, mass_asgn_meth, norm_meth)
+              except:
+                print(x2)
               x1_sink_masses = [sum([mass for idx, mass in enumerate(x2_masses)
                                      if x2_graph_data.atomic_symbols[idx] == curr_symbol])
                                 for curr_symbol in unique_atoms]

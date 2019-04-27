@@ -55,7 +55,7 @@ def main():
                         datefmt='%d-%b-%y %H:%M:%S',
                         level=LOGGING_LEVEL)
     tf.logging.set_verbosity(TF_LOGGING_LEVEL)
-    
+
     # Obtain a reporter and worker manager
     reporter = get_reporter(open(EXP_LOG_FILE, 'w'))
     worker_manager = SyntheticWorkerManager(num_workers=N_WORKERS,
@@ -64,11 +64,12 @@ def main():
     # Problem settings
     objective_func = get_objective_by_name(OBJECTIVE)
     # check MolDomain constructor for full argument list:
-    domain_config = {'data_source': DATASET, 'sampling_seed': 42}
+    domain_config = {'data_source': DATASET, 'constraint_checker': 'organic',
+                     'sampling_seed': 42}
     chemist_args = {
         'acq_opt_method': 'rand_explorer',
         'init_capital': 10,
-        'dom_mol_kernel_type': 'similarity_kernel',  # 'distance_kernel', 'similarity_kernel'
+        'dom_mol_kernel_type': 'edgehist_kernel',  # e.g. 'distance_kernel_expsum', 'similarity_kernel'
         'acq_opt_max_evals' : 10
     }
 

@@ -15,9 +15,11 @@ TODO:
 
 """
 
+import numpy as np
 from dragonfly.exd.domains import Domain
 from datasets.loaders import MolSampler
 import logging
+
 
 # Function to be called on CP domain to sample molecules
 def sample_mols_from_cartesian_domain(domain, n_samples):
@@ -28,8 +30,15 @@ def sample_mols_from_cartesian_domain(domain, n_samples):
             return samples
     raise ValueError("MolDomain not in list of domains.")
 
-class MolConstraintChecker:
-    pass
+def get_constraint_checker_from_name(name):
+    logging.info(f'Using a constraint checker {name}')
+    if name is None:
+        # no constraints
+        return lambda mol: True
+    elif name == 'organic':
+        return has_carbon
+    else:
+        raise NotImplementedError(f'{name}')
 
 class MolDomain(Domain):
     """ Domain for Molecules. """
@@ -40,11 +49,11 @@ class MolDomain(Domain):
             domain_config in mol_function_caller.
 
             mol_type -- [TODO] e.g. can be 'drug-like'
-            constraint_checker -- [TODO]
+            constraint_checker -- [TODO] check it gets used in a reasonable way
             data_source, sampling_seed -- MolSampler parameters
         """
         self.mol_type = mol_type
-        self.constraint_checker = constraint_checker  # TODO: make a from-string constructor
+        self.constraint_checker = get_constraint_checker_from_name(constraint_checker)
         self.data_source = MolSampler(data_source, sampling_seed)
         super(MolDomain, self).__init__()
 
@@ -56,11 +65,10 @@ class MolDomain(Domain):
         """ Return dimension. """
         return 1
 
-    def is_a_member(self, point):
+    def is_a_member(self, molecule):
         """ Returns true if point is in the domain. """
-        return True
-
-        # TODO:
+        return self.constraint_checker(molecule)
+        # TODO: add mol_type?
         # if not self.mol_type == point.mol_class:
         #     return False
         # else:
@@ -71,8 +79,11 @@ class MolDomain(Domain):
 
     @classmethod
     def members_are_equal(cls, point_1, point_2):
-        """ Returns true if they are equal. """
-        return molecules_are_equal(point_1, point_2)
+        """ Technically, because SMILES are not unique,
+            this may sometimes give false negatives.
+            TODO: graph structure matching?
+        """
+        return mol1.to_smiles() == mol2.to_smiles()
 
     def __str__(self):
         """ Returns a string representation. """
@@ -83,21 +94,10 @@ class MolDomain(Domain):
         return 'Mol(%s):%s'%(self.mol_type, cc_attrs)
 
 
-def molecules_are_equal(mol1, mol2):
-    # TODO: implement a comparator method
-    pass
+# Different constraint checker functions(Molecule -> bool) --------------------
 
-
-# API -------------------------------------------------------------------------
-
-def get_mol_domain_from_constraints(mol_type, constraint_dict):
-    """ mol_type is the type of the molecule.
-      See MolConstraintChecker constructors for args and kwargs.
-    """
-
-    #--- TODO constructing constraint_checker ---#
-    # .......................................... #
-    #--- TODO constructing constraint_checker ---#
-
-    return MolDomain(mol_type, constraint_checker)
+def has_carbon(mol):
+    rdk = mol.to_rdkit()
+    atomic_symbols = [rdk.GetAtomWithIdx(idx).GetSymbol() for idx in range(len(rdk.GetAtoms()))]
+    return ('C' in atomic_symbols)
 

@@ -130,7 +130,6 @@ class Chemist:
             opt_val, opt_point, history
         """
         optimiser_constructor = CPGPBandit
-        print(f"Chemist options: {self.options}")
 
         # create optimiser and return
         optimiser = optimiser_constructor(

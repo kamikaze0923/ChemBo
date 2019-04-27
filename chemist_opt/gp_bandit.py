@@ -9,19 +9,6 @@ This is an example of how to make this work:
 >> gpb_acquisitions.asy_ei.__code__ = sneaky_func.__code__
 >> gpb_acquisitions.asy.ei()
 
-TODO:
-- Fix interaction with cartesian_product_gp.py:
-* Maybe replace the CPGPFitter in line 122 with MolFitter on MolGP,
-* then also no need for Cartesian Product at all
-- Other:
-* setting up a MolSampler is time-consuming; 
-  if it's used often, better set up as global in dataloaders and import
-* find the bug in sample_from_cp_domain_without_constraints
-  (returns an empty list even when sampler is passed)
-* other parameters in _set_up_cp_acq_opt_explorer
-* fix reporting (now only the end point gets reported)
-  (may not need fixing, only changing the reporting rate in options)
-
 NOTE:
 * adding a new explorer, add it to GPBandit._opt_method_optimise_initalise
 
@@ -106,7 +93,6 @@ class GPBandit(GPBandit_):
         """ Determine the next point for evaluation. """
         curr_acq = self._get_next_acq()
         anc_data = self._get_ancillary_data_for_acquisition(curr_acq)
-
         anc_data.capital_type = self.capital_type
         anc_data.acq_optimizer = self.acq_optimizer
         select_pt_func = getattr(gpb_acquisitions.asy, curr_acq)  # <---- here

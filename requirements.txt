@@ -1,7 +1,7 @@
-rdkit
 numpy
-matplotlib
-graphkernels
-networkx
 scipy
 tqdm
+matplotlib
+networkx
+python-igraph
+dragonfly-opt

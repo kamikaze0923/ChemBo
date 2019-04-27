@@ -4,6 +4,7 @@
 
 Dragonfly Chemist is library for joint molecular optimization and synthesis. It is based on Dragonfly - a framework for scalable Bayesian optimization.
 
+
 ## Structure of the repo
 
 * `experiments` package contains experiment scripts. In particular, `run_chemist.py` script illustrates usage of the classes.
@@ -14,31 +15,35 @@ Dragonfly Chemist is library for joint molecular optimization and synthesis. It 
 * `rdkit_contrib` is an extension to rdkit that provides computation of a few molecular scores (for older versions of `rdkit`).
 * `baselines` contains wrappers for models we compare against.
 
+
 ## Getting started
 
-**Python packages.** 
+It's recommended to use python3.
+
+**Python packages** 
 
 First, set up environment for RDKit and Dragonfly:
 
 ```bash
-conda create -n chemist-env python=3.6
+conda create -c rdkit -n chemist-env rdkit python=3.6
 # optionally: export PATH="/opt/miniconda3/bin:$PATH"
-conda activate chemist-env
+conda activate chemist-env  # or source activate chemist-env with older conda
 ```
 
-<!-- Install basic requirements with conda:
+Install basic requirements with pip:
 
 ```bash
-while read requirement; do conda install --yes $requirement; done < requirements.txt
+pip install -r requirements.txt
 ```
- -->
 
-First, need to install `eigen3`, `pkg-config`: [see instructions here](https://github.com/BorgwardtLab/GraphKernels). Then install basic requirements with pip (graphkernels already installs igraph and other dependencies):
+**Kernel-related packages**
+
+Certain functionality (some of the graph-based kernels) require the `graphkernels` package, which can be installed additionally. First, you need to install `eigen3`, `pkg-config`: [see instructions here](https://github.com/BorgwardtLab/GraphKernels):
 
 ```bash
 sudo apt-get install libeigen3-dev; sudo apt-get install pkg-config  # on Linux
 brew install eigen; brew install pkg-config  # on MacOS
-pip install -r requirements.txt
+pip install graphkernels
 ```
 
 If the above fails on MacOS (see [stackoverflow](https://stackoverflow.com/questions/16229297/why-is-the-c-standard-library-not-working)), the simplest solution is
@@ -47,10 +52,11 @@ If the above fails on MacOS (see [stackoverflow](https://stackoverflow.com/quest
 MACOSX_DEPLOYMENT_TARGET=10.9 pip install graphkernels
 ```
 
-Finally, install `dragonfly`:
+To use distance-based kernels, you need Cython and OT distance computers:
 
 ```bash
-pip install dragonfly-opt -v
+pip install Cython
+pip install cython POT  # prepended with MACOSX_DEPLOYMENT_TARGET=10.9 if needed
 ```
 
 ### Environment
@@ -69,3 +75,10 @@ ChEMBL data as txt can be found [in kevinid's repo](https://github.com/kevinid/m
 bash download_data.sh
 ```
 
+## Running tests
+
+TODO
+
+## Running experiments
+
+See `experiments/run_chemist.py` for the Chemist usage example.
