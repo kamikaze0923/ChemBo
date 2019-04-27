@@ -25,7 +25,7 @@ def get_cp_func_caller_args(domain_config):
     index_ordering = [0]
 
     # TODO: specify the kernel to use for the mol domain, None and '' will choose the default wl_kernel
-    kernel_ordering = ['']
+    kernel_ordering = ["distance_kernel_expsum"]
     name_ordering = ['molecule']
     dim_ordering = [1]
     raw_name_ordering = ['molecule']

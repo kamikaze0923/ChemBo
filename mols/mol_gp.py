@@ -15,11 +15,10 @@ import logging
 from dragonfly.exd import domains
 from dragonfly.gp.kernel import CartesianProductKernel,  SEKernel
 from dragonfly.utils.option_handler import get_option_specs, load_options
-from dragonfly.utils.reporters import get_reporter
 # local imports
 from mols.mol_kernels import mol_kern_factory, MOL_GRAPH_INT_KERNEL_TYPES, MOL_GRAPH_CONT_KERNEL_TYPES, \
-                   MOL_FINGERPRINT_KERNEL_TYPES, MOL_SIMILARITY_KERNEL_TYPES, MOL_DISTANCE_KERNEL_TYPES
-
+    MOL_FINGERPRINT_KERNEL_TYPES, MOL_SIMILARITY_KERNEL_TYPES, MOL_DISTANCE_KERNEL_TYPES, DIST_COMPUTER_LIST_LEN
+from mols.mol_kernels import MolDistanceKernel
 
 # classes and functions to redefine
 from dragonfly.gp.cartesian_product_gp import cartesian_product_gp_args,\
@@ -99,8 +98,18 @@ def _set_up_hyperparams_for_domain(fitter, X_data, gp_domain, dom_prefix,
                 fitter.dscr_hp_vals.append([1, 2, 3])
                 fitter.param_order.append(["par", "dscr"])
             elif kernel_type in MOL_DISTANCE_KERNEL_TYPES:
-                # print('passed in _set_up_hyperparams_for_domain')
-                raise NotImplementedError("Not implemented setting up hyperparameters for {}".format(kernel_type))
+                base_kernel_type = MolDistanceKernel.get_base_kernel_type(kernel_type)
+                if base_kernel_type == "expsum":
+                    beta_bounds = [[np.log(1e-2), np.log(1e2)]] * DIST_COMPUTER_LIST_LEN
+                    beta_types = [["beta" + str(i), "cts"] for i in range(DIST_COMPUTER_LIST_LEN)]
+                    fitter.cts_hp_bounds.extend(beta_bounds)
+                    fitter.param_order.extend(beta_types)
+                elif base_kernel_type == "sumexpsum":
+                    raise NotImplementedError
+                elif base_kernel_type == "matern":
+                    raise NotImplementedError
+                else:
+                    raise ValueError("Unknown base kernel type {} for mol distance kernels".format(base_kernel_type))
             elif kernel_type in MOL_FINGERPRINT_KERNEL_TYPES:
                 raise NotImplementedError("Not implemented setting up hyperparameters for {}".format(kernel_type))
             elif kernel_type in MOL_SIMILARITY_KERNEL_TYPES:
@@ -112,7 +121,8 @@ def _set_up_hyperparams_for_domain(fitter, X_data, gp_domain, dom_prefix,
         else:
             raise ValueError('Unknown kernel type "%s" for "%s" spaces.'%(kernel_type, dom_type))
 
-def _prep_kernel_hyperparams_for_molecular_domain(kernel_type, dom, kernel_params_for_dom):
+
+def _prep_kernel_hyperparams_for_molecular_domain(kernel_type, dom, kernel_params_for_dom, dist_computer):
     """ 
     Called in `_build_kernel_for_domain`
     Prepares the kernel hyper-parameters necessary for molecule domain
@@ -120,10 +130,11 @@ def _prep_kernel_hyperparams_for_molecular_domain(kernel_type, dom, kernel_param
     hyperparameters = vars(kernel_params_for_dom)
     hyperparameters['mol_type'] = dom.mol_type
     hyperparameters['kernel_type'] = kernel_type
+    hyperparameters["dist_computer"] = dist_computer
     return hyperparameters
 
-def get_molecular_kernel(kernel_hyperparams,
-                         gp_cts_hps, gp_dscr_hps):
+
+def get_molecular_kernel(kernel_hyperparams, gp_cts_hps, gp_dscr_hps):
     """ 
     Called in `_build_kernel_for_domain`
     kernel_hyperparams: dictionary
@@ -137,10 +148,17 @@ def get_molecular_kernel(kernel_hyperparams,
     elif kernel_type in MOL_GRAPH_CONT_KERNEL_TYPES:
         kernel_hyperparams["par"] = gp_cts_hps[0]
         gp_cts_hps = gp_cts_hps[1:]
-    # TODO: implement for distance kernel_types
     elif kernel_type in MOL_DISTANCE_KERNEL_TYPES:
-        raise NotImplementedError("Distance kernel hyperparameter setter is not implemented.")
-        # smth like: kernel_hyperparams["base_kernel"] = SEKernel(dim=10)
+        base_kernel_type = MolDistanceKernel.get_base_kernel_type(kernel_type)
+        if base_kernel_type == "expsum":
+            kernel_hyperparams["betas"] = gp_cts_hps[:DIST_COMPUTER_LIST_LEN]  # TODO: number of betas?
+            gp_cts_hps = gp_cts_hps[DIST_COMPUTER_LIST_LEN:]
+        elif base_kernel_type == "sumexpsum":
+            raise NotImplementedError
+        elif base_kernel_type == "matern":
+            raise NotImplementedError
+        else:
+            raise ValueError("Unknown base kernel type {} for mol distance kernels".format(base_kernel_type))
     elif kernel_type in MOL_SIMILARITY_KERNEL_TYPES:
         pass
     elif kernel_type in MOL_FINGERPRINT_KERNEL_TYPES:
@@ -150,7 +168,8 @@ def get_molecular_kernel(kernel_hyperparams,
     kern = mol_kern_factory(**kernel_hyperparams)
     return kern, gp_cts_hps, gp_dscr_hps
 
-def _build_kernel_for_domain(domain, dom_prefix, kernel_scale, gp_cts_hps, gp_dscr_hps,
+
+def _build_kernel_for_domain(domain, dom_prefix, kernel_scale, gp_cts_hps, gp_dscr_hps, dist_computers,
                             other_gp_params, options, kernel_ordering, kernel_params_for_each_domain):
     """ 
     Called in `MolCPGPFitter._child_build_gp` 
@@ -197,16 +216,16 @@ def _build_kernel_for_domain(domain, dom_prefix, kernel_scale, gp_cts_hps, gp_ds
         elif dom_type == 'molecule':
             curr_kernel_hyperparams = _prep_kernel_hyperparams_for_molecular_domain(
                                       kernel_type, dom,
-                                      kernel_params_for_each_domain[dom_idx],)
+                                      kernel_params_for_each_domain[dom_idx], dist_computers[dom_idx])
             curr_kernel, gp_cts_hps, gp_dscr_hps = \
                 get_molecular_kernel(curr_kernel_hyperparams, gp_cts_hps, gp_dscr_hps)
         else:
-          raise NotImplementedError(('Not implemented _child_build_gp for dom_type ' +
-                                     '%s yet.')%(dom_type))
+            raise NotImplementedError(("Not implemented _child_build_gp for dom_type {} yet".format(dom_type)))
         kernel_list.append(curr_kernel)
     return CartesianProductKernel(kernel_scale, kernel_list), gp_cts_hps, gp_dscr_hps
 
 # API classes ------------------------------------------------------------------------------------
+
 
 class MolCPGP(cartesian_product_gp.CPGP):
     """ this may not need any modifications at all:
@@ -236,7 +255,8 @@ class MolCPGPFitter(cartesian_product_gp.CPGPFitter):
         kernel_scale = np.exp(log_kernel_scale)
         mol_kernel, gp_cts_hps, gp_dscr_hps = _build_kernel_for_domain(
             self.domain, 'dom',
-            kernel_scale, gp_cts_hps, gp_dscr_hps, other_gp_params, self.options,
+            kernel_scale, gp_cts_hps, gp_dscr_hps, self.domain_dist_computers,
+            other_gp_params, self.options,
             self.domain_kernel_ordering, self.domain_kernel_params_for_each_domain
         )
         ret_gp = MolCPGP(

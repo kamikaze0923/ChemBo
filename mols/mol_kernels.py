@@ -20,17 +20,18 @@ TODO:
 
 import numpy as np
 from typing import List, Union
-from rdkit import DataStructs
-
+import re
+import logging
 try:
     import graphkernels.kernels as gk
 except ImportError as e:
     logging.info("Graphkernels package is not available, don't use graph-based kernels.")
-
-from dragonfly.gp.kernel import Kernel
+from dragonfly.gp.kernel import Kernel, MaternKernel, ExpSumOfDistsKernel, SumOfExpSumOfDistsKernel
+from rdkit import DataStructs
 from mols.molecule import Molecule
 
 
+DIST_COMPUTER_LIST_LEN = 4  # TODO: length of list of distance returned by the distance computer
 MOL_GRAPH_CONT_KERNEL_TYPES = [
     "edgehist_kernel", "vertexhist_kernel", "vehist_kernel"
 ]
@@ -40,12 +41,12 @@ MOL_GRAPH_INT_KERNEL_TYPES = [
     "steprandwalk_kernel", "wl_kernel", "graphlet_kernel", "conngraphlet_kernel", "shortestpath_kernel"
 ]
 MOL_FINGERPRINT_KERNEL_TYPES = ["fingerprint_kernel"]
-MOL_SIMILARITY_KERNEL_TYPES = ["similarity_kernel"]  # <-- may differentiate to Tanimoto 
+MOL_SIMILARITY_KERNEL_TYPES = ["similarity_kernel"]  # <-- may differentiate to Tanimoto
                                                      #     and other similarities later
-MOL_DISTANCE_KERNEL_TYPES = ["distance_kernel"]
+MOL_DISTANCE_KERNEL_TYPES = ["distance_kernel_expsum", "distance_kernel_sumexpsum", "distance_kernel_matern"]
 
 
-def mol_kern_factory(kernel_type:str, *args, **kwargs):
+def mol_kern_factory(kernel_type: str, *args, **kwargs):
     """
     factory method for generate a proper kernel
     :param kernel_type:
@@ -154,15 +155,43 @@ class MolSimilarityKernel(MolKernel):
 
 
 class MolDistanceKernel(MolKernel):
-    def __init__(self, kernel_type: str, base_kernel: Kernel, **kwargs):
+    """
+    evaluate kernel based on the distance measure between molecules
+    """
+    def __init__(self, kernel_type: str, **kwargs):
         super(MolDistanceKernel, self).__init__(kernel_type, **kwargs)
-        self.base_kernel = base_kernel
+        base_kernel_type = self.get_base_kernel_type(kernel_type)
+        if base_kernel_type == "expsum":
+            self.base_kernel = ExpSumOfDistsKernel(
+                dist_computer=kwargs["dist_computer"],
+                betas=kwargs["betas"],
+                scale=1.0  # scale is 1.0 as only the product kernel has scale
+            )
+        elif base_kernel_type == "sumexpsum":
+            raise NotImplementedError
+        elif base_kernel_type == "matern":
+            raise NotImplementedError
+        else:
+            raise ValueError("{} not implemented for distance kernel".format(base_kernel_type))
+
+    @staticmethod
+    def get_base_kernel_type(kernel_type):
+        """
+        :param kernel_type: as of form `"distance_kernel_{base_kernel_type}"`
+        :return: `base_kernel_type`
+        """
+        p = re.compile("distance_kernel_(.*)")
+        base_kernel_type = p.match(kernel_type).group(1)
+        return base_kernel_type
 
     def is_guaranteed_psd(self):
         return self.base_kernel.is_guaranteed_psd()
 
     def evaluate_from_dists(self, dists: List[np.array]):
         return self.base_kernel.evaluate_from_dists(dists)
+
+    def _child_evaluate(self, X1, X2):
+        return self.base_kernel.evaluate(X1, X2)
 
     def __str__(self):
         return "MolDistanceKernel: " + str(self.base_kernel)

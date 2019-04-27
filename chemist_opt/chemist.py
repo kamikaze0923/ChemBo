@@ -24,6 +24,7 @@ from chemist_opt.gp_bandit import CPGPBandit, get_cp_domain_initial_qinfos
 from chemist_opt.mol_function_caller import MolFunctionCaller
 from dist.ot_dist_computer import OTChemDistanceComputer
 from mols.mol_kernels import MOL_DISTANCE_KERNEL_TYPES
+from mols.mol_gp import get_default_kernel_type
 
 
 class Chemist:
@@ -32,10 +33,11 @@ class Chemist:
                  is_mf=False, mf_strategy=None):
         self.reporter = get_reporter(reporter)
         self.worker_manager = get_worker_manager(worker_manager)
-        if domain_config is None: domain_config = {}
+        if domain_config is None:
+            domain_config = {}
         self.func_caller = MolFunctionCaller(objective_func,
-                                            domain_config=domain_config,
-                                            reporter=self.reporter)
+                                             domain_config=domain_config,
+                                             reporter=self.reporter)
         self.is_mf = is_mf
         self.mf_strategy = mf_strategy
         # kernel and explorer-related settings:
@@ -59,11 +61,10 @@ class Chemist:
                                        self.func_caller.domain_orderings.kernel_ordering):
             domain_type = domain.get_type()
             if domain_type == "molecule":
-                # TODO: kernel resolve order
                 if kernel_type is None or kernel_type == '':
                     kernel_type = chemist_args["dom_mol_kernel_type"]
                 if kernel_type == "default":
-                    pass
+                    kernel_type = get_default_kernel_type(domain_type)
                 if kernel_type in MOL_DISTANCE_KERNEL_TYPES:
                     computer = OTChemDistanceComputer()
                     domain_dist_computers.append(computer.evaluate)
@@ -129,6 +130,7 @@ class Chemist:
             opt_val, opt_point, history
         """
         optimiser_constructor = CPGPBandit
+        print(f"Chemist options: {self.options}")
 
         # create optimiser and return
         optimiser = optimiser_constructor(
