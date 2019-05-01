@@ -109,11 +109,11 @@ class OTChemDistanceComputer(ChemDistanceComputer):
 
   def __init__(self,
                mass_assignment_method='equal-atomic_mass',
-               normalisation_method='num_carbon_atoms',
+               normalisation_method='none-num_carbon_atoms',
                struct_pen_method='all_bonds-bond_frac',
                struct_pen_coeffs=1.0,
                non_assignment_penalty=1.0,
-               nonexist_non_assignment_penalty_vals=1.0):
+               nonexist_non_assignment_penalty_vals=[1.0, 10]):
     """ Constructor.
         struct_pen_coeffs: A list of coefficients for the structural penalty term.
         mass_assignment_method: A string indicating how the masses should be assigned
