@@ -49,9 +49,9 @@ are very small and are not compromising the usefulness of using Qed in your dail
 from collections import namedtuple
 import math
 
-from rdkit import Chem
-from rdkit.Chem import MolSurf, Crippen
-from rdkit.Chem import rdMolDescriptors as rdmd
+from myrdkit import Chem
+from myrdkit import MolSurf, Crippen
+from myrdkit import rdmd
 
 
 QEDproperties = namedtuple('QEDproperties', 'MW,ALOGP,HBA,HBD,PSA,ROTB,AROM,ALERTS')

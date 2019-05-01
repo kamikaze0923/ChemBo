@@ -9,7 +9,7 @@
 
 from copy import copy
 import numpy as np
-from rdkit import Chem
+from myrdkit import Chem
 from dragonfly.utils.oper_utils import opt_transport
 # Local
 from dist.dist_computer import ChemDistanceComputer

@@ -8,7 +8,7 @@
 # pylint: disable=no-member
 
 from argparse import Namespace
-from rdkit import Chem
+from myrdkit import Chem
 
 def get_neighbors_and_bond_types(atom_idx, list_of_bonds, atomic_symbols, bond_types):
   """ Returns the bonds for the current atom. """

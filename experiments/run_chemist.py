@@ -13,6 +13,8 @@ NOTE:
   as loaders.py (which contains the Sampler and dataset getters it uses)
 """
 
+from myrdkit import *  # :(
+
 from argparse import Namespace
 import time
 import os
@@ -42,19 +44,27 @@ N_WORKERS = 1
 OBJECTIVE = "qed"
 BUDGET = 100
 
-
-# Runner ----------------------------------------------------------------------
-def main():
+# Create exp directory and point the logger -----------------------------------
+def setup_logging():
     # Make directories
     if os.path.exists(EXP_DIR):
         shutil.rmtree(EXP_DIR)
     os.mkdir(EXP_DIR)
+
+    # necessary fix for setting the logging after some imports
+    from imp import reload
+    reload(logging)
 
     logging.basicConfig(filename=RUN_LOG_FILE, filemode='w',
                         format='%(asctime)s - %(message)s',
                         datefmt='%d-%b-%y %H:%M:%S',
                         level=LOGGING_LEVEL)
     tf.logging.set_verbosity(TF_LOGGING_LEVEL)
+
+
+# Runner ----------------------------------------------------------------------
+def main():
+    setup_logging()
 
     # Obtain a reporter and worker manager
     reporter = get_reporter(open(EXP_LOG_FILE, 'w'))

@@ -13,11 +13,11 @@ TODO:
 """
 
 import numpy as np
-from rdkit import Chem
-from rdkit.Chem import rdmolops
-from rdkit import DataStructs
-from rdkit.Chem.Fingerprints import FingerprintMols
-from rdkit.Chem.rdMolDescriptors import CalcMolFormula, CalcExactMolWt
+from myrdkit import Chem
+from myrdkit import rdmolops
+from myrdkit import DataStructs
+from myrdkit import FingerprintMols
+from myrdkit import CalcMolFormula, CalcExactMolWt
 
 GRAPH_LIB = "igraph"  # depending on package for graph kernels
 if GRAPH_LIB == "igraph":

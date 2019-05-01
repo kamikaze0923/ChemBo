@@ -12,10 +12,10 @@ NOTES:
 
 """
 
-from rdkit import Chem
+from myrdkit import Chem
 from rdkit_contrib.sascorer import calculateScore as calculateSAScore
-from rdkit.Chem.QED import qed
-from rdkit.Chem import Descriptors
+from myrdkit import qed
+from myrdkit import Descriptors
 
 def get_objective_by_name(name):
     """Get a function computing molecular property.

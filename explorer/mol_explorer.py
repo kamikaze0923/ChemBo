@@ -18,7 +18,7 @@ from collections import defaultdict
 from time import time
 
 from synth.forward_synth import RexgenForwardSynthesizer
-from rdkit import Chem
+from myrdkit import Chem
 from rdkit_contrib.sascorer import calculateScore as calculateSAScore
 from mols.molecule import Molecule, Reaction
 from datasets.loaders import get_chembl_prop, get_initial_pool

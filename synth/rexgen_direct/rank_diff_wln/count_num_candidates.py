@@ -6,8 +6,8 @@ import math, sys, random
 from optparse import OptionParser
 import threading
 from multiprocessing import Queue
-import rdkit
-from rdkit import Chem
+from myrdkit import rdkit
+from myrdkit import Chem
 import os
 
 

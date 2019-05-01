@@ -9,11 +9,8 @@ NOTE:
   Fixed with taking the bond removal out of the loop.
 
 """
-
-import rdkit
-from rdkit import Chem
+from myrdkit import rdkit, Chem, RDLogger
 from optparse import OptionParser
-from rdkit import RDLogger
 lg = RDLogger.logger()
 lg.setLevel(4)
 import logging

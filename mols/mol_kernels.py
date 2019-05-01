@@ -25,9 +25,10 @@ import logging
 try:
     import graphkernels.kernels as gk
 except ImportError as e:
+    gk = None
     logging.info("Graphkernels package is not available, don't use graph-based kernels.")
 from dragonfly.gp.kernel import Kernel, MaternKernel, ExpSumOfDistsKernel, SumOfExpSumOfDistsKernel
-from rdkit import DataStructs
+from myrdkit import DataStructs
 from mols.molecule import Molecule
 
 
@@ -79,21 +80,22 @@ class MolKernel(Kernel):
 
 
 class MolGraphKernel(MolKernel):
-    _kernel_calculator = {
-        "edgehist_kernel": gk.CalculateEdgeHistKernel,
-        "vertexhist_kernel": gk.CalculateVertexHistKernel,
-        "vehist_kernel": gk.CalculateVertexEdgeHistKernel,
-        "vvehist_kernel": gk.CalculateVertexVertexEdgeHistKernel,
-        "vertexhistgauss_kernel": gk.CalculateVertexHistGaussKernel,
-        "vehistgauss_kernel": gk.CalculateVertexEdgeHistGaussKernel,
-        "georandwalk_kernel": gk.CalculateGeometricRandomWalkKernel,
-        "exprandwalk_kernel": gk.CalculateExponentialRandomWalkKernel,
-        "steprandwalk_kernel": gk.CalculateKStepRandomWalkKernel,
-        "wl_kernel": gk.CalculateWLKernel,
-        "graphlet_kernel": gk.CalculateGraphletKernel,
-        "conngraphlet_kernel": gk.CalculateConnectedGraphletKernel,
-        "shorestpath_kernel": gk.CalculateShortestPathKernel
-    }
+    if gk is not None:
+        _kernel_calculator = {
+            "edgehist_kernel": gk.CalculateEdgeHistKernel,
+            "vertexhist_kernel": gk.CalculateVertexHistKernel,
+            "vehist_kernel": gk.CalculateVertexEdgeHistKernel,
+            "vvehist_kernel": gk.CalculateVertexVertexEdgeHistKernel,
+            "vertexhistgauss_kernel": gk.CalculateVertexHistGaussKernel,
+            "vehistgauss_kernel": gk.CalculateVertexEdgeHistGaussKernel,
+            "georandwalk_kernel": gk.CalculateGeometricRandomWalkKernel,
+            "exprandwalk_kernel": gk.CalculateExponentialRandomWalkKernel,
+            "steprandwalk_kernel": gk.CalculateKStepRandomWalkKernel,
+            "wl_kernel": gk.CalculateWLKernel,
+            "graphlet_kernel": gk.CalculateGraphletKernel,
+            "conngraphlet_kernel": gk.CalculateConnectedGraphletKernel,
+            "shorestpath_kernel": gk.CalculateShortestPathKernel
+        }
 
     def __init__(self, kernel_type: str, par: Union[int, float], **kwargs):
         """

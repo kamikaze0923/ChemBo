@@ -1,8 +1,8 @@
-import rdkit
-from rdkit import Chem
+from myrdkit import rdkit
+from myrdkit import Chem
 from optparse import OptionParser
 
-from rdkit import RDLogger
+from myrdkit import RDLogger
 lg = RDLogger.logger()
 lg.setLevel(4)
 

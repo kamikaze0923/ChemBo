@@ -1,4 +1,4 @@
-import rdkit.Chem as Chem
+from myrdkit import Chem
 from .mol_graph import bond_fdim, bond_features
 import numpy as np
 

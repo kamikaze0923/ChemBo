@@ -1,5 +1,5 @@
-import rdkit
-import rdkit.Chem as Chem
+from myrdkit import rdkit
+from myrdkit import Chem
 import numpy as np
 import random
 from edit_mol_direct import get_product_smiles

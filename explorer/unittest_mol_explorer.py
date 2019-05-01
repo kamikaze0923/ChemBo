@@ -7,7 +7,7 @@ TODO:
 
 import numpy as np
 from time import time
-from rdkit import Chem
+from myrdkit import Chem
 
 # Local imports
 from explorer.mol_explorer import RandomExplorer

@@ -5,7 +5,7 @@ Visualization tools for molecules
 
 import PIL
 import matplotlib.pyplot as plt
-from rdkit.Chem import Draw
+from myrdkit import Draw
 from mols.molecule import Molecule
 
 

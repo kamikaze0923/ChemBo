@@ -1,4 +1,4 @@
-import rdkit.Chem as Chem
+from myrdkit import Chem
 import numpy as np
 from collections import defaultdict
 

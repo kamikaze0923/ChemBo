@@ -8,7 +8,7 @@ from optparse import OptionParser
 import threading
 from multiprocessing import Queue, Pool
 import time
-import rdkit.Chem as Chem
+from myrdkit import Chem
 import os
 
 
