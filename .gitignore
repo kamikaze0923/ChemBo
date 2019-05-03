@@ -13,3 +13,5 @@ tmp_
 .vs_code
 *.swp
 **/archive/*
+sftp-config.json
+.nosync
