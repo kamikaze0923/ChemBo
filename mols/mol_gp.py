@@ -42,6 +42,7 @@ _DFLT_DOMAIN_MOL_KERNEL_TYPE = "edgehist_kernel"
 ###############################################################################
  # Setup helpers new definitions
 
+
 def get_default_kernel_type(domain_type):
     """ 
     :return: default kernel type for the domain. 
@@ -50,6 +51,7 @@ def get_default_kernel_type(domain_type):
         return _DFLT_DOMAIN_MOL_KERNEL_TYPE
     else:
         raise ValueError('domain_type %s not yet supported'%(domain_type))
+
 
 def _get_kernel_type_from_options(dom_type, dom_prefix, options):
     """
@@ -67,6 +69,7 @@ def _get_kernel_type_from_options(dom_type, dom_prefix, options):
         raise ValueError('Unknown domain type %s.'%(dom_type))
     attr_name = '%s_%s_kernel_type'%(dom_prefix, dom_type_descr_dict[dom_type])
     return getattr(options, attr_name)
+
 
 def _set_up_hyperparams_for_domain(fitter, X_data, gp_domain, dom_prefix,
                                    kernel_ordering, kernel_params_for_each_domain,

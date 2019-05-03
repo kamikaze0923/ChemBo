@@ -61,6 +61,7 @@ class Chemist:
                                        self.func_caller.domain_orderings.kernel_ordering):
             domain_type = domain.get_type()
             if domain_type == "molecule":
+                # first check function caller kernel, then `chemist_args`, and finally default kernel
                 if kernel_type is None or kernel_type == '':
                     kernel_type = chemist_args["dom_mol_kernel_type"]
                 if kernel_type == "default":
