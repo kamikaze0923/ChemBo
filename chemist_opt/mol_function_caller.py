@@ -24,8 +24,7 @@ def get_cp_func_caller_args(domain_config):
     """ TODO: use params for MolDomain constructor """
     index_ordering = [0]
 
-    # TODO: specify the kernel to use for the mol domain, None and '' will choose the default wl_kernel
-    kernel_ordering = ["distance_kernel_expsum"]
+    kernel_ordering = [""]  # "" or None for not having a kernel associated with func caller, will use `chemist_args`
     name_ordering = ['molecule']
     dim_ordering = [1]
     raw_name_ordering = ['molecule']
