@@ -16,6 +16,7 @@ TODO:
 """
 
 import numpy as np
+from mols.molecule import Molecule
 from dragonfly.exd.domains import Domain
 from datasets.loaders import MolSampler
 import logging
@@ -67,12 +68,10 @@ class MolDomain(Domain):
 
     def is_a_member(self, molecule):
         """ Returns true if point is in the domain. """
+        if not isinstance(molecule, Molecule):
+            return False
         return self.constraint_checker(molecule)
         # TODO: add mol_type?
-        # if not self.mol_type == point.mol_class:
-        #     return False
-        # else:
-        #     return self.constraint_checker(point)
 
     def sample(self, n_samples):
         return self.data_source(n_samples)
@@ -99,5 +98,12 @@ class MolDomain(Domain):
 def has_carbon(mol):
     rdk = mol.to_rdkit()
     atomic_symbols = [rdk.GetAtomWithIdx(idx).GetSymbol() for idx in range(len(rdk.GetAtoms()))]
-    return ('C' in atomic_symbols)
+    mol_has_carbon = ('C' in atomic_symbols)
+    print(atomic_symbols, mol_has_carbon)
+    return mol_has_carbon
+
+
+if __name__ == "__main__":
+    mol = Molecule("C=C1NC(N(C)C)=NC12CCN(CC(C)c1ccccc1)CC2")
+    has_carbon(mol)
 

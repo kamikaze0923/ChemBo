@@ -21,11 +21,9 @@ from mols.mol_domains import MolDomain
 
 
 def get_cp_func_caller_args(domain_config):
-    """ TODO: use params for MolDomain constructor """
     index_ordering = [0]
 
-    # TODO: specify the kernel to use for the mol domain, None and '' will choose the default wl_kernel
-    kernel_ordering = ["distance_kernel_expsum"]
+    kernel_ordering = ['']
     name_ordering = ['molecule']
     dim_ordering = [1]
     raw_name_ordering = ['molecule']
@@ -68,4 +66,18 @@ class MolFunctionCaller(CPFunctionCaller):
     def is_mf(cls):
         """ Returns True if Multi-fidelity. """
         return False
+
+
+if __name__ == "__main__":
+    from mols.molecule import Molecule
+    mol = Molecule("C=C1NC(N(C)C)=NC12CCN(CC(C)c1ccccc1)CC2")
+    print("---")
+    domain_config = {'data_source': 'chembl',
+                     'constraint_checker': 'organic',
+                     'sampling_seed': 42}
+    cp_domain = get_cp_func_caller_args(domain_config)['domain']
+    print(cp_domain.is_a_member(mol))
+    print(cp_domain.is_a_member([mol]))
+    print(cp_domain.is_a_member([None]))
+
 

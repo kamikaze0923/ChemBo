@@ -5,7 +5,6 @@ Can be used as a usage example.
 @author: kkorovin@cs.cmu.edu
 
 TODO:
-* using different datasets (dep on data_source in Chemist)
 * visualization in mols.visualize
 
 NOTE:
@@ -74,13 +73,14 @@ def main():
     # Problem settings
     objective_func = get_objective_by_name(OBJECTIVE)
     # check MolDomain constructor for full argument list:
-    domain_config = {'data_source': DATASET, 'constraint_checker': 'organic',
+    domain_config = {'data_source': DATASET,
+                     'constraint_checker': 'organic',  # not specifying constraint_checker defaults to None
                      'sampling_seed': 42}
     chemist_args = {
         'acq_opt_method': 'rand_explorer',
         'init_capital': 10,
-        'dom_mol_kernel_type': 'edgehist_kernel',  # e.g. 'distance_kernel_expsum', 'similarity_kernel'
-        'acq_opt_max_evals' : 10
+        'dom_mol_kernel_type': 'similarity_kernel',  # e.g. 'distance_kernel_expsum', 'similarity_kernel', 'wl_kernel'
+        'acq_opt_max_evals' : 10 // N_WORKERS
     }
 
     chemist = Chemist(

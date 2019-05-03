@@ -109,11 +109,13 @@ class OTChemDistanceComputer(ChemDistanceComputer):
 
   def __init__(self,
                mass_assignment_method='equal-atomic_mass',
-               normalisation_method='none-num_carbon_atoms',
+               #normalisation_method='none-num_carbon_atoms',  # <-- from updated
+               normalisation_method='num_carbon_atoms',
                struct_pen_method='all_bonds-bond_frac',
                struct_pen_coeffs=1.0,
                non_assignment_penalty=1.0,
-               nonexist_non_assignment_penalty_vals=[1.0, 10]):
+               #nonexist_non_assignment_penalty_vals=[1.0, 10]  # <-- from updated 
+               nonexist_non_assignment_penalty_vals=1.0):
     """ Constructor.
         struct_pen_coeffs: A list of coefficients for the structural penalty term.
         mass_assignment_method: A string indicating how the masses should be assigned
@@ -166,14 +168,9 @@ class OTChemDistanceComputer(ChemDistanceComputer):
           for mass_asgn_meth in self.mass_assignment_methods:
             # normalisation_methods ------------------------------------------------------
             for norm_meth in self.normalisation_methods:
-              try:
-                x1_masses = self._get_mass_vector(x1_graph_data, mass_asgn_meth, norm_meth)
-              except:
-                print(x1)
-              try:
-                x2_masses = self._get_mass_vector(x2_graph_data, mass_asgn_meth, norm_meth)
-              except:
-                print(x2)
+              # TODO: these may not have any carbons, then will fail
+              x1_masses = self._get_mass_vector(x1_graph_data, mass_asgn_meth, norm_meth)
+              x2_masses = self._get_mass_vector(x2_graph_data, mass_asgn_meth, norm_meth)
               x1_sink_masses = [sum([mass for idx, mass in enumerate(x2_masses)
                                      if x2_graph_data.atomic_symbols[idx] == curr_symbol])
                                 for curr_symbol in unique_atoms]

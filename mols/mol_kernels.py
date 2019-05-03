@@ -227,25 +227,3 @@ class MolStringKernel(MolKernel):
     # TODO: implement this
     pass
 
-
-# class MolFingerprintKernel(MaternKernel):
-#     def __init__(self, kernel_type, nu=None, scale=None, dim_bandwidths=None,
-#                  kernel_dim=64):
-#         super(MolFingerprintKernel, self).__init__(kernel_dim, nu, scale, dim_bandwidths)
-#         self.kernel_type = kernel_type
-#
-#     def _get_fps(self, X):
-#         """
-#         turn each molecule to its fingerprint representation
-#         """
-#         res = np.array([mol.to_fingerprint() for mol in X])
-#         return res
-#
-#     def _child_evaluate(self, X1, X2):
-#         X1 = self._get_fps(X1)
-#         X2 = self._get_fps(X2)
-#         return super(MolFingerprintKernel, self)._child_evaluate(X1, X2)
-#
-#     def __str__(self):
-#         return "FingerprintKernel: " + super(FingerprintKernel, self).__str__()
-

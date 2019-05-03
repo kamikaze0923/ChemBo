@@ -9,9 +9,11 @@ This is an example of how to make this work:
 >> gpb_acquisitions.asy_ei.__code__ = sneaky_func.__code__
 >> gpb_acquisitions.asy.ei()
 
+TODO:
+* anc_data has domain: use it for looping while the result is not in domain
+
 NOTE:
 * adding a new explorer, add it to GPBandit._opt_method_optimise_initalise
-
 """
 
 from argparse import Namespace
@@ -25,7 +27,6 @@ import dragonfly.opt.gpb_acquisitions as gpb_acquisitions
 # for sampling initial points
 from dragonfly.utils.general_utils import block_augment_array
 from dragonfly.utils.general_utils import transpose_list_of_lists
-# from dragonfly.gp.cartesian_product_gp import CPGPFitter, CPMFGPFitter
 
 from mols.mol_gp import cartesian_product_gp_args, MolCPGPFitter
 from explorer.mol_explorer import RandomExplorer
@@ -34,7 +35,6 @@ from mols.mol_domains import sample_mols_from_cartesian_domain
 
 def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
     """ returns optimal point """
-    from explorer.mol_explorer import RandomExplorer
     import logging
 
     acq_opt_method = anc_data.acq_opt_method
@@ -52,11 +52,13 @@ def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
         raise NotImplementedError("Choose vectorization option for acquisition.")
 
     if acq_opt_method == "rand_explorer":
-        # explorer = RandomExplorer(acquisition, anc_data.capital_type)
         explorer = anc_data.acq_optimizer
         explorer.reset_params(acquisition, anc_data.capital_type)
-        logging.info(f'Running explorer for {anc_data.max_evals} steps')
-        top_value, top_point, history = explorer.run(anc_data.max_evals)
+        received_valid_point = False
+        while not received_valid_point:
+            logging.info(f'Running explorer for {anc_data.max_evals} steps')
+            top_value, top_point, history = explorer.run(anc_data.max_evals)
+            received_valid_point = cp_domain.is_a_member([top_point])  # domain is CP domain
         logging.info("Returning explorer's result")
         return [top_point]
     else:
@@ -95,6 +97,9 @@ class GPBandit(GPBandit_):
         anc_data = self._get_ancillary_data_for_acquisition(curr_acq)
         anc_data.capital_type = self.capital_type
         anc_data.acq_optimizer = self.acq_optimizer
+
+        print("Domain:", anc_data.domain)
+
         select_pt_func = getattr(gpb_acquisitions.asy, curr_acq)  # <---- here
         qinfo = Namespace(curr_acq=curr_acq,
                           hp_tune_method=self.gp_processor.hp_tune_method)
