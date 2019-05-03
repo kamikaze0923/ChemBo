@@ -97,7 +97,6 @@ class GPBandit(GPBandit_):
         anc_data = self._get_ancillary_data_for_acquisition(curr_acq)
         anc_data.capital_type = self.capital_type
         anc_data.acq_optimizer = self.acq_optimizer
-
         select_pt_func = getattr(gpb_acquisitions.asy, curr_acq)  # <---- here
         qinfo = Namespace(curr_acq=curr_acq,
                           hp_tune_method=self.gp_processor.hp_tune_method)
