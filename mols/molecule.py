@@ -206,4 +206,7 @@ class Reaction(object):
         if self.products is None:
             self.products = ranked_outcomes
 
+    def get_input_str(self):
+        reaction_inp_str = ".".join([m.smiles for m in self.inputs])
+        return reaction_inp_str
 

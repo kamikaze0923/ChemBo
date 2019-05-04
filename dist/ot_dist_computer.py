@@ -284,7 +284,7 @@ class OTChemDistanceComputer(ChemDistanceComputer):
       pass
     elif normalisation_method == 'num_carbon_atoms':
       num_carbon_atoms = sum([elem == 'C' for elem in graph_data.atomic_symbols])
-      ret = [x/float(num_carbon_atoms) for x in ret]
+      ret = [x/float(1 + num_carbon_atoms) for x in ret]  # <-- NOTE: added a +1 here to avoid zero division
     elif normalisation_method == 'molecular_mass':
       tot_molecular_mass = sum(graph_data.atomic_masses)
       ret = [x/float(tot_molecular_mass) for x in ret]

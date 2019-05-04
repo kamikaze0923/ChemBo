@@ -3,8 +3,6 @@ Implements forward synthesis
 @author: kkorovin@cs.cmu.edu
 
 TODO:
-* add better checks for parseability into the Mol class
-  (currently silenced)
 * Template synthesis and sanity checks
 
 Notes:
@@ -18,10 +16,10 @@ Notes:
 """
 
 import sys
+import logging
 
 from mols.molecule import Molecule, Reaction
-from rexgen_direct.core_wln_global.directcorefinder import DirectCoreFinder 
-from rexgen_direct.scripts.eval_by_smiles import edit_mol
+from rexgen_direct.core_wln_global.directcorefinder import DirectCoreFinder
 from rexgen_direct.rank_diff_wln.directcandranker import DirectCandRanker
 
 
@@ -69,9 +67,13 @@ class RexgenForwardSynthesizer(ForwardSynthesizer):
         Returns:
             {list[Molecule]} - list of products of reaction
         """
-        react = ".".join([m.smiles for m in reaction.inputs])
-        (react, bond_preds, bond_scores, cur_att_score) = self.directcorefinder.predict(react)
-        outcomes = self.directcandranker.predict(react, bond_preds, bond_scores)
+        react = reaction.get_input_str()
+        try:
+            (react, bond_preds, bond_scores, cur_att_score) = self.directcorefinder.predict(react)
+            outcomes = self.directcandranker.predict(react, bond_preds, bond_scores)
+        except RuntimeError as e:
+            logging.error(f"Error occured in DirectCandRanker.predict: {e}")
+            raise e
 
         res = []
         for out in outcomes:
