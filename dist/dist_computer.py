@@ -64,6 +64,10 @@ class ChemDistanceComputer(object):
       all_ret[i, j] = curr_ret
     return all_ret, es_is_iterable
 
+  def get_num_distances(self):
+    """ Return the number of distances. """
+    raise NotImplementedError('Implement in a child class.')
+
   def evaluate_single(self, x1, x2, *args, **kwargs):
     """ Evaluates the distance between the two networks x1 and x2. """
     raise NotImplementedError('Implement in a child class.')

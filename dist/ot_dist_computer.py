@@ -109,13 +109,12 @@ class OTChemDistanceComputer(ChemDistanceComputer):
 
   def __init__(self,
                mass_assignment_method='equal-atomic_mass',
-               #normalisation_method='none-num_carbon_atoms',  # <-- from updated
-               normalisation_method='num_carbon_atoms',
+               normalisation_method='none-num_carbon_atoms',
                struct_pen_method='all_bonds-bond_frac',
                struct_pen_coeffs=1.0,
                non_assignment_penalty=1.0,
-               #nonexist_non_assignment_penalty_vals=[1.0, 10]  # <-- from updated 
-               nonexist_non_assignment_penalty_vals=1.0):
+               nonexist_non_assignment_penalty_vals=(1.0, 10),
+              ):
     """ Constructor.
         struct_pen_coeffs: A list of coefficients for the structural penalty term.
         mass_assignment_method: A string indicating how the masses should be assigned
@@ -137,6 +136,7 @@ class OTChemDistanceComputer(ChemDistanceComputer):
     self.non_assignment_penalty = non_assignment_penalty
     self.struct_pen_coeffs = struct_pen_coeffs
     self.nonexist_non_assignment_penalty_vals = nonexist_non_assignment_penalty_vals
+    self._num_distances = None
     super(OTChemDistanceComputer, self).__init__()
 
   def evaluate_single(self, x1, x2, *args, **kwargs):
@@ -150,7 +150,7 @@ class OTChemDistanceComputer(ChemDistanceComputer):
     atom_dissimilarity_matrices = self._get_atom_dissimilarity_matrices(
         unique_atoms, x1_graph_data, x2_graph_data)
     ret = []
-    # structural penalty types --------------==-------------------------------------------
+    # structural penalty types -----------------------------------------------------------
     for stru_pen_meth in self.struct_pen_methods:
       struct_pen_matrix = self._get_struct_penalty_matrices(
           unique_atoms, x1_graph_data, x2_graph_data, stru_pen_meth)
@@ -289,4 +289,14 @@ class OTChemDistanceComputer(ChemDistanceComputer):
       tot_molecular_mass = sum(graph_data.atomic_masses)
       ret = [x/float(tot_molecular_mass) for x in ret]
     return ret
+
+  def get_num_distances(self):
+    """ Return the number of distances. """
+    if self._num_distances is None:
+      self._num_distances = len(self.struct_pen_methods) * \
+                            len(self.nonexist_non_assignment_penalty_vals) * \
+                            len(self.struct_pen_coeffs) * \
+                            len(self.mass_assignment_methods) * \
+                            len(self.normalisation_methods)
+    return self._num_distances
 
