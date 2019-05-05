@@ -9,6 +9,8 @@ datasets/*
 synth/rexgen_direct/data
 # synth/rexgen_direct/rank_diff_wln/model-core16-500-3-max150-direct-useScores
 experiment_dir*
+chemist_exp*
+rand_exp*
 tmp_
 .vs_code
 *.swp
