@@ -54,7 +54,10 @@ def get_chembl_prop(n_mols=None, as_mols=False):
     # smile: v for the first of two properties
     smile_to_prop = {s: v for (s, v) in zip(df[0], df[1])}
     smile_to_prop = defaultdict(int, smile_to_prop)
-    return df[0].values, smile_to_prop
+    smile_strings = df[0].values
+    if n_mols is not None:
+        smile_strings = np.random.choice(smile_strings, n_mols)
+    return smile_strings, smile_to_prop
 
 def get_chembl(n_mols=None, as_mols=True):
     """ 

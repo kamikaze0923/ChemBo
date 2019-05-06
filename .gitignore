@@ -11,6 +11,7 @@ synth/rexgen_direct/data
 experiment_dir*
 chemist_exp*
 rand_exp*
+visualizations
 tmp_
 .vs_code
 *.swp

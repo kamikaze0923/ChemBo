@@ -13,12 +13,13 @@ from dist.ot_dist_computer import OTChemDistanceComputer
 
 def get_smile_strings_from_file(data_file_name):
   """ Returns the chemical molecules. """
-  data_file = open(data_file_name)
-  lines = data_file.readlines()
-  stripped_lines = [elem.strip() for elem in lines]
-  words = [elem.split() for elem in stripped_lines]
-  smile_strings = [elem[0] for elem in words if len(elem) > 0]
-  return smile_strings
+  with open(data_file_name) as data_file:
+    # data_file = open(data_file_name)
+    lines = data_file.readlines()
+    stripped_lines = [elem.strip() for elem in lines]
+    words = [elem.split() for elem in stripped_lines]
+    smile_strings = [elem[0] for elem in words if len(elem) > 0]
+    return smile_strings
 
 
 class DistComputerTestCases(BaseTestClass):

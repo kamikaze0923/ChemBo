@@ -137,7 +137,21 @@ class OTChemDistanceComputer(ChemDistanceComputer):
     self.struct_pen_coeffs = struct_pen_coeffs
     self.nonexist_non_assignment_penalty_vals = nonexist_non_assignment_penalty_vals
     self._num_distances = None
+    self.str_params = self.format_params(mass_assignment_method, normalisation_method, 
+                          struct_pen_method, struct_pen_coeffs, 
+                          non_assignment_penalty, nonexist_non_assignment_penalty_vals)
     super(OTChemDistanceComputer, self).__init__()
+
+  def format_params(self, mass_assignment_method, normalisation_method, 
+                    struct_pen_method, struct_pen_coeffs, 
+                    non_assignment_penalty, nonexist_non_assignment_penalty_vals):
+    struct_pen_coeffs_ = str([str(s).replace('.', ',') for s in struct_pen_coeffs])
+    non_assignment_penalty_ = str(non_assignment_penalty).replace('.', ',')
+    nonexist_non_assignment_penalty_vals_ = str([str(s).replace('.', ',')
+                                            for s in nonexist_non_assignment_penalty_vals])
+    return '--'.join([mass_assignment_method,normalisation_method, struct_pen_method,
+                      struct_pen_coeffs_, non_assignment_penalty_,
+                      nonexist_non_assignment_penalty_vals_])
 
   def evaluate_single(self, x1, x2, *args, **kwargs):
     """ Evaluates the distance between two chemical molecules x1 and x2. """
@@ -299,4 +313,7 @@ class OTChemDistanceComputer(ChemDistanceComputer):
                             len(self.mass_assignment_methods) * \
                             len(self.normalisation_methods)
     return self._num_distances
+
+  def __repr__(self):
+    return 'OTChemDistanceComputer: %s' % self.str_params
 
