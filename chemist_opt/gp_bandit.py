@@ -179,11 +179,13 @@ class CPGPBandit(GPBandit):
                 domain_dist_computers=None,
                 options=self.options, reporter=self.reporter)
         else:
-            dummy_gp_fitter = MolCPGPFitter([], [], self.func_caller.domain,
-                 domain_kernel_ordering=self.func_caller.domain_orderings.kernel_ordering,
-                 domain_lists_of_dists=None,
-                 domain_dist_computers=None,
-                 options=self.options, reporter=self.reporter)
+            dummy_gp_fitter = MolCPGPFitter(
+                [], [], self.func_caller.domain,
+                domain_kernel_ordering=self.func_caller.domain_orderings.kernel_ordering,
+                domain_lists_of_dists=None,
+                domain_dist_computers=self.domain_dist_computers,  # TODO: is domain_dist_computers=None necessary?
+                options=self.options, reporter=self.reporter
+            )
         
         # Pre-compute distances for all sub-domains in domain - not doing for fidel_space
         # since we don't expect pre-computing distances will be necessary there.

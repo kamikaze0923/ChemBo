@@ -43,6 +43,7 @@ N_WORKERS = 1
 OBJECTIVE = "qed"
 BUDGET = 100
 
+
 # Create exp directory and point the logger -----------------------------------
 def setup_logging():
     # Make directories
@@ -100,14 +101,15 @@ def main():
     opt_mol = raw_opt_point[0]
 
     # Print the optimal value and visualize the molecule and path.
-    reporter.writeln(f'\nOptimum value found: {opt_val}')
-    reporter.writeln(f'Optimum molecule: {opt_mol} with formula {opt_mol.to_formula()}')
-    reporter.writeln(f'Synthesis path: {opt_mol.get_synthesis_path()}')
+    reporter.writeln(f"\nOptimum value found: {opt_val}")
+    reporter.writeln(f"Optimum molecule: {opt_mol} with formula {opt_mol.to_formula()}")
+    reporter.writeln(f"Synthesis path: {opt_mol.get_synthesis_path()}")
 
     # visualize mol/synthesis path
     visualize_file = os.path.join(EXP_DIR, 'optimal_molecule.png')
     reporter.writeln(f'Optimal molecule visualized in {visualize_file}')
     visualize_mol(opt_mol, visualize_file)
+
 
 if __name__ == "__main__":
     main()
