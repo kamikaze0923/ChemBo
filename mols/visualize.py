@@ -5,28 +5,32 @@ Visualization tools for molecules
 
 import PIL
 import matplotlib.pyplot as plt
+import numpy as np
 from myrdkit import Draw
 from mols.molecule import Molecule
 
 
-def visualize_mol(mol, path):
+def visualize_mol(mol: Molecule, path: str):
+    """
+    Draw a single molecule and save it to `path`
+    :param mol: molecule to draw
+    :param path: path to save the drawn molecule to
+    """
     img = draw_molecule(mol)
     img.save(path)
 
-def draw_molecule(mol):
-    """ Elementary drawing utility.
 
-    Arguments:
-        mol {Molecule} -- molecule to draw
-    Returns:
-        PIL.Image.Image
+def draw_molecule(mol: Molecule) -> PIL.Image.Image:
+    """
+    Draw a single molecule `mol` (make it `PIL.Image.Image`)
+    :param mol: molecule to draw
+    :return: corresponding image to `mol`
     """
     img = Draw.MolToImage(mol.to_rdkit())
     return img
 
-def draw_synthesis_path(mol):
-    syn_path = mol.get_syn_path()
 
+def draw_synthesis_path(mol):
     def compute_depth(syn_path):
         depth = 1
         if not mol.begin_flag:
@@ -34,9 +38,9 @@ def draw_synthesis_path(mol):
                 inp_depth = compute_depth(inp_syn_path)
                 depth = max(depth, inp_depth)
         return depth
-    # number of rows to allocate for plotting:
-    depth = compute_depth(syn_path)
 
+    syn_path = mol.get_syn_path()
+    depth = compute_depth(syn_path)  # number of rows to allocate for plotting
     imgs_per_row = []
     min_shape = None
 
