@@ -80,8 +80,8 @@ def main():
     chemist_args = {
         'acq_opt_method': 'rand_explorer',
         'init_capital': 10,
-        'dom_mol_kernel_type': 'similarity_kernel',  # e.g. 'distance_kernel_expsum', 'similarity_kernel', 'wl_kernel'
-        'acq_opt_max_evals' : 10,
+        'dom_mol_kernel_type': 'distance_kernel_expsum',  # e.g. 'distance_kernel_expsum', 'similarity_kernel', 'wl_kernel'
+        'acq_opt_max_evals': 10,
         'objective': OBJECTIVE,
         'max_pool_size': 100
     }
