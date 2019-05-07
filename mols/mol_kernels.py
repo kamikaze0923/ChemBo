@@ -31,8 +31,6 @@ from dragonfly.gp.kernel import Kernel, MaternKernel, ExpSumOfDistsKernel, SumOf
 from myrdkit import DataStructs
 from mols.molecule import Molecule
 
-
-DIST_COMPUTER_LIST_LEN = 16  # TODO: length of list of distance returned by the distance computer
 MOL_GRAPH_CONT_KERNEL_TYPES = [
     "edgehist_kernel", "vertexhist_kernel", "vehist_kernel"
 ]

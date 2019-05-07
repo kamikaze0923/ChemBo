@@ -68,7 +68,7 @@ class Chemist:
                     kernel_type = get_default_kernel_type(domain_type)
                 if kernel_type in MOL_DISTANCE_KERNEL_TYPES:
                     computer = OTChemDistanceComputer()
-                    domain_dist_computers.append(computer.evaluate)
+                    domain_dist_computers.append(computer)
                 else:
                     domain_dist_computers.append(None)
             else:
