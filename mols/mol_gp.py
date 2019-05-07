@@ -146,8 +146,6 @@ def get_molecular_kernel(kernel_hyperparams, gp_cts_hps, gp_dscr_hps):
     """
     # pop the optimized int_par/cont_par from the `gp_dscr_hps`/`gp_cts_hps`
     kernel_type = kernel_hyperparams["kernel_type"]
-    dist_computer = kernel_hyperparams["dist_computer"]
-    num_distances = dist_computer.get_num_distances()
     if kernel_type in MOL_GRAPH_INT_KERNEL_TYPES:
         kernel_hyperparams["par"] = int(gp_dscr_hps[0])
         gp_dscr_hps = gp_dscr_hps[1:]
@@ -155,9 +153,11 @@ def get_molecular_kernel(kernel_hyperparams, gp_cts_hps, gp_dscr_hps):
         kernel_hyperparams["par"] = gp_cts_hps[0]
         gp_cts_hps = gp_cts_hps[1:]
     elif kernel_type in MOL_DISTANCE_KERNEL_TYPES:
+        dist_computer = kernel_hyperparams["dist_computer"]
+        num_distances = dist_computer.get_num_distances()
         base_kernel_type = MolDistanceKernel.get_base_kernel_type(kernel_type)
         if base_kernel_type == "expsum":
-            kernel_hyperparams["betas"] = gp_cts_hps[:num_distances]  # TODO: number of betas?
+            kernel_hyperparams["betas"] = gp_cts_hps[:num_distances]
             gp_cts_hps = gp_cts_hps[num_distances:]
         elif base_kernel_type == "sumexpsum":
             raise NotImplementedError
