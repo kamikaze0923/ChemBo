@@ -265,14 +265,9 @@ class MolCPGPFitter(cartesian_product_gp.CPGPFitter):
             other_gp_params, self.options,
             self.domain_kernel_ordering, self.domain_kernel_params_for_each_domain
         )
-        try:
-            ret_gp = MolCPGP(
-                self.X, self.Y, mol_kernel, mean_func, noise_var,
-                domain_lists_of_dists=self.domain_lists_of_dists, *args, **kwargs
-            )
-        except np.linalg.LinAlgError as e:
-            import pickle
-            print(f"{e}")
-            pickle.dump(self.domain_lists_of_dists, open("err_dist.p", "wb"))
+        ret_gp = MolCPGP(
+            self.X, self.Y, mol_kernel, mean_func, noise_var,
+            domain_lists_of_dists=self.domain_lists_of_dists, *args, **kwargs
+        )
         return ret_gp, gp_cts_hps, gp_dscr_hps
 
