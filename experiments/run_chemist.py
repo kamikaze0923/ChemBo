@@ -31,7 +31,7 @@ from mols.mol_functions import get_objective_by_name
 from mols.visualize import visualize_mol
 
 # Where to store temporary model checkpoints
-EXP_DIR = 'experiments/experiment_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
+EXP_DIR = 'experiments/chemist_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
 
 EXP_LOG_FILE = os.path.join(EXP_DIR, 'exp_log')
 RUN_LOG_FILE = os.path.join(EXP_DIR, 'run_log')
@@ -76,12 +76,14 @@ def main():
     # check MolDomain constructor for full argument list:
     domain_config = {'data_source': DATASET,
                      'constraint_checker': 'organic',  # not specifying constraint_checker defaults to None
-                     'sampling_seed': 42}
+                     'sampling_seed': 1}
     chemist_args = {
         'acq_opt_method': 'rand_explorer',
         'init_capital': 10,
-        'dom_mol_kernel_type': 'distance_kernel_expsum',  # e.g. 'edgehist_kernel', 'similarity_kernel'
-        'acq_opt_max_evals': 10 // N_WORKERS
+        'dom_mol_kernel_type': 'similarity_kernel',  # e.g. 'distance_kernel_expsum', 'similarity_kernel', 'wl_kernel'
+        'acq_opt_max_evals' : 10,
+        'objective': OBJECTIVE,
+        'max_pool_size': 100
     }
 
     chemist = Chemist(

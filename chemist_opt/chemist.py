@@ -81,10 +81,12 @@ class Chemist:
             if name matches. Hence non-matching entries will be ignored.
         """
         new_list_of_options = []
+        added_names = []
         for d in list_of_options:
             if d['name'] in chemist_args:
                 d['default'] = chemist_args[d['name']]
                 new_list_of_options.append(d)
+                added_names.append(d['name'])
             # TODO: regexp for filtering unneeded options
             elif 'dom_int' in d['name']:
                 continue
@@ -101,8 +103,15 @@ class Chemist:
             elif 'nn_report' in d['name']:
                 continue
             else:
-                # just keep it as is
+                # add other names that are in list_of_options
+                # but not in chemist_args
                 new_list_of_options.append(d)
+                added_names.append(d['name'])
+        # add some options that are in chemist_args
+        # but not in list_of_options
+        for name, value in chemist_args.items():
+            if name not in added_names:
+                new_list_of_options += [{'name': name, 'default': value}]
         return new_list_of_options
 
     def prepare_chemist_options(self, chemist_args, domain_config):
