@@ -61,13 +61,14 @@ class Chemist:
                                        self.func_caller.domain_orderings.kernel_ordering):
             domain_type = domain.get_type()
             if domain_type == "molecule":
+                # first check function caller kernel, then `chemist_args`, and finally default kernel
                 if kernel_type is None or kernel_type == '':
                     kernel_type = chemist_args["dom_mol_kernel_type"]
                 if kernel_type == "default":
                     kernel_type = get_default_kernel_type(domain_type)
                 if kernel_type in MOL_DISTANCE_KERNEL_TYPES:
                     computer = OTChemDistanceComputer()
-                    domain_dist_computers.append(computer.evaluate)
+                    domain_dist_computers.append(computer)
                 else:
                     domain_dist_computers.append(None)
             else:
