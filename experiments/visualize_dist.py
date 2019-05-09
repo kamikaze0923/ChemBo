@@ -23,7 +23,7 @@ if __name__ == "__main__":
         OTChemDistanceComputer(normalisation_method='atomic_mass'),
     ]
 
-    smile_strings, smiles_to_prop = get_chembl_prop(n_mols=10)
+    smile_strings, smiles_to_prop = get_chembl_prop(n_mols=200)
     for dist_computer in dist_computers:
         prop_list = [smiles_to_prop[sm] for sm in smile_strings]
         distances_mat = np.mean(dist_computer(smile_strings, smile_strings), axis=0)

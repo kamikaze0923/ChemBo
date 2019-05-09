@@ -31,6 +31,7 @@ from dragonfly.gp.kernel import Kernel, MaternKernel, ExpSumOfDistsKernel, SumOf
 from myrdkit import DataStructs
 from mols.molecule import Molecule
 
+
 MOL_GRAPH_CONT_KERNEL_TYPES = [
     "edgehist_kernel", "vertexhist_kernel", "vehist_kernel"
 ]
