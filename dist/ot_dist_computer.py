@@ -141,6 +141,7 @@ class OTChemDistanceComputer(ChemDistanceComputer):
                           struct_pen_method, struct_pen_coeffs, 
                           non_assignment_penalty, nonexist_non_assignment_penalty_vals)
     super(OTChemDistanceComputer, self).__init__()
+    print('Num distances:', self.get_num_distances())  # TODO: temporary
 
   def format_params(self, mass_assignment_method, normalisation_method, 
                     struct_pen_method, struct_pen_coeffs, 
