@@ -105,7 +105,7 @@ def main():
         'acq_opt_method': 'rand_explorer',
         'init_capital': args.init_pool_size,
         'dom_mol_kernel_type': args.kernel,  # e.g. 'distance_kernel_expsum', 'similarity_kernel', 'wl_kernel'
-        'acq_opt_max_evals' : args.steps,
+        'acq_opt_max_evals': args.steps,
         'objective': args.objective,
         'max_pool_size': args.max_pool_size
     }
