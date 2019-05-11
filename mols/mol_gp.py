@@ -104,9 +104,9 @@ def _set_up_hyperparams_for_domain(fitter, X_data, gp_domain, dom_prefix,
                 base_kernel_type = MolDistanceKernel.get_base_kernel_type(kernel_type)
                 num_distances = dist_computer.get_num_distances()
                 if base_kernel_type == "expsum":
-                    beta_bounds = [[np.log(1e-2), np.log(1e2)]] * num_distances
-                    beta_types = [["beta" + str(i), "cts"] for i in range(num_distances)]
-                    fitter.cts_hp_bounds.extend(beta_bounds)
+                    log_beta_bounds = [[np.log(1e-2), np.log(1e2)]] * num_distances
+                    beta_types = [["log_beta" + str(i), "cts"] for i in range(num_distances)]
+                    fitter.cts_hp_bounds.extend(log_beta_bounds)
                     fitter.param_order.extend(beta_types)
                 elif base_kernel_type == "sumexpsum":
                     raise NotImplementedError
@@ -157,7 +157,7 @@ def get_molecular_kernel(kernel_hyperparams, gp_cts_hps, gp_dscr_hps):
         num_distances = dist_computer.get_num_distances()
         base_kernel_type = MolDistanceKernel.get_base_kernel_type(kernel_type)
         if base_kernel_type == "expsum":
-            kernel_hyperparams["betas"] = gp_cts_hps[:num_distances]
+            kernel_hyperparams["betas"] = np.exp(gp_cts_hps[:num_distances])  # exp of log betas
             gp_cts_hps = gp_cts_hps[num_distances:]
         elif base_kernel_type == "sumexpsum":
             raise NotImplementedError
