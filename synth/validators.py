@@ -11,6 +11,7 @@ TODO:
   (e.g. rdkit may have something helpful).
 """
 
+from mols.molecule import Molecule
 from mols.mol_functions import get_objective_by_name
 
 
@@ -20,15 +21,16 @@ def compute_min_sa_score(mol):
     def get_min_score(syn):
         res = float('inf')
         for mol, syn_graph in syn.items():
-            if mol.begin_flag:
-                return sa_score(mol)
+            # if mol.begin_flag:
+            if isinstance(syn_graph, str):
+                return sa_score(Molecule(mol))
             res = min(res, get_min_score(syn_graph))
         return res
     synthesis_path = mol.get_synthesis_path()
     if isinstance(synthesis_path, dict):
         min_sa_score = get_min_score(synthesis_path)
     else:
-        min_sa_score = sa_score(synthesis_path)
+        min_sa_score = sa_score(Molecule(synthesis_path))
     return min_sa_score
 
 def check_validity(mol):

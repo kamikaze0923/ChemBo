@@ -9,6 +9,7 @@ and for validation of explored output.
 
 import os
 import time
+import pickle as pkl
 import numpy as np
 import matplotlib.pyplot as plt
 from argparse import ArgumentParser
@@ -24,6 +25,7 @@ from datasets.loaders import MolSampler
 EXP_DIR = 'experiments/rand_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
 EXP_LOG_FILE = os.path.join(EXP_DIR, 'exp_log')
 PLOT_FILE = os.path.join(EXP_DIR, 'explorer.png')
+SYN_PATH_FILE = os.path.join(EXP_DIR, 'best_molecule.pkl')
 if os.path.exists(EXP_DIR):
     shutil.rmtree(EXP_DIR)
 os.mkdir(EXP_DIR)
@@ -76,6 +78,8 @@ def explore_and_validate_synth(init_pool_size, seed, budget, objective,
     reporter.writeln(f"Is a valid molecule: {check_validity(top_point)}")
     reporter.writeln(f"Top score: {obj_func(top_point)}")
     reporter.writeln(f"Minimum synthesis score over the path: {compute_min_sa_score(top_point)}")
+    with open(SYN_PATH_FILE, 'wb') as f:
+        pkl.dump(top_point.get_synthesis_path(), f)
 
     sorted_by_prop = sorted(pool, key=obj_func)[-5:]
     for opt_mol in sorted_by_prop:
