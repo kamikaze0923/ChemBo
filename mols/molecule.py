@@ -126,8 +126,8 @@ class Molecule(object):
         Unwind the synthesis graph until all the inputs have True flags.
         """
         if self.begin_flag:
-            return self
-        return {inp: inp.get_synthesis_path() for inp in self.inputs}
+            return self.smiles
+        return {inp.smiles: inp.get_synthesis_path() for inp in self.inputs}
 
     def __str__(self):
         return self.smiles
