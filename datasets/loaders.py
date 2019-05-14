@@ -70,7 +70,7 @@ def get_chembl_prop(n_mols=None, as_mols=False):
         smile_strings = np.random.choice(smile_strings, n_mols)
     return smile_strings, smile_to_prop
 
-def get_chembl(n_mols=None, as_mols=True, option=''):
+def get_chembl(n_mols=None, as_mols=True, option='', max_size=1000):
     """ 
         Return list of SMILES.
         NOTE: this function should be located
@@ -83,8 +83,11 @@ def get_chembl(n_mols=None, as_mols=True, option=''):
         else:
             res = [f.readline().strip() for _ in range(n_mols)]
     mols = [Molecule(smile) for smile in res]
+    if len(mols) < max_size:
+        return mols
+
     gen = np.random.RandomState(42)
-    mols = list(gen.choice(mols, 1000, replace=False))
+    mols = list(gen.choice(mols, max_size, replace=False))
     if option == '':
         return mols
     elif option == 'small_qed':
@@ -96,14 +99,17 @@ def get_chembl(n_mols=None, as_mols=True, option=''):
     else:
         raise ValueError(f"Dataset filter {option} not supported.")
 
-def get_zinc250(option=''):
+def get_zinc250(option='', max_size=1000):
     path = os.path.join(__location__, "zinc250k.csv")
     zinc_df = pd.read_csv(path)
     list_of_smiles = list(map(lambda x: x.strip(), zinc_df.smiles.values))
     # other columns are logP, qed, and sas
     mols = [Molecule(smile) for smile in res]
+    if len(mols) < max_size:
+        return mols
+
     gen = np.random.RandomState(42)
-    mols = list(gen.choice(mols, 1000, replace=False))
+    mols = list(gen.choice(mols, max_size, replace=False))
     if option == '':
         return mols
     elif option == 'small_qed':
