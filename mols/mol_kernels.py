@@ -32,7 +32,6 @@ from myrdkit import DataStructs
 from mols.molecule import Molecule
 
 
-DIST_COMPUTER_LIST_LEN = 4  # TODO: length of list of distance returned by the distance computer
 MOL_GRAPH_CONT_KERNEL_TYPES = [
     "edgehist_kernel", "vertexhist_kernel", "vehist_kernel"
 ]
@@ -42,8 +41,7 @@ MOL_GRAPH_INT_KERNEL_TYPES = [
     "steprandwalk_kernel", "wl_kernel", "graphlet_kernel", "conngraphlet_kernel", "shortestpath_kernel"
 ]
 MOL_FINGERPRINT_KERNEL_TYPES = ["fingerprint_kernel"]
-MOL_SIMILARITY_KERNEL_TYPES = ["similarity_kernel"]  # <-- may differentiate to Tanimoto
-                                                     #     and other similarities later
+MOL_SIMILARITY_KERNEL_TYPES = ["similarity_kernel"]
 MOL_DISTANCE_KERNEL_TYPES = ["distance_kernel_expsum", "distance_kernel_sumexpsum", "distance_kernel_matern"]
 
 

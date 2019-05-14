@@ -5,7 +5,7 @@ Can be used as a usage example.
 @author: kkorovin@cs.cmu.edu
 
 TODO:
-* visualization in mols.visualize
+* visualization of synth paths in mols.visualize
 
 NOTE:
 * all datasets now are assumed to live in the same folder
@@ -14,7 +14,7 @@ NOTE:
 
 from myrdkit import *  # :(
 
-from argparse import Namespace
+from argparse import Namespace, ArgumentParser
 import time
 import os
 import shutil
@@ -31,17 +31,42 @@ from mols.mol_functions import get_objective_by_name
 from mols.visualize import visualize_mol
 
 # Where to store temporary model checkpoints
-EXP_DIR = 'experiments/experiment_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
-
+EXP_DIR = 'experiments/chemist_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
 EXP_LOG_FILE = os.path.join(EXP_DIR, 'exp_log')
 RUN_LOG_FILE = os.path.join(EXP_DIR, 'run_log')
 LOGGING_LEVEL = logging.INFO
 TF_LOGGING_LEVEL = tf.logging.ERROR
-
-DATASET = "chembl"  # chembl or zinc250
 N_WORKERS = 1
-OBJECTIVE = "qed"
-BUDGET = 100
+
+def parse_args():
+    parser = ArgumentParser()
+    # crucial arguments
+    parser.add_argument('-d', '--dataset', default='chembl', type=str,
+                        help='dataset: chembl or zinc250')
+    parser.add_argument('-s', '--seed', default=42, type=int,
+                        help='sampling seed for the dataset')
+    parser.add_argument('-o', '--objective', default='qed', type=str,
+                        help='which objective function to use: qed or logp')
+    parser.add_argument('-b', '--budget', default=100, type=int,
+                        help='computational budget (in numbers of BO iterations)')
+    parser.add_argument('-k', '--kernel', default='wl_kernel', type=str,
+                        help='kernel to use: wl_kernel (and other graphkernels),' +
+                        'similarity_kernel, or distance_kernel_expsum')
+    parser.add_argument('-i', '--init_pool_size', default=10, type=int,
+                        help='size of initial pool')
+
+    # optional arguments
+    parser.add_argument('-stp', '--steps', default=10, type=str,
+                        help='number of steps of aquisition optimization')
+    parser.add_argument('-mpl', '--max_pool_size', default='None', type=str,
+                        help='maximum pool size for Explorer, None or int')
+    args = parser.parse_args()
+    if args.max_pool_size == 'None':
+        args.max_pool_size = None
+    else:
+        args.max_pool_size = int(args.max_pool_size)
+    return args
+
 
 # Create exp directory and point the logger -----------------------------------
 def setup_logging():
@@ -64,23 +89,27 @@ def setup_logging():
 # Runner ----------------------------------------------------------------------
 def main():
     setup_logging()
-
+    args = parse_args()
     # Obtain a reporter and worker manager
     reporter = get_reporter(open(EXP_LOG_FILE, 'w'))
     worker_manager = SyntheticWorkerManager(num_workers=N_WORKERS,
                                             time_distro='const')
 
     # Problem settings
-    objective_func = get_objective_by_name(OBJECTIVE)
+    objective_func = get_objective_by_name(args.objective)
     # check MolDomain constructor for full argument list:
-    domain_config = {'data_source': DATASET,
+    domain_config = {'data_source': args.dataset,
                      'constraint_checker': 'organic',  # not specifying constraint_checker defaults to None
-                     'sampling_seed': 42}
+                     'sampling_seed': args.seed}
     chemist_args = {
         'acq_opt_method': 'rand_explorer',
-        'init_capital': 10,
-        'dom_mol_kernel_type': 'similarity_kernel',  # e.g. 'distance_kernel_expsum', 'similarity_kernel', 'wl_kernel'
-        'acq_opt_max_evals' : 10 // N_WORKERS
+        'init_capital': args.init_pool_size,
+        'dom_mol_kernel_type': args.kernel,  # e.g. 'distance_kernel_expsum', 'similarity_kernel', 'wl_kernel'
+        'acq_opt_max_evals': args.steps,
+        'objective': args.objective,
+        'max_pool_size': args.max_pool_size,
+        'report_results_every': 1,
+        'gpb_hp_tune_criterion': 'ml'
     }
 
     chemist = Chemist(
@@ -91,21 +120,22 @@ def main():
         worker_manager=worker_manager,
         reporter=reporter
     )
-    opt_val, opt_point, history = chemist.run(BUDGET)
+    opt_val, opt_point, history = chemist.run(args.budget)
 
     # convert to raw format
     raw_opt_point = chemist.get_raw_domain_point_from_processed(opt_point)
     opt_mol = raw_opt_point[0]
 
     # Print the optimal value and visualize the molecule and path.
-    reporter.writeln(f'\nOptimum value found: {opt_val}')
-    reporter.writeln(f'Optimum molecule: {opt_mol} with formula {opt_mol.to_formula()}')
-    reporter.writeln(f'Synthesis path: {opt_mol.get_synthesis_path()}')
+    reporter.writeln(f"\nOptimum value found: {opt_val}")
+    reporter.writeln(f"Optimum molecule: {opt_mol} with formula {opt_mol.to_formula()}")
+    reporter.writeln(f"Synthesis path: {opt_mol.get_synthesis_path()}")
 
     # visualize mol/synthesis path
     visualize_file = os.path.join(EXP_DIR, 'optimal_molecule.png')
     reporter.writeln(f'Optimal molecule visualized in {visualize_file}')
     visualize_mol(opt_mol, visualize_file)
+
 
 if __name__ == "__main__":
     main()

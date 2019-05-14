@@ -36,7 +36,6 @@ from mols.mol_domains import sample_mols_from_cartesian_domain
 def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
     """ returns optimal point """
     import logging
-
     acq_opt_method = anc_data.acq_opt_method
 
     if anc_data.domain.get_type() == 'euclidean':
@@ -100,6 +99,7 @@ class GPBandit(GPBandit_):
         select_pt_func = getattr(gpb_acquisitions.asy, curr_acq)  # <---- here
         qinfo = Namespace(curr_acq=curr_acq,
                           hp_tune_method=self.gp_processor.hp_tune_method)
+        # this line would call mol_maximise_acquisition, where self.gp.eval will be used as (part of) acq_fn
         next_eval_point = select_pt_func(self.gp, anc_data)
         qinfo.point = next_eval_point
         return qinfo
@@ -132,7 +132,8 @@ class GPBandit(GPBandit_):
         initial_pool = [mol_lst[0] for mol_lst in self.history.query_points]
         logging.info(f'Length of initial pool {len(initial_pool)}, should be equal to init_capital.')
         if self.acq_opt_method == 'rand_explorer':
-            self.acq_optimizer = RandomExplorer(initial_pool=initial_pool)
+            self.acq_optimizer = RandomExplorer(initial_pool=initial_pool,
+                                                max_pool_size=self.options.max_pool_size)
         else:
             raise NotImplementedError("Acq opt method {} not implemented.".format(self.acq_opt_method))
 
@@ -167,7 +168,8 @@ class CPGPBandit(GPBandit):
         if self.is_an_mf_method():
             fs_orderings = self.func_caller.fidel_space_orderings
             d_orderings = self.func_caller.domain_orderings
-            dummy_gp_fitter = CPMFGPFitter([], [], [], config=None,
+            dummy_gp_fitter = CPMFGPFitter(
+                [], [], [], config=None,
                 fidel_space=self.func_caller.fidel_space,
                 domain=self.func_caller.domain,
                 fidel_space_kernel_ordering=fs_orderings.kernel_ordering,
@@ -176,13 +178,16 @@ class CPGPBandit(GPBandit):
                 domain_lists_of_dists=None,
                 fidel_space_dist_computers=None,
                 domain_dist_computers=None,
-                options=self.options, reporter=self.reporter)
+                options=self.options, reporter=self.reporter
+            )
         else:
-            dummy_gp_fitter = MolCPGPFitter([], [], self.func_caller.domain,
-                 domain_kernel_ordering=self.func_caller.domain_orderings.kernel_ordering,
-                 domain_lists_of_dists=None,
-                 domain_dist_computers=None,
-                 options=self.options, reporter=self.reporter)
+            dummy_gp_fitter = MolCPGPFitter(
+                [], [], self.func_caller.domain,
+                domain_kernel_ordering=self.func_caller.domain_orderings.kernel_ordering,
+                domain_lists_of_dists=None,
+                domain_dist_computers=self.domain_dist_computers,  # TODO: is domain_dist_computers=None necessary?
+                options=self.options, reporter=self.reporter
+            )
         
         # Pre-compute distances for all sub-domains in domain - not doing for fidel_space
         # since we don't expect pre-computing distances will be necessary there.
@@ -286,8 +291,9 @@ class CPGPBandit(GPBandit):
                         domain_lists_of_dists_old_new[i][j].T, domain_lists_of_dists_new_new[i][j])
             self.already_evaluated_dists_for.extend(new_reg_X)
         # Add data to the GP as we will be repeating with the same GP.
-        if hasattr(self, 'gp_processor') and hasattr(self.gp_processor, 'fit_type') and \
-            self.gp_processor.fit_type == 'fitted_gp':
+        if hasattr(self, 'gp_processor') \
+           and hasattr(self.gp_processor, 'fit_type') \
+           and self.gp_processor.fit_type == 'fitted_gp':
             reg_data = self._get_gp_reg_data()
             if self.is_an_mf_method():
                 self.gp.set_mf_data(reg_data[0], reg_data[1], reg_data[2], build_posterior=False)

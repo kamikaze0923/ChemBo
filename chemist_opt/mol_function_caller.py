@@ -22,11 +22,10 @@ from mols.mol_domains import MolDomain
 
 def get_cp_func_caller_args(domain_config):
     index_ordering = [0]
-
-    kernel_ordering = ['']
-    name_ordering = ['molecule']
+    kernel_ordering = [""]  # "" or None for not having a kernel associated with func caller, will use `chemist_args`
+    name_ordering = ["molecule"]
     dim_ordering = [1]
-    raw_name_ordering = ['molecule']
+    raw_name_ordering = ["molecule"]
 
     orderings = Namespace(index_ordering=index_ordering,
                           kernel_ordering=kernel_ordering,

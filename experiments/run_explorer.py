@@ -7,48 +7,100 @@ and for validation of explored output.
 
 """
 
-from time import time
+import os
+import time
+import pickle as pkl
 import numpy as np
 import matplotlib.pyplot as plt
+from argparse import ArgumentParser
 
 from explorer.mol_explorer import RandomExplorer
 from mols.mol_functions import get_objective_by_name
 from datasets.loaders import get_chembl
+from dragonfly.utils.reporters import get_reporter
 from synth.validators import compute_min_sa_score, check_validity
 from datasets.loaders import MolSampler
 
+# Where to store temporary model checkpoints
+EXP_DIR = 'experiments/rand_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
+EXP_LOG_FILE = os.path.join(EXP_DIR, 'exp_log')
+PLOT_FILE = os.path.join(EXP_DIR, 'explorer.png')
+SYN_PATH_FILE = os.path.join(EXP_DIR, 'best_molecule.pkl')
+if os.path.exists(EXP_DIR):
+    shutil.rmtree(EXP_DIR)
+os.mkdir(EXP_DIR)
 
-def explore_and_validate_synth(init_pool_size, n_steps,
-                               objective='logp'):
+def parse_args():
+    parser = ArgumentParser()
+    # crucial arguments
+    parser.add_argument('-d', '--dataset', default='chembl', type=str,
+                        help='dataset: chembl or zinc250')
+    parser.add_argument('-s', '--seed', default=42, type=int,
+                        help='sampling seed for the dataset')
+    parser.add_argument('-o', '--objective', default='qed', type=str,
+                        help='which objective function to use: qed or logp')
+    parser.add_argument('-b', '--budget', default=100, type=int,
+                        help='computational budget (# of function `evaluations`)')
+    parser.add_argument('-i', '--init_pool_size', default=10, type=int,
+                        help='size of initial pool')
+
+    # optional arguments
+    parser.add_argument('-mpl', '--max_pool_size', default='None', type=str,
+                        help='maximum pool size for Explorer, None or int')
+
+    args = parser.parse_args()
+    if args.max_pool_size == 'None':
+        args.max_pool_size = None
+    else:
+        args.max_pool_size = int(args.max_pool_size)
+    return args
+
+
+def explore_and_validate_synth(init_pool_size, seed, budget, objective,
+                               dataset, max_pool_size, reporter):
     """
     This experiment is equivalent to unlimited-evaluation optimization.
     It compares optimal found vs optimal over pool, and checks if synthesizeability is improved.
     """
-
     obj_func = get_objective_by_name(objective)
-    sampler = MolSampler("chembl", sampling_seed=42)
+    sampler = MolSampler(dataset, sampling_seed=seed)
     pool = sampler(init_pool_size)
-    exp = RandomExplorer(obj_func, initial_pool=pool)
+    exp = RandomExplorer(obj_func, initial_pool=pool, max_pool_size=max_pool_size)
 
     props = [obj_func(mol) for mol in pool]
-    print(f"Properties of pool: quantity {len(pool)}, min {np.min(props)}, avg {np.mean(props)}, max {np.max(props)}")
-    print(f"Starting {objective} optimization")
-    top_value, top_point, history = exp.run(n_steps)
+    reporter.writeln(f"Properties of pool: quantity {len(pool)}, min {np.min(props)}, avg {np.mean(props)}, max {np.max(props)}")
+    reporter.writeln(f"Starting {objective} optimization")
 
-    print(f"Is a valid molecule: {check_validity(top_point)}")
-    print(f"Top score: {obj_func(top_point)}")
-    print(f"Minimum synthesis score over the path: {compute_min_sa_score(top_point)}")
+    t0 = time.time()
+    top_value, top_point, history = exp.run(budget)
+
+    reporter.writeln("Finished run in {:.3f} minutes".format( (time.time()-t0)/60 ))
+    reporter.writeln(f"Is a valid molecule: {check_validity(top_point)}")
+    reporter.writeln(f"Top score: {obj_func(top_point)}")
+    reporter.writeln(f"Minimum synthesis score over the path: {compute_min_sa_score(top_point)}")
+    with open(SYN_PATH_FILE, 'wb') as f:
+        pkl.dump(top_point.get_synthesis_path(), f)
 
     sorted_by_prop = sorted(pool, key=obj_func)[-5:]
     for opt_mol in sorted_by_prop:
         min_sa_score = compute_min_sa_score(opt_mol)
-        print(f"Minimum synthesis score of optimal molecules: {min_sa_score}")
+        reporter.writeln(f"Minimum synthesis score of optimal molecules: {min_sa_score}")
 
     vals = history['objective_vals']
     plt.title(f'Optimizing {objective} with random explorer')
     plt.plot(range(len(vals)), vals)
-    plt.savefig(f'./experiments/results/explorer_{objective}.png')
+    plt.savefig(PLOT_FILE)
 
 
 if __name__ == "__main__":
-    explore_and_validate_synth(init_pool_size=10, n_steps=100, objective="qed")
+    reporter = get_reporter(open(EXP_LOG_FILE, 'w'))
+    args = parse_args()
+    # exp_settings = {'init_pool_size': args.init_pool_size, 'seed': args.seed, 'max_pool_size': args.max_pool_size
+    #                 'n_steps': args.budget, 'objective': args.objective, 'dataset': args.dataset}
+    exp_settings = vars(args)
+    reporter.writeln(f"RandomExplorer experiment settings: objective {exp_settings['objective']}, " +
+                     f"init pool of size {exp_settings['init_pool_size']}, " +
+                     f"dataset {exp_settings['dataset']}, seed {exp_settings['seed']}, " +
+                     f"max_pool_size {exp_settings['max_pool_size']}, budget {exp_settings['budget']}")
+    explore_and_validate_synth(**exp_settings, reporter=reporter)
+

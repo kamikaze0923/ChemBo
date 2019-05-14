@@ -60,6 +60,7 @@ class Molecule(object):
         self.begin_flag = True
 
     def to_smiles(self):
+        smiles = self.smiles
         if self.smiles is None:
             smiles = Chem.MolToSmiles(self.rdk)
         return smiles
@@ -126,8 +127,8 @@ class Molecule(object):
         Unwind the synthesis graph until all the inputs have True flags.
         """
         if self.begin_flag:
-            return self
-        return {inp: inp.get_synthesis_path() for inp in self.inputs}
+            return self.smiles
+        return {inp.smiles: inp.get_synthesis_path() for inp in self.inputs}
 
     def __str__(self):
         return self.smiles
@@ -206,4 +207,7 @@ class Reaction(object):
         if self.products is None:
             self.products = ranked_outcomes
 
+    def get_input_str(self):
+        reaction_inp_str = ".".join([m.smiles for m in self.inputs])
+        return reaction_inp_str
 

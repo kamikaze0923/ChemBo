@@ -77,9 +77,14 @@ class RandomExplorer(Explorer):
             mols = np.random.choice(self.pool, size=r_size)
             # evolve
             reaction = Reaction(mols)
-            outcomes = self.synth.predict_outcome(reaction, k=self.n_outcomes)
-            if not outcomes:
-                logging.info('Synthesizer returned empty set of results, restarting.')
+            try:
+                outcomes = self.synth.predict_outcome(reaction, k=self.n_outcomes)
+            except RuntimeError as e:
+                logging.info('Synthesizer failed, restarting with another subset.')
+                outcomes = []
+            else:
+                if not outcomes:
+                    logging.info('Synthesizer returned an empty set of results, restarting with another subset.')
 
         if self.n_outcomes == 1:
             top_pt = outcomes[0]
