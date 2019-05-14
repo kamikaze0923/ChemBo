@@ -40,7 +40,7 @@ class Molecule(object):
                arguments here or lazily defer until called
                (default: {False})
         Raises:
-            ValueError -- if neither a correct smiles string
+            ValueError -- if neither a correct smiles tring
                 or a rdkit mol are provided
         """
         if conv_enabled:
@@ -61,8 +61,8 @@ class Molecule(object):
 
     def to_smiles(self):
         if self.smiles is None:
-            smiles = Chem.MolToSmiles(self.rdk)
-        return smiles
+            self.smiles = Chem.MolToSmiles(self.rdk)
+        return self.smiles
 
     def to_rdkit(self):
         """
@@ -134,6 +134,16 @@ class Molecule(object):
 
     def __repr__(self):
         return self.smiles
+
+
+def smile_synpath_to_mols(synpath):
+    if isinstance(synpath, str):
+        return Molecule(synpath)
+    res = {}
+    for k, v in synpath.items():
+        k, v = smile_synpath_to_mols(k), smile_synpath_to_mols(v)
+        res[k] = v
+    return res
 
 
 def mol2graph_igraph(mol, set_properties=False):
