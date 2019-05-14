@@ -60,6 +60,7 @@ class Molecule(object):
         self.begin_flag = True
 
     def to_smiles(self):
+        smiles = self.smiles
         if self.smiles is None:
             smiles = Chem.MolToSmiles(self.rdk)
         return smiles
