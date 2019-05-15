@@ -62,8 +62,8 @@ class Molecule(object):
     def to_smiles(self):
         smiles = self.smiles
         if self.smiles is None:
-            smiles = Chem.MolToSmiles(self.rdk)
-        return smiles
+            self.smiles = Chem.MolToSmiles(self.rdk)
+        return self.smiles
 
     def to_rdkit(self):
         """
@@ -135,6 +135,25 @@ class Molecule(object):
 
     def __repr__(self):
         return self.smiles
+
+
+def smile_synpath_to_mols(root_mol: Molecule, synpath: dict or str):
+    """
+    given a molecule and its synthesis path, reconstruct the molecule and its inputs recursively with
+        `inputs` and `begin_flag` correctly set
+    :param root_mol:
+    :param synpath: synthesis path returned by `get_synthesis_path` of the `root_mol`
+    :return: `root_mol` with (recursively) correctly set `inputs` and `begin_flag`
+    """
+    if isinstance(synpath, str):
+        return root_mol
+    k_mols = []
+    for k, v in synpath.items():
+        k_mol = Molecule(smiles=k)
+        k_mol = smile_synpath_to_mols(k_mol, v)
+        k_mols.append(k_mol)
+    root_mol.set_synthesis(k_mols)
+    return root_mol
 
 
 def mol2graph_igraph(mol, set_properties=False):
