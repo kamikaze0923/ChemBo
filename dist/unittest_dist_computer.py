@@ -33,7 +33,7 @@ class DistComputerTestCases(BaseTestClass):
         OTChemDistanceComputer(), # default parameters
         OTChemDistanceComputer(mass_assignment_method='equal',
                                nonexist_non_assignment_penalty_vals=[1, 5, 10]),
-        OTChemDistanceComputer(normalisation_method='atomic_mass'),
+        OTChemDistanceComputer(normalisation_method='none'),
         ]
 
   def test_distance_computation(self):
