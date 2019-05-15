@@ -17,6 +17,7 @@ def visualize_mol(mol: Molecule, path: str):
     :param path: path to save the drawn molecule to
     """
     img = draw_molecule(mol)
+    print("save to: ", path)
     img.save(path)
 
 
@@ -54,25 +55,34 @@ def draw_synthesis_path(mol: Molecule):
     dot.render("test-output/res.gv", view=True)
 
 
-def draw_synthesis_path_from_dict(root_mol: Molecule, syn_path: dict):
+def draw_synthesis_path_from_dict(root_mol: Molecule, syn_path: dict, out_path: str):
     from graphviz import Digraph
+    import os
+    import shutil
+    # make a subdirectory for all the pictures needed
+    sub_dir = os.path.join(out_path, ".tmp")
+    os.makedirs(sub_dir, exist_ok=True)
 
     def add_node_edge(dot: Digraph, layer: dict):
         for k, v in layer.items():
             if isinstance(v, str):  # base case
-                dot.node(name=v, label=v)
+                visualize_mol(Molecule(smiles=v), os.path.join(sub_dir, v))
+                dot.node(name=v, label="", image=os.path.join(sub_dir, v), shape="plaintext")
             else:  # recursive case
                 add_node_edge(dot, v)
-                dot.node(name=k, label=k)
+                visualize_mol(Molecule(smiles=k), os.path.join(sub_dir, k))
+                dot.node(name=k, label="", image=os.path.join(sub_dir,k), shape="plaintext")
                 for sub_k in v:
                     dot.edge(tail_name=sub_k, head_name=k)
 
     dot = Digraph(comment="Synthesis path for {}".format(root_mol.to_smiles()))
     add_node_edge(dot, syn_path)
-    dot.node(name=root_mol.to_smiles(), label=root_mol.to_smiles())
+    visualize_mol(root_mol, os.path.join(sub_dir, root_mol.to_smiles()))
+    dot.node(name=root_mol.to_smiles(), label="", image=os.path.join(sub_dir, root_mol.to_smiles(), shape="plaintext"))
     for k in syn_path:
         dot.edge(tail_name=k, head_name=root_mol.to_smiles())
-    dot.render("test-output/res.gv", view=True)
+    dot.render(out_path, view=False)
+    shutil.rmtree(sub_dir)
 
 # def draw_synthesis_path(mol):
 #     def compute_depth(syn_path):
@@ -108,4 +118,8 @@ if __name__ == "__main__":
     syn_path = pickle.load(open("test_mols/medium_mol.pkl", "rb"))
     # syn_path = pickle.load(open("test_mols/large_mol.pkl", "rb"))
     root_mol = Molecule(smiles="C")
-    draw_synthesis_path_from_dict(root_mol, syn_path)
+    draw_synthesis_path_from_dict(root_mol, syn_path, "test-output")
+    # from graphviz import Digraph
+    # dot = Digraph(comment="a", format="png")
+    # dot.node(name="temp",image="test-output/temp.png", label="", shape="plaintext")
+    # dot.render("test-output/res.gv", view=False)
