@@ -106,12 +106,6 @@ def get_dissimiliary_matrix_with_non_assignment(orig_dissim_matrix,
 # Now define the distance computer =======================================================
 class OTChemDistanceComputer(ChemDistanceComputer):
   """ A distance between chemical molecules based on Quadratic Programming. """
-#                mass_assignment_method='equal-molecular_mass',
-#                normalisation_method='none-total_mass',
-#                struct_pen_method='all_bonds-bond_frac',
-#                struct_pen_coeffs=1.0,
-#                non_assignment_penalty=1.0,
-#                nonexist_non_assignment_penalty_vals=(1.0, 10),
 
   def __init__(self,
                mass_assignment_method='equal-molecular_mass',
