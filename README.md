@@ -59,6 +59,15 @@ pip install Cython
 pip install cython POT  # prepended with MACOSX_DEPLOYMENT_TARGET=10.9 if needed
 ```
 
+**Synthesis Path Plotting Functionality**
+For plotting the synthesis path for an optimal molecule, install `graphviz` via:
+
+```bash
+pip install graphviz
+```
+
+However, the above only works on Linux as Homebrew removed the `--with-pango` option (see [this](https://github.com/parrt/dtreeviz/issues/33))
+
 ### Environment
 
 Set PYTHONPATH for imports:
