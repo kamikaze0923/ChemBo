@@ -40,7 +40,7 @@ class Molecule(object):
                arguments here or lazily defer until called
                (default: {False})
         Raises:
-            ValueError -- if neither a correct smiles tring
+            ValueError -- if neither a correct smiles string
                 or a rdkit mol are provided
         """
         if conv_enabled:
