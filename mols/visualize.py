@@ -17,7 +17,6 @@ def visualize_mol(mol: Molecule, path: str):
     :param path: path to save the drawn molecule to
     """
     img = draw_molecule(mol)
-    print("save to: ", path)
     img.save(path)
 
 
@@ -31,43 +30,23 @@ def draw_molecule(mol: Molecule) -> PIL.Image.Image:
     return img
 
 
-def draw_synthesis_path(mol: Molecule):
-    """
-    :param mol: an optimal molecule, with the following recursive structure of synthesis path:
-               syn_path = {mol: mol, ...} | {mol: syn_path, ...}
-    :return: save a graphvz DOT source file corresponding to the structure and the rendered pdf
-    """
-    from graphviz import Digraph
-
-    def add_node_edge(dot: Digraph, root: Molecule):
-        if root.begin_flag:  # base case
-            dot.node(name=root.to_smiles(), label=root.to_smiles())
-            return
-        else:  # recursive case
-            for inp in root.inputs:
-                add_node_edge(dot, inp)
-            dot.node(name=root.to_smiles(), label=root.to_smiles())
-            for inp in root.inputs:
-                dot.edge(tail_name=inp.to_smiles(), head_name=root.to_smiles())
-
-    dot = Digraph(comment="Synthesis path for {}".format(mol.to_smiles()))
-    add_node_edge(dot, mol)
-    dot.render("test-output/res.gv", view=True)
-
-
 class SynPathDrawer(object):
     def __init__(self, mol: Molecule, draw_mode: str):
         """
         :param mol: the molecule to draw synthesis path for
         :param draw_mode: "smiles" | "formula" | "plot" way of plotting each single molecule
+
+        Examples::
+
+            >>> drawer = SynPathDrawer(root_mol, "smiles")  # or "formula" or "plot"
+            >>> drawer.render("some_output_dir/some_file_name")  # please, no file extension
         """
         assert draw_mode in ["smiles", "formula", "plot"]
         from graphviz import Digraph
         self._mol = mol
-        self._dot = Digraph(comment="Synthesis path for {}".format(mol.to_smiles()))
+        self._dot = Digraph(comment="Synthesis path for {}".format(mol.to_smiles()), format="png")
         self._draw_mode = draw_mode
         self._node_counter = 0
-        self._out_path = None
         self._sub_dir = None
 
     def _draw(self, root: Molecule):
@@ -91,51 +70,24 @@ class SynPathDrawer(object):
         elif self._draw_mode == "formula":
             self._dot.node(name=node.to_smiles(), label=node.to_formula())
         elif self._draw_mode == "plot":
-            mol_img_path = os.path.join(self._sub_dir, str(self._node_counter))
+            mol_img_path = os.path.join(self._sub_dir, str(self._node_counter) + ".png")
             visualize_mol(node, path=mol_img_path)
             self._dot.node(name=node.to_smiles(), label="", image=mol_img_path, shape="plaintext")
 
     def render(self, out_path: str):
+        """
+        :param out_path: desired path + filename WITHOUT extension
+        """
         import os
         import shutil
-        self._out_path = out_path
-        self._sub_dir = os.path.join(out_path, ".tmp")
+        self._sub_dir = os.path.join(os.path.dirname(out_path), ".tmp")
         try:
             os.makedirs(self._sub_dir, exist_ok=False)
             self._draw(self._mol)
-            self._dot.render(self._out_path, view=False)
+            self._dot.render(out_path + ".gv", view=False)
         finally:
             shutil.rmtree(self._sub_dir)
 
-
-def draw_synthesis_path_from_dict(root_mol: Molecule, syn_path: dict, out_path: str):
-    from graphviz import Digraph
-    import os
-    import shutil
-    # make a subdirectory for all the pictures needed
-    sub_dir = os.path.join(out_path, ".tmp")
-    os.makedirs(sub_dir, exist_ok=True)
-
-    def add_node_edge(dot: Digraph, layer: dict):
-        for k, v in layer.items():
-            if isinstance(v, str):  # base case
-                visualize_mol(Molecule(smiles=v), os.path.join(sub_dir, v))
-                dot.node(name=v, label="", image=os.path.join(sub_dir, v), shape="plaintext")
-            else:  # recursive case
-                add_node_edge(dot, v)
-                visualize_mol(Molecule(smiles=k), os.path.join(sub_dir, k))
-                dot.node(name=k, label="", image=os.path.join(sub_dir,k), shape="plaintext")
-                for sub_k in v:
-                    dot.edge(tail_name=sub_k, head_name=k)
-
-    dot = Digraph(comment="Synthesis path for {}".format(root_mol.to_smiles()))
-    add_node_edge(dot, syn_path)
-    visualize_mol(root_mol, os.path.join(sub_dir, root_mol.to_smiles()))
-    dot.node(name=root_mol.to_smiles(), label="", image=os.path.join(sub_dir, root_mol.to_smiles(), shape="plaintext"))
-    for k in syn_path:
-        dot.edge(tail_name=k, head_name=root_mol.to_smiles())
-    dot.render(out_path, view=False)
-    shutil.rmtree(sub_dir)
 
 # def draw_synthesis_path(mol):
 #     def compute_depth(syn_path):
@@ -164,17 +116,6 @@ def draw_synthesis_path_from_dict(root_mol: Molecule, syn_path: dict, out_path: 
 
 
 if __name__ == "__main__":
-    # mol = Molecule("CCCC")
-    # img = draw_molecule(mol)
-    # img.save('./experiments/results/test.png')
-    import pickle
-    from mols.molecule import smile_synpath_to_mols
-    syn_path = pickle.load(open("test_mols/medium_mol.pkl", "rb"))
-    root_mol = Molecule(smiles="C")  # a place holder
-    root_mol = smile_synpath_to_mols(root_mol, syn_path)
-    drawer = SynPathDrawer(root_mol, "plot")
-    drawer.render("test-output")
-    # from graphviz import Digraph
-    # dot = Digraph(comment="a", format="png")
-    # dot.node(name="temp",image="test-output/temp.png", label="", shape="plaintext")
-    # dot.render("test-output/res.gv", view=False)
+    mol = Molecule("CCCC")
+    img = draw_molecule(mol)
+    img.save('./experiments/results/test.png')
