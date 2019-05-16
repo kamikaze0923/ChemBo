@@ -1,6 +1,6 @@
 # Dragonfly Chemist
 
-*Authors: Ksenia Korovina (kkorovin@cs.cmu.edu), Celsius Xu*
+*Authors: Ksenia Korovina (kkorovin@cs.cmu.edu), Sailun (Celsius) Xu (sailunx@andrew.cmu.edu)*
 
 Dragonfly Chemist is library for joint molecular optimization and synthesis. It is based on Dragonfly - a framework for scalable Bayesian optimization.
 
