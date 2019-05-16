@@ -75,7 +75,11 @@ def get_mismatching_bond_frac_matrix(bond_type_counts_1, bond_type_counts_2):
       # Compute sum of differences and union
       num_diffs = sum([val for _, val in diff_bond_counts.items()])
       normaliser = sum([val for _, val in merged_bond_counts.items()])
-      ret[i, j] = num_diffs / float(normaliser)
+      if normaliser == 0:
+        assert num_diffs == 0
+        ret[i, j] = 1.0
+      else:
+        ret[i, j] = num_diffs / float(normaliser)
   return ret
 
 def get_matching_matrix_from_similarity_matrix(similarity_matrix,
