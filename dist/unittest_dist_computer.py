@@ -33,7 +33,7 @@ class DistComputerTestCases(BaseTestClass):
         OTChemDistanceComputer(), # default parameters
         OTChemDistanceComputer(mass_assignment_method='equal',
                                nonexist_non_assignment_penalty_vals=[1, 5, 10]),
-        OTChemDistanceComputer(normalisation_method='atomic_mass'),
+        OTChemDistanceComputer(normalisation_method='none'),
         ]
 
   def test_distance_computation(self):
@@ -48,8 +48,8 @@ class DistComputerTestCases(BaseTestClass):
         assert len(distances) == num_distances
         for idx, dist in enumerate(distances):
           if idx in [0, 4, 13]:
-            self.report('Distances for %s using parametrisation %d:\n%s\n'%(
-                data_file_name, idx, str(dist)), 'test_result')
+            self.report('Distances for %s using parametrisation %d/%d:\n%s\n'%(
+                data_file_name, idx, len(distances), str(dist)), 'test_result')
 
 
 if __name__ == "__main__":

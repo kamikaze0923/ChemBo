@@ -108,12 +108,12 @@ class OTChemDistanceComputer(ChemDistanceComputer):
   """ A distance between chemical molecules based on Quadratic Programming. """
 
   def __init__(self,
-               mass_assignment_method='equal-atomic_mass',
-               normalisation_method='none-num_carbon_atoms',
-               struct_pen_method='all_bonds-bond_frac',
+               mass_assignment_method='equal-molecular_mass',
+               normalisation_method='none-total_mass',
+               struct_pen_method='bond_frac',
                struct_pen_coeffs=1.0,
                non_assignment_penalty=1.0,
-               nonexist_non_assignment_penalty_vals=(1.0, 10),
+               nonexist_non_assignment_penalty_vals=1.0,
               ):
     """ Constructor.
         struct_pen_coeffs: A list of coefficients for the structural penalty term.
@@ -137,26 +137,28 @@ class OTChemDistanceComputer(ChemDistanceComputer):
     self.struct_pen_coeffs = struct_pen_coeffs
     self.nonexist_non_assignment_penalty_vals = nonexist_non_assignment_penalty_vals
     self._num_distances = None
-    self.str_params = self.format_params(mass_assignment_method, normalisation_method, 
-                          struct_pen_method, struct_pen_coeffs, 
-                          non_assignment_penalty, nonexist_non_assignment_penalty_vals)
+    self.str_params = self.format_params(mass_assignment_method, normalisation_method,
+                                         struct_pen_method, struct_pen_coeffs,
+                                         non_assignment_penalty,
+                                         nonexist_non_assignment_penalty_vals)
     super(OTChemDistanceComputer, self).__init__()
-    print('Num distances:', self.get_num_distances())  # TODO: temporary
 
-  def format_params(self, mass_assignment_method, normalisation_method, 
-                    struct_pen_method, struct_pen_coeffs, 
+  @classmethod
+  def format_params(cls, mass_assignment_method, normalisation_method,
+                    struct_pen_method, struct_pen_coeffs,
                     non_assignment_penalty, nonexist_non_assignment_penalty_vals):
     struct_pen_coeffs_ = str([str(s).replace('.', ',') for s in struct_pen_coeffs])
     non_assignment_penalty_ = str(non_assignment_penalty).replace('.', ',')
-    nonexist_non_assignment_penalty_vals_ = str([str(s).replace('.', ',')
-                                            for s in nonexist_non_assignment_penalty_vals])
-    return '--'.join([mass_assignment_method,normalisation_method, struct_pen_method,
+    nonexist_non_assignment_penalty_vals_ = str([str(s).replace('.', ',') for s in
+                                                 nonexist_non_assignment_penalty_vals])
+    return '--'.join([mass_assignment_method, normalisation_method, struct_pen_method,
                       struct_pen_coeffs_, non_assignment_penalty_,
                       nonexist_non_assignment_penalty_vals_])
 
   def evaluate_single(self, x1, x2, *args, **kwargs):
     """ Evaluates the distance between two chemical molecules x1 and x2. """
     # pylint: disable=too-many-locals
+    # pylint: disable=too-many-nested-blocks
     # The following are the same to compute for all different options
     x1_graph_data = get_graph_data_for_distance_computation(x1)
     x2_graph_data = get_graph_data_for_distance_computation(x2)
@@ -181,21 +183,21 @@ class OTChemDistanceComputer(ChemDistanceComputer):
               REPLACE_COST_INF_WITH
           # mass_assignment_methods ------------------------------------------------------
           for mass_asgn_meth in self.mass_assignment_methods:
-            # normalisation_methods ------------------------------------------------------
-            for norm_meth in self.normalisation_methods:
-              # TODO: these may not have any carbons, then will fail
-              x1_masses = self._get_mass_vector(x1_graph_data, mass_asgn_meth, norm_meth)
-              x2_masses = self._get_mass_vector(x2_graph_data, mass_asgn_meth, norm_meth)
-              x1_sink_masses = [sum([mass for idx, mass in enumerate(x2_masses)
-                                     if x2_graph_data.atomic_symbols[idx] == curr_symbol])
-                                for curr_symbol in unique_atoms]
-              x2_sink_masses = [sum([mass for idx, mass in enumerate(x1_masses)
-                                     if x1_graph_data.atomic_symbols[idx] == curr_symbol])
-                                for curr_symbol in unique_atoms]
-              x1_masses_aug = np.array(x1_masses + x1_sink_masses)
-              x2_masses_aug = np.array(x2_masses + x2_sink_masses)
-              _, soln, _ = opt_transport(x1_masses_aug, x2_masses_aug, matching_matrix)
+            x1_masses = self._get_mass_vector(x1_graph_data, mass_asgn_meth)
+            x2_masses = self._get_mass_vector(x2_graph_data, mass_asgn_meth)
+            x1_sink_masses = [sum([mass for idx, mass in enumerate(x2_masses)
+                                   if x2_graph_data.atomic_symbols[idx] == curr_symbol])
+                              for curr_symbol in unique_atoms]
+            x2_sink_masses = [sum([mass for idx, mass in enumerate(x1_masses)
+                                   if x1_graph_data.atomic_symbols[idx] == curr_symbol])
+                              for curr_symbol in unique_atoms]
+            x1_masses_aug = np.array(x1_masses + x1_sink_masses)
+            x2_masses_aug = np.array(x2_masses + x2_sink_masses)
+            _, soln, emd = opt_transport(x1_masses_aug, x2_masses_aug, matching_matrix)
+            if 'none' in self.normalisation_methods:
               ret.append(soln)
+            if 'total_mass' in self.normalisation_methods:
+              ret.append(emd)
     return ret
 
   @classmethod
@@ -282,29 +284,43 @@ class OTChemDistanceComputer(ChemDistanceComputer):
     return (x1_x2_atom_sim_mat, x1_unique_atom_sim_mat, x2_unique_atom_sim_mat)
 
   @classmethod
-  def _get_mass_vector(cls, graph_data, mass_assignment_method, normalisation_method):
-    """ Returns mass vector. """
-    # pylint: disable=no-else-return
-    # Compute masses
+  def _get_mass_vector(cls, graph_data, mass_assignment_method):
+    """ Returns the mass vector. """
     if mass_assignment_method == 'equal':
       ret = [1.0] * graph_data.num_atoms
-    elif mass_assignment_method == 'atomic_mass':
+    elif mass_assignment_method == 'molecular_mass':
       ret = graph_data.atomic_masses
-    elif mass_assignment_method == 'sqrt_atomic_mass':
+    elif mass_assignment_method == 'sqrt_molecular_mass':
       ret = [np.sqrt(x) for x in graph_data.atomic_masses]
     else:
       raise ValueError('Unknown mass_assignment_method %s.'%(mass_assignment_method))
-    # Normalise
-    if normalisation_method == 'none':
-      pass
-    elif normalisation_method == 'num_carbon_atoms':
-      num_carbon_atoms = sum([elem == 'C' for elem in graph_data.atomic_symbols])
-      ret = [x/float(1 + num_carbon_atoms) for x in ret]  # <-- NOTE: added a +1 here to avoid zero division
-    elif normalisation_method == 'molecular_mass':
-      tot_molecular_mass = sum(graph_data.atomic_masses)
-      ret = [x/float(tot_molecular_mass) for x in ret]
     return ret
 
+#   @classmethod
+#   def _get_mass_vector(cls, graph_data, mass_assignment_method, normalisation_method):
+#     """ Returns mass vector. """
+#     # pylint: disable=no-else-return
+#     # Compute masses
+#     if mass_assignment_method == 'equal':
+#       ret = [1.0] * graph_data.num_atoms
+#     elif mass_assignment_method == 'atomic_mass':
+#       ret = graph_data.atomic_masses
+#     elif mass_assignment_method == 'sqrt_atomic_mass':
+#       ret = [np.sqrt(x) for x in graph_data.atomic_masses]
+#     else:
+#       raise ValueError('Unknown mass_assignment_method %s.'%(mass_assignment_method))
+#     # Normalise
+#     if normalisation_method == 'none':
+#       pass
+#     elif normalisation_method == 'num_carbon_atoms':
+#       num_carbon_atoms = sum([elem == 'C' for elem in graph_data.atomic_symbols])
+#       -- N.B: added a +1 here to avoid zero division
+#       ret = [x/float(1 + num_carbon_atoms) for x in ret]
+#     elif normalisation_method == 'molecular_mass':
+#       tot_molecular_mass = sum(graph_data.atomic_masses)
+#       ret = [x/float(tot_molecular_mass) for x in ret]
+#     return ret
+#
   def get_num_distances(self):
     """ Return the number of distances. """
     if self._num_distances is None:
