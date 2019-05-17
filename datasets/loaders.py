@@ -90,12 +90,12 @@ def get_chembl(n_mols=None, as_mols=True, option='', max_size=1000):
     mols = list(gen.choice(mols, max_size, replace=False))
     if option == '':
         return mols
-    elif option == 'small_qed':
-        qed_func = get_objective_by_name("qed")
-        return [mol for mol in mols if qed_func(mol) < 0.6]
-    elif option == 'large_qed':
-        qed_func = get_objective_by_name("qed")
-        return [mol for mol in mols if qed_func(mol) >= 0.6]
+    elif option.startswith('small_'):
+        obj_func = get_objective_by_name(option.split("_")[1])
+        return [mol for mol in mols if obj_func(mol) < 0.6]
+    elif option.startswith('large_'):
+        obj_func = get_objective_by_name(option.split("_")[1])
+        return [mol for mol in mols if obj_func(mol) >= 0.6]
     else:
         raise ValueError(f"Dataset filter {option} not supported.")
 
@@ -112,12 +112,12 @@ def get_zinc250(option='', max_size=1000):
     mols = list(gen.choice(mols, max_size, replace=False))
     if option == '':
         return mols
-    elif option == 'small_qed':
-        qed_func = get_objective_by_name("qed")
-        return [mol for mol in mols if qed_func(mol) < 0.6]
-    elif option == 'large_qed':
-        qed_func = get_objective_by_name("qed")
-        return [mol for mol in mols if qed_func(mol) >= 0.6]
+    elif option.startswith('small_'):
+        obj_func = get_objective_by_name(option.split("_")[1])
+        return [mol for mol in mols if obj_func(mol) < 0.6]
+    elif option.startswith('large_'):
+        obj_func = get_objective_by_name(option.split("_")[1])
+        return [mol for mol in mols if obj_func(mol) >= 0.6]
     else:
         raise ValueError(f"Dataset filter {option} not supported.")
 

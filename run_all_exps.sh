@@ -14,15 +14,15 @@ echo -e "\tStarting running Chemist"
 
 echo -e "\tStarting running RandomExplorer"
 
-python experiments/run_explorer.py -d chembl_small_qed -s 42 -o qed -b 100 -i 30 -mpl 1000
+python experiments/run_explorer.py -d chembl_small_qed -s 19 -o qed -b 100 -i 30 -mpl 1000
 # python experiments/run_explorer.py -d chembl_small_qed -s 42 -o qed -b 100 -i 30 -mpl 1000
 # python experiments/run_explorer.py -d chembl_small_qed -s 42 -o qed -b 100 -i 30 -mpl 1000
 
-python experiments/run_explorer.py -d chembl_large_qed -s 42 -o qed -b 100 -i 30 -mpl 1000
+python experiments/run_explorer.py -d chembl_large_qed -s 19 -o qed -b 100 -i 30 -mpl 1000
 # python experiments/run_explorer.py -d chembl_large_qed -s 42 -o qed -b 100 -i 30 -mpl 1000
 # python experiments/run_explorer.py -d chembl_large_qed -s 42 -o qed -b 100 -i 30 -mpl 1000
 
-python experiments/run_explorer.py -d chembl -s 42 -o qed -b 100 -i 30 -mpl 1000
+python experiments/run_explorer.py -d chembl -s 19 -o qed -b 100 -i 30 -mpl 1000
 # python experiments/run_explorer.py -d chembl -s 42 -o qed -b 100 -i 30 -mpl 1000
 # python experiments/run_explorer.py -d chembl -s 42 -o qed -b 100 -i 30 -mpl 1000
 
