@@ -31,7 +31,7 @@ from mols.mol_functions import get_objective_by_name
 from mols.visualize import visualize_mol
 
 # Where to store temporary model checkpoints
-EXP_DIR = 'experiments/chemist_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
+EXP_DIR = 'experiments/final/chemist_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
 EXP_LOG_FILE = os.path.join(EXP_DIR, 'exp_log')
 RUN_LOG_FILE = os.path.join(EXP_DIR, 'run_log')
 LOGGING_LEVEL = logging.INFO
@@ -73,7 +73,7 @@ def setup_logging():
     # Make directories
     if os.path.exists(EXP_DIR):
         shutil.rmtree(EXP_DIR)
-    os.mkdir(EXP_DIR)
+    os.makedirs(EXP_DIR, exist_ok=True)
 
     # necessary fix for setting the logging after some imports
     from imp import reload

@@ -4,14 +4,17 @@ Build t-SNE visualization for molecular distance
 """
 
 import numpy as np
-import itertools
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set_style('whitegrid')
 
 from dist.ot_dist_computer import OTChemDistanceComputer
 from datasets.loaders import get_chembl_prop, get_chembl
 from mols.mol_functions import get_objective_by_name
+from mols.mol_kernels import mol_kern_factory
 
+import itertools
 import os
 
 VIS_DIR = 'experiments/visualizations'
@@ -82,13 +85,34 @@ def make_pairwise(func):
                 dist_in_val = np.abs(prop_list[i] - prop_list[j])
                 xs.append(dist_in_dist)
                 ys.append(dist_in_val)
-
         ax.set_title(title)  # TODO: parameters of distance
-        ax.scatter(xs, ys, s=1, alpha=0.6)
+        ax.scatter(xs, ys, s=2, alpha=0.6)
         ax.set_xticks([])
         ax.set_yticks([])
-
     plt.savefig(os.path.join(VIS_DIR, "dist_vs_value_"+func))
+
+
+def make_pairwise_kernel(kernel_name, func):
+    n_mols = 50
+
+    mols = get_chembl(n_mols=n_mols)
+    # smile_strings = [mol.to_smiles() for mol in mols]
+    func_ = get_objective_by_name(func)
+    kernel = mol_kern_factory(kernel_name)
+    kern_mat = kernel(mols, mols)
+    prop_list = [func_(mol) for mol in mols]
+
+    xs, ys = [], []
+    for i in range(n_mols):
+        for j in range(n_mols):
+            dist_in_dist = kern_mat[i, j]
+            dist_in_val = np.abs(prop_list[i] - prop_list[j])
+            xs.append(dist_in_dist)
+            ys.append(dist_in_val)
+    plt.scatter(xs, ys, s=2, alpha=0.6)
+    plt.xticks([])
+    plt.yticks([])
+    plt.savefig(os.path.join(VIS_DIR, "kernel_"+kernel_name))
 
 
 if __name__ == "__main__":
@@ -96,6 +120,7 @@ if __name__ == "__main__":
     # make_tsne()
 
     # make_pairwise('prop')
-    make_pairwise('qed')
+    # make_pairwise('qed')
+    make_pairwise_kernel('similarity_kernel', 'qed')
     # make_pairwise('sascore')
 
