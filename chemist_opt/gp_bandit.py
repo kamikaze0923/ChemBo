@@ -58,7 +58,7 @@ def mol_maximise_acquisition(acq_fn, anc_data, *args, **kwargs):
             logging.info(f'Running explorer for {anc_data.max_evals} steps')
             top_value, top_point, history = explorer.run(anc_data.max_evals)
             received_valid_point = anc_data.domain.is_a_member([top_point])  # domain is CP domain
-        logging.info("Returning explorer's result")
+        logging.info(f"Returning explorer's result: {top_point}")
         return [top_point]
     else:
         raise NotImplementedError("Acq opt method {} not implemented.".format(acq_opt_method))

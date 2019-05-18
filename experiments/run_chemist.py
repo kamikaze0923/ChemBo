@@ -17,6 +17,7 @@ from myrdkit import *  # :(
 from argparse import Namespace, ArgumentParser
 import time
 import os
+import pickle as pkl
 import shutil
 import logging
 import tensorflow as tf
@@ -34,6 +35,7 @@ from mols.visualize import visualize_mol
 EXP_DIR = 'experiments/final/chemist_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
 EXP_LOG_FILE = os.path.join(EXP_DIR, 'exp_log')
 RUN_LOG_FILE = os.path.join(EXP_DIR, 'run_log')
+SYN_PATH_FILE = os.path.join(EXP_DIR, 'best_molecule.pkl')
 LOGGING_LEVEL = logging.INFO
 TF_LOGGING_LEVEL = tf.logging.ERROR
 N_WORKERS = 1
@@ -136,6 +138,8 @@ def main():
     reporter.writeln(f'Optimal molecule visualized in {visualize_file}')
     visualize_mol(opt_mol, visualize_file)
 
+    with open(SYN_PATH_FILE, 'wb') as f:
+        pkl.dump(opt_mol.get_synthesis_path(), f)
 
 if __name__ == "__main__":
     main()
