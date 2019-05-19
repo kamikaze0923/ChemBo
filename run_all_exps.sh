@@ -11,9 +11,9 @@ fi
 
 echo -e "\tQED+ChEMBL:"
 
-for i in {1..$n_exp_runs}; do python experiments/run_chemist.py -d chembl -s 3 -o qed -b 100 -k distance_kernel_expsum -i 10 -stp 20 -mpl 1000; done
-for i in {1..$n_exp_runs}; do python experiments/run_chemist.py -d chembl -s 3 -o qed -b 100 -k similarity_kernel -i 10 -stp 20 -mpl 1000; done
-for i in {1..$n_exp_runs}; do python experiments/run_explorer.py -d chembl -s 3 -o qed -b 100 -i 10 -mpl 1000; done
+for i in {1..$n_exp_runs}; do python experiments/run_chemist.py -d chembl -s 3 -o plogp -b 100 -k distance_kernel_expsum -i 20 -stp 20 -mpl 1000; done
+for i in {1..$n_exp_runs}; do python experiments/run_chemist.py -d chembl -s 3 -o plogp -b 100 -k similarity_kernel -i 20 -stp 20 -mpl 1000; done
+for i in {1..$n_exp_runs}; do python experiments/run_explorer.py -d chembl -s 3 -o plogp -b 100 -i 20 -mpl 1000; done
 
 # echo -e "\tLogP+ChEMBL:"
 

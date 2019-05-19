@@ -19,11 +19,8 @@ from myrdkit import DataStructs
 from myrdkit import FingerprintMols
 from myrdkit import CalcMolFormula, CalcExactMolWt
 
-GRAPH_LIB = "igraph"  # depending on package for graph kernels
-if GRAPH_LIB == "igraph":
-    import igraph
-else:
-    import networkx
+import igraph
+import networkx as nx
 
 
 class Molecule(object):
@@ -156,7 +153,7 @@ def smile_synpath_to_mols(root_mol: Molecule, synpath: dict or str):
     return root_mol
 
 
-def mol2graph_igraph(mol, set_properties=False):
+def mol2graph_igraph(mol, set_bond_properties=True):
     """
     Convert molecule to nx.Graph
     Adapted from
@@ -169,11 +166,11 @@ def mol2graph_igraph(mol, set_properties=False):
     graph = igraph.Graph()
     g = graph.Adjacency(adlist).as_undirected()
 
-    if set_properties:
-        for idx in g.vs.indices:
-            g.vs[idx][ "AtomicNum" ] = mol.GetAtomWithIdx(idx).GetAtomicNum()
-            g.vs[idx][ "AtomicSymbole" ] = mol.GetAtomWithIdx(idx).GetSymbol()
-        
+    for idx in g.vs.indices:
+        g.vs[idx][ "AtomicNum" ] = mol.GetAtomWithIdx(idx).GetAtomicNum()
+        g.vs[idx][ "AtomicSymbole" ] = mol.GetAtomWithIdx(idx).GetSymbol()
+
+    if set_bond_properties:
         for bd in bondidxs:
             btype = mol.GetBondBetweenAtoms(bd[0], bd[1]).GetBondTypeAsDouble()
             g.es[g.get_eid(bd[0], bd[1])]["BondType"] = btype
@@ -181,7 +178,7 @@ def mol2graph_igraph(mol, set_properties=False):
     return g
 
 
-def mol2graph_networkx(mol, set_properties=False):
+def mol2graph_networkx(mol, set_bond_properties=False):
     """
     Convert molecule to nx.Graph
     Adapted from
@@ -192,11 +189,11 @@ def mol2graph_networkx(mol, set_properties=False):
     bondidxs = [(b.GetBeginAtomIdx(),b.GetEndAtomIdx() ) for b in mol.GetBonds()]
     graph = nx.Graph(admatrix)
 
-    if set_properties:
-        for idx in graph.nodes:
-            graph.nodes[idx]["AtomicNum"] = mol.GetAtomWithIdx(idx).GetAtomicNum()
-            graph.nodes[idx]["AtomicSymbol"] = mol.GetAtomWithIdx(idx).GetSymbol()
+    for idx in graph.nodes:
+        graph.nodes[idx]["AtomicNum"] = mol.GetAtomWithIdx(idx).GetAtomicNum()
+        graph.nodes[idx]["AtomicSymbol"] = mol.GetAtomWithIdx(idx).GetSymbol()
 
+    if set_bond_properties:
         for bd in bondidxs:
             btype = mol.GetBondBetweenAtoms(bd[0], bd[1]).GetBondTypeAsDouble()
             graph.edges[bd[0], bd[1]]["BondType"] = str(int(btype))
