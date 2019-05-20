@@ -72,7 +72,7 @@ def get_chembl_prop(n_mols=None, as_mols=False):
 
 def get_chembl(n_mols=None, as_mols=True, option='', max_size=1000):
     """ 
-        Return list of SMILES.
+        Return list of Molecules.
         NOTE: this function should be located
         in the same directory as data files.
     """
@@ -83,7 +83,10 @@ def get_chembl(n_mols=None, as_mols=True, option='', max_size=1000):
         else:
             res = [f.readline().strip() for _ in range(n_mols)]
     mols = [Molecule(smile) for smile in res]
-    if len(mols) < max_size:
+
+    if max_size == -1:
+        max_size = len(mols)
+    if len(mols) <= max_size:
         return mols
 
     gen = np.random.RandomState(42)
@@ -100,12 +103,20 @@ def get_chembl(n_mols=None, as_mols=True, option='', max_size=1000):
         raise ValueError(f"Dataset filter {option} not supported.")
 
 def get_zinc250(option='', max_size=1000):
+    """ 
+        Return list of Molecules.
+        NOTE: this function should be located
+        in the same directory as data files.
+    """
     path = os.path.join(__location__, "zinc250k.csv")
     zinc_df = pd.read_csv(path)
     list_of_smiles = list(map(lambda x: x.strip(), zinc_df.smiles.values))
     # other columns are logP, qed, and sas
-    mols = [Molecule(smile) for smile in res]
-    if len(mols) < max_size:
+    mols = [Molecule(smile) for smile in list_of_smiles]
+
+    if max_size == -1:
+        max_size = len(mols)
+    if len(mols) <= max_size:
         return mols
 
     gen = np.random.RandomState(42)
