@@ -22,10 +22,12 @@ from synth.validators import compute_min_sa_score, check_validity
 from datasets.loaders import MolSampler
 
 # Where to store temporary model checkpoints
+# EXP_DIR = 'experiments/results/final/rand_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
 EXP_DIR = 'experiments/final/rand_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
 EXP_LOG_FILE = os.path.join(EXP_DIR, 'exp_log')
-PLOT_FILE = os.path.join(EXP_DIR, 'explorer.png')
+PLOT_FILE = os.path.join(EXP_DIR, 'explorer.eps')
 SYN_PATH_FILE = os.path.join(EXP_DIR, 'best_molecule.pkl')
+OPT_VALS_FILE = os.path.join(EXP_DIR, 'opt_vals')
 if os.path.exists(EXP_DIR):
     shutil.rmtree(EXP_DIR)
 os.makedirs(EXP_DIR, exist_ok=True)
@@ -66,13 +68,14 @@ def explore_and_validate_synth(init_pool_size, seed, budget, objective,
     sampler = MolSampler(dataset, sampling_seed=seed)
     pool = sampler(init_pool_size)
     exp = RandomExplorer(obj_func, initial_pool=pool, max_pool_size=max_pool_size)
+    real_budget = budget - initial_pool_size
 
     props = [obj_func(mol) for mol in pool]
     reporter.writeln(f"Properties of pool: quantity {len(pool)}, min {np.min(props)}, avg {np.mean(props)}, max {np.max(props)}")
     reporter.writeln(f"Starting {objective} optimization")
 
     t0 = time.time()
-    top_value, top_point, history = exp.run(budget)
+    top_value, top_point, history = exp.run(real_budget)
 
     reporter.writeln("Finished run in {:.3f} minutes".format( (time.time()-t0)/60 ))
     reporter.writeln(f"Is a valid molecule: {check_validity(top_point)}")
@@ -89,7 +92,9 @@ def explore_and_validate_synth(init_pool_size, seed, budget, objective,
     vals = history['objective_vals']
     plt.title(f'Optimizing {objective} with random explorer')
     plt.plot(range(len(vals)), vals)
-    plt.savefig(PLOT_FILE)
+    plt.savefig(PLOT_FILE, format='eps', dpi=1000)
+    with open(OPT_VALS_FILE, 'w') as f:
+        f.write(' '.join([str(v) for v in vals]))
 
 
 if __name__ == "__main__":
