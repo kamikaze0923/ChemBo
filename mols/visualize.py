@@ -1,6 +1,8 @@
 """
 Visualization tools for molecules
 @author: kkorovin@cs.cmu.edu
+
+TODO: change to proper saving paths
 """
 
 import PIL
@@ -60,19 +62,19 @@ class SynPathDrawer(object):
                 self._draw_edge(tail=inp, head=root)
 
     def _draw_edge(self, tail: Molecule, head: Molecule):
-        self._dot.edge(tail_name=tail.to_smiles(), head_name=head.to_smiles())
+        self._dot.edge(tail_name=str(id(tail)), head_name=str(id(head)))
 
     def _draw_node(self, node: Molecule):
         import os
         self._node_counter += 1
         if self._draw_mode == "smiles":
-            self._dot.node(name=node.to_smiles(), label=node.to_smiles())
+            self._dot.node(name=str(id(node)), label=node.to_smiles())
         elif self._draw_mode == "formula":
-            self._dot.node(name=node.to_smiles(), label=node.to_formula())
+            self._dot.node(name=str(id(node)), label=node.to_formula())
         elif self._draw_mode == "plot":
             mol_img_path = os.path.join(self._sub_dir, str(self._node_counter) + ".png")
             visualize_mol(node, path=mol_img_path)
-            self._dot.node(name=node.to_smiles(), label="", image=mol_img_path, shape="plaintext")
+            self._dot.node(name=str(id(node)), label="", image=mol_img_path, shape="plaintext")
 
     def render(self, out_path: str):
         """
@@ -121,7 +123,7 @@ if __name__ == "__main__":
     # img.save('./experiments/results/test.png')
     import pickle
     from mols.molecule import smile_synpath_to_mols
-    best_mol = pickle.load(open("best_molecule.pkl", "rb"))
+    best_mol = pickle.load(open("./mols/best_molecule.pkl", "rb"))
     best_mol = smile_synpath_to_mols(Molecule(smiles="CC(=O)Cc1cc(O)c(C(C)(C)C)c2oc(C)cc(=O)c12"), best_mol)
     drawer = SynPathDrawer(best_mol, "plot")
     drawer.render("plot_plot")  
