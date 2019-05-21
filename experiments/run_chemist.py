@@ -32,6 +32,7 @@ from mols.mol_functions import get_objective_by_name
 from mols.visualize import visualize_mol
 
 # Where to store temporary model checkpoints
+# EXP_DIR = 'experiments/results/final/chemist_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
 EXP_DIR = 'experiments/final/chemist_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
 EXP_LOG_FILE = os.path.join(EXP_DIR, 'exp_log')
 RUN_LOG_FILE = os.path.join(EXP_DIR, 'run_log')

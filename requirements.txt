@@ -3,6 +3,7 @@ numpy
 scipy
 tqdm
 matplotlib
+seaborn
 networkx
 python-igraph
 dragonfly-opt

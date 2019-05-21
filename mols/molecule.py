@@ -115,6 +115,9 @@ class Molecule(object):
         rdk = self.to_rdkit()
         return CalcMolFormula(rdk)
 
+    def __eq__(self, other):
+        return self.to_smiles() == other.to_smiles()
+
     def set_synthesis(self, inputs):
         self.begin_flag = False
         self.inputs = inputs  # list of Molecules
