@@ -116,6 +116,12 @@ class SynPathDrawer(object):
 
 
 if __name__ == "__main__":
-    mol = Molecule("CCCC")
-    img = draw_molecule(mol)
-    img.save('./experiments/results/test.png')
+    # mol = Molecule("CCCC")
+    # img = draw_molecule(mol)
+    # img.save('./experiments/results/test.png')
+    import pickle
+    from mols.molecule import smile_synpath_to_mols
+    best_mol = pickle.load(open("best_molecule.pkl", "rb"))
+    best_mol = smile_synpath_to_mols(Molecule(smiles="CC(=O)Cc1cc(O)c(C(C)(C)C)c2oc(C)cc(=O)c12"), best_mol)
+    drawer = SynPathDrawer(best_mol, "plot")
+    drawer.render("plot_plot")  
