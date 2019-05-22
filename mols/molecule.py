@@ -82,13 +82,16 @@ class Molecule(object):
         return self.rdk
 
     def to_graph(self, gformat="igraph", set_properties=False):
-        if self.graph is None:
-            if gformat == "igraph":
-                self.graph = mol2graph_igraph(self, set_properties)
-            elif gformat == "networkx":
-                self.graph = mol2graph_networkx(self, set_properties)
-            else:
-                raise ValueError(f"Graph format {gformat} not supported")
+        if gformat == "igraph":
+            if isinstance(self.graph,  igraph.Graph):
+                return self.graph
+            self.graph = mol2graph_igraph(self, set_properties)
+        elif gformat == "networkx":
+            if isinstance(self.graph, nx.classes.graph.Graph):
+                return self.graph
+            self.graph = mol2graph_networkx(self, set_properties)
+        else:
+            raise ValueError(f"Graph format {gformat} not supported")
         return self.graph
 
     def to_fingerprint(self, ftype='fp'):

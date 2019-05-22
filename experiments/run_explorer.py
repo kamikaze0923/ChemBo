@@ -68,7 +68,7 @@ def explore_and_validate_synth(init_pool_size, seed, budget, objective,
     sampler = MolSampler(dataset, sampling_seed=seed)
     pool = sampler(init_pool_size)
     exp = RandomExplorer(obj_func, initial_pool=pool, max_pool_size=max_pool_size)
-    real_budget = budget - initial_pool_size
+    real_budget = budget - init_pool_size
 
     props = [obj_func(mol) for mol in pool]
     reporter.writeln(f"Properties of pool: quantity {len(pool)}, min {np.min(props)}, avg {np.mean(props)}, max {np.max(props)}")
@@ -79,6 +79,7 @@ def explore_and_validate_synth(init_pool_size, seed, budget, objective,
 
     reporter.writeln("Finished run in {:.3f} minutes".format( (time.time()-t0)/60 ))
     reporter.writeln(f"Is a valid molecule: {check_validity(top_point)}")
+    reporter.writeln(f"Resulting molecule: {top_point}")
     reporter.writeln(f"Top score: {obj_func(top_point)}")
     reporter.writeln(f"Minimum synthesis score over the path: {compute_min_sa_score(top_point)}")
     with open(SYN_PATH_FILE, 'wb') as f:

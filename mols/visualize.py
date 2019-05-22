@@ -1,15 +1,16 @@
 """
 Visualization tools for molecules
-@author: kkorovin@cs.cmu.edu
-
-TODO: change to proper saving paths
+@authors: kkorovin@cs.cmu.edu,
+          sailunx@andrew.cmu.edu
 """
 
 import PIL
+import pickle
 import matplotlib.pyplot as plt
 import numpy as np
 from myrdkit import Draw
 from mols.molecule import Molecule
+from mols.molecule import smile_synpath_to_mols
 
 
 def visualize_mol(mol: Molecule, path: str):
@@ -32,6 +33,19 @@ def draw_molecule(mol: Molecule) -> PIL.Image.Image:
     return img
 
 
+def draw_synthesis_path(target_smiles: str, synth_path: str, out_path: str) -> None:
+    """Draw the synthesis path and save to provided location.
+    :param target_smiles: SMILES of the molecule being synthesized
+    :param synth_path: dictionary of format SMILES m -> synpath of m
+    :param out_path: where to save the resulting pdf
+    """
+    with open("./mols/best_molecule.pkl", "rb") as f:
+        synpath = pickle.load(f)
+    synpath = smile_synpath_to_mols(Molecule(smiles=target_smiles), synpath)
+    drawer = SynPathDrawer(synpath, "plot")
+    drawer.render(out_path)
+
+
 class SynPathDrawer(object):
     def __init__(self, mol: Molecule, draw_mode: str):
         """
@@ -46,7 +60,7 @@ class SynPathDrawer(object):
         assert draw_mode in ["smiles", "formula", "plot"]
         from graphviz import Digraph
         self._mol = mol
-        self._dot = Digraph(comment="Synthesis path for {}".format(mol.to_smiles()), format="png")
+        self._dot = Digraph(comment="Synthesis path for {}".format(mol.to_smiles()), format="pdf")
         self._draw_mode = draw_mode
         self._node_counter = 0
         self._sub_dir = None
@@ -74,7 +88,8 @@ class SynPathDrawer(object):
         elif self._draw_mode == "plot":
             mol_img_path = os.path.join(self._sub_dir, str(self._node_counter) + ".png")
             visualize_mol(node, path=mol_img_path)
-            self._dot.node(name=str(id(node)), label="", image=mol_img_path, shape="plaintext")
+            node_shape = 'rectangle' if node.begin_flag else 'plaintext'
+            self._dot.node(name=str(id(node)), label="", image=mol_img_path, shape=node_shape)
 
     def render(self, out_path: str):
         """
@@ -91,39 +106,22 @@ class SynPathDrawer(object):
             shutil.rmtree(self._sub_dir)
 
 
-# def draw_synthesis_path(mol):
-#     def compute_depth(syn_path):
-#         depth = 1
-#         if not mol.begin_flag:
-#             for inp, inp_syn_path in syn_path:
-#                 inp_depth = compute_depth(inp_syn_path)
-#                 depth = max(depth, inp_depth)
-#         return depth
-#
-#     syn_path = mol.get_syn_path()
-#     depth = compute_depth(syn_path)  # number of rows to allocate for plotting
-#     imgs_per_row = []
-#     min_shape = None
-#
-#     # traverse the synthesis path and append images to imgs_per_row
-#     # each row should be concatenated: see
-#     # https://stackoverflow.com/questions/30227466/combine-several-images-horizontally-with-python
-#
-#     # TODO
-#
-#     imgs_comb = np.vstack([np.asarray(img.resize(min_shape))
-#                                     for img in imgs_per_row])
-#     result_img = PIL.Image.fromarray(imgs_comb)
-#     return result_img
-
-
 if __name__ == "__main__":
     # mol = Molecule("CCCC")
     # img = draw_molecule(mol)
     # img.save('./experiments/results/test.png')
-    import pickle
-    from mols.molecule import smile_synpath_to_mols
-    best_mol = pickle.load(open("./mols/best_molecule.pkl", "rb"))
-    best_mol = smile_synpath_to_mols(Molecule(smiles="CC(=O)Cc1cc(O)c(C(C)(C)C)c2oc(C)cc(=O)c12"), best_mol)
-    drawer = SynPathDrawer(best_mol, "plot")
-    drawer.render("plot_plot")  
+
+    draw_synthesis_path(target_smiles="Cc1ccc(CC(CN=C(SC(=O)Cc2c[nH]c3c(-c4noc(-c5ccc(OC(C)C)c(Cl)c5)n4)cccc23)N(Cc2ccc(NS(=O)(=O)C(F)(F)F)cc2)C(=NCc2ccc(NS(=O)(=O)C(F)(F)F)cc2)SC(=O)Cc2c[nH]c3c(-c4noc(-c5ccc(OC(C)C)c(Cl)c5)n4)cccc23)COC(=O)C(C)(C)C)cc1C",
+                        synth_path="./experiments/final/chemist_exp_dir_20190519053341/best_molecule.pkl",
+                        out_path="./experiments/visualizations/synpath_plogp11")
+
+    draw_synthesis_path(target_smiles="CC(=NCN(CCC1=CCCCC1)C(=O)NCc1ccc(CN2CCCC(Nc3ccc4[nH]ncc4c3)C2)cc1)N(COc1ccccc1CNc1c(C(C)(C)C)ccc(C)c1C)c1ccc(C)cc1",
+                        synth_path="./experiments/final/chemist_exp_dir_20190520035241/best_molecule.pkl",
+                        out_path="./experiments/visualizations/synpath_plogp8")
+
+    draw_synthesis_path(target_smiles="CC(=O)Cc1cc(O)c(C(C)(C)C)c2oc(C)cc(=O)c12",
+                        synth_path="./experiments/final/chemist_exp_dir_20190518184219/best_molecule.pkl",
+                        out_path="./experiments/visualizations/synpath_qed92")
+
+
+

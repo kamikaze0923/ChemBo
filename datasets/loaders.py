@@ -13,6 +13,14 @@ from collections import defaultdict
 from mols.molecule import Molecule
 from mols.mol_functions import get_objective_by_name
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set_style('whitegrid')
+font = {#'family' : 'normal',
+        # 'weight' : 'bold',
+        'size': 9}
+plt.rc('font', **font)
+
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
@@ -145,10 +153,33 @@ def print_pool_statistics(dataset, seed, n=30):
     props = [obj_func(mol) for mol in pool]
     print(f"Properties of pool: quantity {len(pool)}, min {np.min(props)}, avg {np.mean(props)}, max {np.max(props)}, std {np.std(props)}")
 
+def display_dataset_statistics(dataset):
+    chembl = get_chembl(max_size=10000)
+
+    qed_func = get_objective_by_name('qed')
+    plogp_func = get_objective_by_name('plogp')
+
+    mol_values_qed = [qed_func(mol) for mol in chembl]
+    mol_values_plogp = [plogp_func(mol) for mol in chembl]
+
+    plt.title('Distribution of QED values in ChEMBL')
+    plt.hist(mol_values_qed, bins=200, density=True)
+    plt.xticks(np.arange(0, max(mol_values_qed)+0.1, 0.1))
+    plt.savefig(f'./experiments/visualizations/{dataset}_qed_histogram.pdf')
+    plt.clf()
+
+    plt.title('Distribution of penalized LogP values in ChEMBL')
+    plt.hist(mol_values_plogp, bins=200, density=True)
+    plt.xticks(np.arange(-20, max(mol_values_plogp)+1, 4))
+    plt.savefig(f'./experiments/visualizations/{dataset}_plogp_histogram.pdf')
+    plt.clf()
 
 if __name__ == "__main__":
     dataset = "chembl"
-    for seed in range(100):
-        print('\tSeed: ', seed)
-        print_pool_statistics(dataset, seed)
+    # for seed in range(100):
+    #     print('\tSeed: ', seed)
+    #     print_pool_statistics(dataset, seed)
+    display_dataset_statistics(dataset)
+
+
 

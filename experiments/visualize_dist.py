@@ -35,7 +35,7 @@ def make_tsne(func, as_subplots=False):
     Plot TSNE embeddings colored with property
     for several distance computers.
     """
-    n_mols = 10
+    n_mols = 200
 
     dist_computers = [
                 OTChemDistanceComputer(mass_assignment_method='equal',
@@ -199,15 +199,15 @@ def make_pairwise_kernel(kernel_name, func, **kwargs):
 
 if __name__ == "__main__":
     os.makedirs(VIS_DIR, exist_ok=True)
-    make_tsne('qed')
-    make_tsne('sascore')
+    # make_tsne('qed')
+    # make_tsne('sascore')
 
-    make_pairwise('prop')
-    make_pairwise('qed')
-    make_pairwise('sascore')
+    # make_pairwise('prop')
+    # make_pairwise('qed')
+    # make_pairwise('sascore')
 
-    make_pairwise_kernel('similarity_kernel', 'qed')
-    make_pairwise_kernel('edgehist_kernel', 'qed', par=2)
-    make_pairwise_kernel('wl_kernel', 'qed',  par=2)
+    # make_pairwise_kernel('similarity_kernel', 'qed')
+    # make_pairwise_kernel('edgehist_kernel', 'qed', par=2)
+    # make_pairwise_kernel('wl_kernel', 'qed',  par=2)
     make_pairwise_kernel('distance_kernel_expsum', 'qed', dist_computer=OTChemDistanceComputer(), betas=[-0.5] * 4)
 

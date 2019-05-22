@@ -17,9 +17,7 @@ class ExplorerTestCase(BaseTestClass):
 
     def test_qed(self):
         qed = get_objective_by_name("qed")
-        res = qed(self.mol)
-        assert 0 <= res <= 1
-        print(res)
+        qed(self.mol)
 
     def test_plogp(self):
         plogp = get_objective_by_name("plogp")
