@@ -102,11 +102,15 @@ def get_chembl(n_mols=None, as_mols=True, option='', max_size=1000):
     if option == '':
         return mols
     elif option.startswith('small_'):
-        obj_func = get_objective_by_name(option.split("_")[1])
-        return [mol for mol in mols if obj_func(mol) < 0.6]
+        obj_name = option.split("_")[1]
+        obj_func = get_objective_by_name(obj_name)
+        small_thresh = get_threshold(obj_name, mode='low')
+        return [mol for mol in mols if obj_func(mol) < small_thresh]
     elif option.startswith('large_'):
-        obj_func = get_objective_by_name(option.split("_")[1])
-        return [mol for mol in mols if obj_func(mol) >= 0.6]
+        obj_name = option.split("_")[1]
+        obj_func = get_objective_by_name(obj_name)
+        large_thresh = get_threshold(obj_name, mode='high')
+        return [mol for mol in mols if obj_func(mol) >= large_thresh]
     else:
         raise ValueError(f"Dataset filter {option} not supported.")
 
@@ -139,6 +143,29 @@ def get_zinc250(option='', max_size=1000):
         return [mol for mol in mols if obj_func(mol) >= 0.6]
     else:
         raise ValueError(f"Dataset filter {option} not supported.")
+
+def get_threshold(obj_name, mode):
+    """
+    The default values correspond to ~66th percentile of obj_name ("qed", "plogp")
+    on ChEMBL dataset, hence, "low" mode chooses value below that percentile,
+    and "high" mode above that percentile.
+    """
+    if obj_name == "qed":
+        if mode == "low":
+            return 0.7
+        elif mode == "high":
+            return 0.7
+        else:
+            raise ValueError(f"Mode {mode} not supported")
+    elif obj_name == "plogp":
+        if mode == "low":
+            return 3.
+        elif mode == "high":
+            return 3.
+        else:
+            raise ValueError(f"Mode {mode} not supported")
+    else:
+        raise ValueError(f"Objective function {obj_name} not supported")
 
 def get_initial_pool():
     """Used in chemist_opt.chemist"""

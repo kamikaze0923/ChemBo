@@ -84,6 +84,7 @@ class RexgenForwardSynthesizer(ForwardSynthesizer):
                 res.append(mol)
             else:
                 continue
+        # outcomes are sorted by probability in decreasing order
         res = res[:k]
 
         # setting predicted products, if not already set:

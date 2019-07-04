@@ -22,8 +22,7 @@ from synth.validators import compute_min_sa_score, check_validity
 from datasets.loaders import MolSampler
 
 # Where to store temporary model checkpoints
-# EXP_DIR = 'experiments/results/final/rand_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
-EXP_DIR = 'experiments/final/rand_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
+EXP_DIR = 'experiments/results/extra_exps/rand_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
 EXP_LOG_FILE = os.path.join(EXP_DIR, 'exp_log')
 PLOT_FILE = os.path.join(EXP_DIR, 'explorer.eps')
 SYN_PATH_FILE = os.path.join(EXP_DIR, 'best_molecule.pkl')

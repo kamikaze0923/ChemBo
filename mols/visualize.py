@@ -107,21 +107,22 @@ class SynPathDrawer(object):
 
 
 if __name__ == "__main__":
-    # mol = Molecule("CCCC")
-    # img = draw_molecule(mol)
-    # img.save('./experiments/results/test.png')
+    smiles = "COc1ccccc1-c1ccc(C(Oc2ccccc2C(Nc2cccc(C)c2C)c2[nH]c3c(-c4noc(-c5ccc(Oc6cc(CC(C)=O)c7c(=O)cc(C)oc7c6)c(Cl)c5)n4)cccc3c2CC(=O)Nc2cccc(Nc3nc4c(-c5ccc(S(C)(=O)=O)cc5)cccn4n3)c2)=C(NC(=O)c2ccccc2)C(=O)O)o1"
+    mol = Molecule(smiles=smiles)
+    img = draw_molecule(mol)
+    img.save('./experiments/visualizations/opt_mol_plogp_5.png')
 
-    draw_synthesis_path(target_smiles="Cc1ccc(CC(CN=C(SC(=O)Cc2c[nH]c3c(-c4noc(-c5ccc(OC(C)C)c(Cl)c5)n4)cccc23)N(Cc2ccc(NS(=O)(=O)C(F)(F)F)cc2)C(=NCc2ccc(NS(=O)(=O)C(F)(F)F)cc2)SC(=O)Cc2c[nH]c3c(-c4noc(-c5ccc(OC(C)C)c(Cl)c5)n4)cccc23)COC(=O)C(C)(C)C)cc1C",
-                        synth_path="./experiments/final/chemist_exp_dir_20190519053341/best_molecule.pkl",
-                        out_path="./experiments/visualizations/synpath_plogp11")
+    # draw_synthesis_path(target_smiles="Cc1ccc(CC(CN=C(SC(=O)Cc2c[nH]c3c(-c4noc(-c5ccc(OC(C)C)c(Cl)c5)n4)cccc23)N(Cc2ccc(NS(=O)(=O)C(F)(F)F)cc2)C(=NCc2ccc(NS(=O)(=O)C(F)(F)F)cc2)SC(=O)Cc2c[nH]c3c(-c4noc(-c5ccc(OC(C)C)c(Cl)c5)n4)cccc23)COC(=O)C(C)(C)C)cc1C",
+    #                     synth_path="./experiments/final/chemist_exp_dir_20190519053341/best_molecule.pkl",
+    #                     out_path="./experiments/visualizations/synpath_plogp11")
 
-    draw_synthesis_path(target_smiles="CC(=NCN(CCC1=CCCCC1)C(=O)NCc1ccc(CN2CCCC(Nc3ccc4[nH]ncc4c3)C2)cc1)N(COc1ccccc1CNc1c(C(C)(C)C)ccc(C)c1C)c1ccc(C)cc1",
-                        synth_path="./experiments/final/chemist_exp_dir_20190520035241/best_molecule.pkl",
-                        out_path="./experiments/visualizations/synpath_plogp8")
+    # draw_synthesis_path(target_smiles="CC(=NCN(CCC1=CCCCC1)C(=O)NCc1ccc(CN2CCCC(Nc3ccc4[nH]ncc4c3)C2)cc1)N(COc1ccccc1CNc1c(C(C)(C)C)ccc(C)c1C)c1ccc(C)cc1",
+    #                     synth_path="./experiments/final/chemist_exp_dir_20190520035241/best_molecule.pkl",
+    #                     out_path="./experiments/visualizations/synpath_plogp8")
 
-    draw_synthesis_path(target_smiles="CC(=O)Cc1cc(O)c(C(C)(C)C)c2oc(C)cc(=O)c12",
-                        synth_path="./experiments/final/chemist_exp_dir_20190518184219/best_molecule.pkl",
-                        out_path="./experiments/visualizations/synpath_qed92")
+    # draw_synthesis_path(target_smiles="CC(=O)Cc1cc(O)c(C(C)(C)C)c2oc(C)cc(=O)c12",
+    #                     synth_path="./experiments/final/chemist_exp_dir_20190518184219/best_molecule.pkl",
+    #                     out_path="./experiments/visualizations/synpath_qed92")
 
 
 

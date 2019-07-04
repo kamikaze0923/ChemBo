@@ -15,8 +15,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set_style('whitegrid')
 font = {#'family' : 'normal',
-        'weight' : 'bold',
-        'size'   : 12}
+        # 'weight' : 'bold',
+        'size'   :  22}
 plt.rc('font', **font)
 
 from dist.ot_dist_computer import OTChemDistanceComputer
@@ -125,8 +125,8 @@ def make_pairwise(func, as_subplots=False):
                                             struct_pen_method='bond_frac')
 
                     ]
-    titles = ['Equal mass assign, no norm', 'Equal mass assign, total mass norm',
-              'Mol mass assign, no norm',   'Mol mass assign, total mass norm']
+    titles = ['Unit weight, Unnormalised', 'Unit weight, Normalised',
+              'Molecular mass weight, Unnormalised',   'Molecular mass weight, Normalised']
 
     f, ll_ax = plt.subplots(2, 2, figsize=(15, 15))
     axes = itertools.chain.from_iterable(ll_ax)
@@ -150,14 +150,18 @@ def make_pairwise(func, as_subplots=False):
             plt.clf()
             fig = plt.figure()  # figsize=fsize
             ax = fig.add_subplot(1,1,1)
-            plt.title(title)
+            plt.title(title, fontsize=22)
             plt.scatter(xs, ys, s=2, alpha=0.6)
             plt.xscale('log')
             plt.xticks([])
             plt.yticks([])
-            # extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-            plt.savefig(os.path.join(VIS_DIR, f"dist_vs_value_{func}_{dist_computer}.eps"),
-                        format='eps', dpi=1000) #bbox_inches=extent, pad_inches=0
+            extent = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+            extent.x0 -= 0.3
+            extent.x1 += 0.3
+            extent.y0 -= 0.3
+            extent.y1 += 0.7
+            plt.savefig(os.path.join(VIS_DIR, f"dist_vs_value_{func}_{ind+1}.pdf"),
+                                    bbox_inches=extent, pad_inches=0) #bbox_inches=extent, pad_inches=0, format='eps', dpi=1000, 
             plt.clf()
 
     if as_subplots:
@@ -204,10 +208,10 @@ if __name__ == "__main__":
 
     # make_pairwise('prop')
     # make_pairwise('qed')
-    # make_pairwise('sascore')
+    make_pairwise('sascore')
 
     # make_pairwise_kernel('similarity_kernel', 'qed')
     # make_pairwise_kernel('edgehist_kernel', 'qed', par=2)
     # make_pairwise_kernel('wl_kernel', 'qed',  par=2)
-    make_pairwise_kernel('distance_kernel_expsum', 'qed', dist_computer=OTChemDistanceComputer(), betas=[-0.5] * 4)
+    # make_pairwise_kernel('distance_kernel_expsum', 'qed', dist_computer=OTChemDistanceComputer(), betas=[-0.5] * 4)
 

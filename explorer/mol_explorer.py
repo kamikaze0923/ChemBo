@@ -53,7 +53,8 @@ class RandomExplorer(Explorer):
             capital_type {int/float} - number of steps or other cost of exploration
             initial_pool {list} - just what it says
             max_pool_size {int or None} - whether to keep the pool to top k most fit
-            n_outcomes {int} - # of most likely reaction outcomes to keep and evaluate
+            n_outcomes {int} - # of most likely reaction outcomes to keep and evaluate;
+                currently this is used for selecting the actual primary outcome of the reaction
         """
         self.fitness_func = fitness_func
         self.capital_type = capital_type
@@ -68,6 +69,29 @@ class RandomExplorer(Explorer):
     def reset_params(self, fitness_func, capital_type, **kwargs):
         self.fitness_func = fitness_func
         self.capital_type = capital_type
+
+    def select_product(self, outcomes, criterion="prob"):
+        """ Select the candidate by:
+            - highest probability ("prob")
+            - highest fitness ("fit")
+            - heuristic to determine the actual
+              major product ("product")
+        """
+        supported_criteria = ["prob", "fit", "product"]
+        if criterion == "prob":
+            top_pt = outcomes[0]
+            top_val = self.fitness_func([top_pt])
+        elif criterion == "fit":
+            top_pt = sorted(outcomes, key=lambda mol: self.fitness_func([mol]))[-1]
+            top_val = self.fitness_func([top_pt])
+        elif criterion == "product":
+            # using a heuristic here, e.g. weight
+            weight_fn = Chem.Descriptors.ExactMolWt
+            top_pt = sorted(outcomes, key=lambda mol: weight_fn(mol.to_rdkit()))[-1]
+            top_val = self.fitness_func([top_pt])
+        else:
+            raise ValueError(f"Argument {criterion} not supported, choose from {supported_criteria}")
+        return top_pt, top_val
 
     def run_step(self):
         outcomes = []
@@ -86,12 +110,7 @@ class RandomExplorer(Explorer):
                 if not outcomes:
                     logging.info('Synthesizer returned an empty set of results, restarting with another subset.')
 
-        if self.n_outcomes == 1:
-            top_pt = outcomes[0]
-            top_val = self.fitness_func([top_pt])
-        else:
-            top_pt = sorted(outcomes, key=lambda mol: self.fitness_func([mol]))[-1]
-            top_val = self.fitness_func(top_pt)
+        top_pt, top_val = self.select_product(outcomes, criterion="product")
         self.pool.append(top_pt)
 
         # filter

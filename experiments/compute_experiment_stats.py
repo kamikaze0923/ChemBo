@@ -67,21 +67,32 @@ def format_rand(group):
 
 
 if __name__ == "__main__":
-    qed_rand_exp_paths = format_rand(["20190521154417", "20190522072706", "20190522072835", "20190522073130", "20190522073258"])
+    # from mols.mol_functions import get_objective_by_name
+    # from mols.molecule import Molecule
+    # exp_num = 20190520051810
+    # lst = get_smiles_list_from_file(f"./experiments/final/chemist_exp_dir_{exp_num}/run_log")
+    # qed_func = get_objective_by_name('plogp')
+    # vals = [qed_func(Molecule(smiles=el)) for el in lst]
+    # argmx = np.argmax(vals)
+    # print(vals[argmx], lst[argmx])
+
+    qed_rand_exp_paths = format_rand(["20190522072706", "20190522072835", "20190522073130", "20190522073258",
+                                      "20190522160909", "20190522161028"])
     qed_sim_exp_paths = format_chem(["20190518132128", "20190518184219", "20190519053538", "20190519172351"])
     qed_dist_exp_paths = format_chem(["20190518095359", "20190518182118", "20190518182227", "20190520042603"])
 
-    plogp_rand_exp_paths = format_rand(["20190522072622", "20190522072737", "20190522072853", "20190522073012", "20190522073132"])
+    plogp_rand_exp_paths = format_rand(["20190522072622", "20190522072737", "20190522072853",
+                                        "20190522154201", "20190522154310", "20190522154417", "20190522154535"])
     plogp_sim_exp_paths = format_chem(["20190519053341", "20190520035241", "20190520051810"])
-    plogp_dist_exp_paths = format_chem(["20190520034409", "20190520034422", "20190520041405"])
+    plogp_dist_exp_paths = format_chem(["20190520034402", "20190520034422", "20190520041405", "20190518051956_f"]) #"20190520034409", 
 
-    exp_paths = plogp_rand_exp_paths
+    exp_paths = plogp_dist_exp_paths
     res = []
     nov = []
     for path in exp_paths:
         # nov.append(compute_novelty(path))
         res.append(get_max(path))
     # print(f"Novelty percentage {np.mean(nov)}")
-    print(f"Mean {np.mean(res)}, std {np.std(res)}")
+    print("Mean {:.3f} \pm std {:.3f}".format(np.mean(res), np.std(res)/np.sqrt(5)))
 
     
