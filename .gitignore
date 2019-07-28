@@ -2,6 +2,7 @@
 **/*.pyc
 **/*.tar
 **/*.npy
+*.pkl.gz
 datasets/*
 !datasets/loaders.py
 **/__pycache__

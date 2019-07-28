@@ -78,18 +78,22 @@ def get_chembl_prop(n_mols=None, as_mols=False):
         smile_strings = np.random.choice(smile_strings, n_mols)
     return smile_strings, smile_to_prop
 
-def get_chembl(n_mols=None, as_mols=True, option='', max_size=1000):
+def get_chembl(option='', max_size=1000, as_mols=True):
     """ 
-        Return list of Molecules.
-        NOTE: this function should be located
-        in the same directory as data files.
+    Return list of Molecules.
+    NOTE: this function should be located
+    in the same directory as data files.
+
+    Arguments:
+        option {str} -- either empty or of format '{small,large}_{objective name}'
+        max_size {int} -- number of molecules to sample, if None, returns all,
+            else randomly samples a subset. Attention: there is a randomly set random seed
+            that seeds this sampler now, so the subset will always be the same.
+        as_mols {bool} -- whether to wrap SMILES into the Molecule class
     """
     path = os.path.join(__location__, "ChEMBL.txt")
     with open(path, "r") as f:
-        if n_mols is None:
-            res = [line.strip() for line in f]
-        else:
-            res = [f.readline().strip() for _ in range(n_mols)]
+        res = [line.strip() for line in f]
     mols = [Molecule(smile) for smile in res]
 
     if max_size == -1:
@@ -114,11 +118,18 @@ def get_chembl(n_mols=None, as_mols=True, option='', max_size=1000):
     else:
         raise ValueError(f"Dataset filter {option} not supported.")
 
-def get_zinc250(option='', max_size=1000):
+def get_zinc250(option='', max_size=1000, as_mols=True):
     """ 
-        Return list of Molecules.
-        NOTE: this function should be located
-        in the same directory as data files.
+    Return list of Molecules.
+    NOTE: this function should be located
+    in the same directory as data files.
+
+    Arguments:
+        option {str} -- either empty or of format '{small,large}_{objective name}'
+        max_size {int} -- number of molecules to sample, if None, returns all,
+            else randomly samples a subset. Attention: there is a randomly set random seed
+            that seeds this sampler now, so the subset will always be the same.
+        as_mols {bool} -- whether to wrap SMILES into the Molecule class
     """
     path = os.path.join(__location__, "zinc250k.csv")
     zinc_df = pd.read_csv(path)
@@ -207,6 +218,3 @@ if __name__ == "__main__":
     #     print('\tSeed: ', seed)
     #     print_pool_statistics(dataset, seed)
     display_dataset_statistics(dataset)
-
-
-
