@@ -1,7 +1,6 @@
 """
 CartesianProductGP implementation working on molecular domains.
 Kernels are in mols/mol_kernels.py
-@author: kkorovin@cs.cmu.edu
 
 TODO:
 * check values in get_molecular_kernel

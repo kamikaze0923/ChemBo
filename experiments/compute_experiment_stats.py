@@ -2,7 +2,8 @@
 Compute statistics for experiment:
 novelty, mean and std achieved value.
 
-@author: kkorovin@cs.cmu.edu
+TODO:
+* sorry for this, the module needs major refactoring
 """
 
 from datasets.loaders import get_chembl, get_zinc250
@@ -27,10 +28,10 @@ def compute_novel_percentage(mol_list):
 
 def compute_sa_score_datasets():
     sas = get_objective_by_name("sascore")
-    chembl = get_chembl(max_size=100)
+    chembl = get_chembl(max_size=50)
     res = [sas(m) for m in chembl]
     print("ChEMBL: {:.3f} +- std {:.3f}".format(np.mean(res), np.std(res)))
-    zinc = get_zinc250(max_size=100)
+    zinc = get_zinc250(max_size=50)
     res = [sas(m) for m in zinc]
     print("ZINC: {:.3f} +- std {:.3f}".format(np.mean(res), np.std(res)))
     
@@ -79,6 +80,16 @@ def compute_synthesizability(exp_path):
     sa_score = sas(mol)
     return sa_score
 
+def parse_min_synthesizability(exp_path):
+    sas = get_objective_by_name("sascore")
+    sa_score = None
+    with open(os.path.join(exp_path, 'exp_log'), 'r') as f:
+        for line in f:
+            if 'Minimum synthesis score over the path' in line:
+                sa_score = float(line.split()[-1])
+    if not sa_score: return
+    return sa_score
+
 def get_max(path):
     res = get_list_from_file(path)
     return max(res)
@@ -124,8 +135,18 @@ if __name__ == "__main__":
     res = []
     for subdir in os.listdir(directory):
         if subdir.startswith('rand_'):
-            sa = compute_synthesizability(os.path.join(directory, subdir))
+            # sa = compute_synthesizability(os.path.join(directory, subdir))
+            sa = parse_min_synthesizability(os.path.join(directory, subdir))
             if sa: res.append(sa)
+
+    print(len(res))
+    directory = './experiments/results/final/'
+    for subdir in os.listdir(directory):
+        if subdir.startswith('rand_'):
+            # sa = compute_synthesizability(os.path.join(directory, subdir))
+            sa = parse_min_synthesizability(os.path.join(directory, subdir))
+            if sa: res.append(sa)
+    print(len(res))
     compute_sa_score_datasets()
     print("SA score: {:.3f} +- std {:.3f}".format(np.mean(res), np.std(res)))
 

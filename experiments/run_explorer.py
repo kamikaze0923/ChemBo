@@ -1,6 +1,5 @@
 """
 Run pure exploration.
-@author: kkorovin@cs.cmu.edu
 
 This experiment is both for comparison against Chemist,
 and for validation of explored output.

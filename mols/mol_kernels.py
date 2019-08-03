@@ -1,5 +1,4 @@
 """
-
 Molecular kernels.
 To be used as part of CartesianProductKernel
 
@@ -8,8 +7,6 @@ Kernels to be implemented:
 * Fingerprints as vectors
 * Fingerprints for molecular similarity
 * String-based
-
-@author: kkorovin@cs.cmu.edu
 
 TODO:
 * Implement the remaining graph-based kernels

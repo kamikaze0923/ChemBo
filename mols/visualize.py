@@ -1,7 +1,5 @@
 """
 Visualization tools for molecules
-@authors: kkorovin@cs.cmu.edu,
-          sailunx@andrew.cmu.edu
 """
 
 import PIL

@@ -1,6 +1,5 @@
 """
 Implements forward synthesis
-@author: kkorovin@cs.cmu.edu
 
 TODO:
 * Template synthesis and sanity checks

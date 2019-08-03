@@ -1,6 +1,5 @@
 """
 Module for BO with graph kernel and synthesizeable exploration.
-@author: kkorovin@cs.cmu.edu
 
 Available Explorers: 'rand_explorer', ...
 

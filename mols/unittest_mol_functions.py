@@ -1,6 +1,5 @@
 """
 Unit tests for molecular propertiy computation
-@author: kkorovin@cs.cmu.edu
 """
 
 from dragonfly.utils.base_test_class import BaseTestClass, execute_tests

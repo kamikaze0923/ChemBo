@@ -1,6 +1,5 @@
 """
 Molecular function callers.
-@author: kkorovin@cs.cmu.edu
 
 A harness for calling functions defined over Molecules.
 Makes use of the mols/mol_functions.py

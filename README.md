@@ -1,9 +1,10 @@
-# Dragonfly Chemist
+# ChemBO
 
-*Authors: Ksenia Korovina (kkorovin@cs.cmu.edu), Sailun (Celsius) Xu (sailunx@andrew.cmu.edu)*
+*Authors: Ksenia Korovina (kkorovin@cs.cmu.edu), Sailun (Celsius) Xu (sailunx@andrew.cmu.edu), Kirthevasan Kandasamy (kandasamy@cs.cmu.edu)*
 
-Dragonfly Chemist is library for joint molecular optimization and synthesis. It is based on Dragonfly - a framework for scalable Bayesian optimization.
+ChemBO is library for joint molecular optimization and synthesis. It is based on Dragonfly - a framework for scalable Bayesian optimization.
 
+[TOC here]
 
 ## Structure of the repo
 
@@ -15,6 +16,9 @@ Dragonfly Chemist is library for joint molecular optimization and synthesis. It 
 * `rdkit_contrib` is an extension to rdkit that provides computation of a few molecular scores (for older versions of `rdkit`).
 * `baselines` contains wrappers for models we compare against.
 
+## Current work
+
+In the coming few weeks, we will try to clean up, refactor and further comment the code.
 
 ## Getting started
 
@@ -91,3 +95,7 @@ TODO
 ## Running experiments
 
 See `experiments/run_chemist.py` for the Chemist usage example.
+
+## Citation
+
+If you found this code helpful, please consider citing this manuscript.
