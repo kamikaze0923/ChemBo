@@ -1,6 +1,5 @@
 """
 Molecular kernels unit tests.
-Author: kkorovin@cs.cmu.edu
 """
 
 from mols.molecule import Molecule

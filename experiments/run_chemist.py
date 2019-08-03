@@ -2,8 +2,6 @@
 Runner of the Chemist optimization.
 Can be used as a usage example.
 
-@author: kkorovin@cs.cmu.edu
-
 TODO:
 * visualization of synth paths in mols.visualize
 

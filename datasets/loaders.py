@@ -1,6 +1,5 @@
 """
-Loading and handling chemical data
-Author: kkorovin@cs.cmu.edu
+Loading and handling chemical data.
 
 This is a poorly structured module and needs re-thinking.
 """
@@ -93,14 +92,18 @@ def get_chembl(option='', max_size=1000, as_mols=True):
     """
     path = os.path.join(__location__, "ChEMBL.txt")
     with open(path, "r") as f:
-        res = [line.strip() for line in f]
-    mols = [Molecule(smile) for smile in res]
+        mols = [line.strip() for line in f]
+    if as_mols:
+        mols = [Molecule(smile) for smile in mols]
 
     if max_size == -1:
         max_size = len(mols)
     if len(mols) <= max_size:
         return mols
 
+    # TODO: this logic is off, if filtering afterwards,
+    # we get less than max_size molecules in the end.
+    # Fix this if needed.
     gen = np.random.RandomState(42)
     mols = list(gen.choice(mols, max_size, replace=False))
     if option == '':

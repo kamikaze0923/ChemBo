@@ -3,8 +3,6 @@ Synthesis validators.
 To be used internally with Explorers,
 or a separate sanity check.
 
-@author: kkorovin@cs.cmu.edu
-
 TODO:
 * implement backward predictors
   or find any likelihood evaliation tool

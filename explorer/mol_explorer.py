@@ -1,6 +1,5 @@
 """
 Class that performs molecule space traversal.
-@author: kkorovin@cs.cmu.edu
 
 TODO:
 * add better caching of evaluations

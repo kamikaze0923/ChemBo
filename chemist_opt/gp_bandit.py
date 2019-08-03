@@ -1,8 +1,6 @@
 """
 A mirror of gp_bandit.py of Dragonfly:
 imports class, resets a method and inherits further
-@authors: kkorovin@cs.cmu.edu,
-          celsius38
 
 This is an example of how to make this work:
 >> sneaky_func = lambda: print("Hi!")

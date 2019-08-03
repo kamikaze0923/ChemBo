@@ -4,8 +4,6 @@ starting from an initial pool, we randomly sample the next point
 from the rest of the dataset, instead of synthesizing it from that pool.
 This simulates a situation of virtual screening and doesn't account for
 the cost of discovery of new compounds.
-
-@author: kkorovin@cs.cmu.edu
 """
 
 import numpy as np

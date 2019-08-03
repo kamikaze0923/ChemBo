@@ -1,6 +1,5 @@
 """
 Molecule and Reaction classes definitions.
-@author: kkorovin@cs.cmu.edu
 
 Molecule provides conversions between string, graph-based
 and rdkit.Mol representations of a molecule.

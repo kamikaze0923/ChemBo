@@ -1,6 +1,6 @@
 """
 Unit tests for explorer.py
-Author: kkorovin@cs.cmu.edu
+
 TODO:
 * update imports from rdkit_contrib to import from mols
 """
