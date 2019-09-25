@@ -16,7 +16,7 @@ from dragonfly.gp.kernel import CartesianProductKernel,  SEKernel
 from dragonfly.utils.option_handler import get_option_specs, load_options
 # local imports
 from mols.mol_kernels import mol_kern_factory, MOL_GRAPH_INT_KERNEL_TYPES, MOL_GRAPH_CONT_KERNEL_TYPES, \
-    MOL_FINGERPRINT_KERNEL_TYPES, MOL_SIMILARITY_KERNEL_TYPES, MOL_DISTANCE_KERNEL_TYPES
+    MOL_FINGERPRINT_KERNEL_TYPES, MOL_SIMILARITY_KERNEL_TYPES, MOL_DISTANCE_KERNEL_TYPES, MOL_SUM_KERNEL_TYPES
 from mols.mol_kernels import MolDistanceKernel
 
 # classes and functions to redefine
@@ -99,6 +99,7 @@ def _set_up_hyperparams_for_domain(fitter, X_data, gp_domain, dom_prefix,
             elif kernel_type in MOL_GRAPH_INT_KERNEL_TYPES:
                 fitter.dscr_hp_vals.append([1, 2, 3])
                 fitter.param_order.append(["par", "dscr"])
+            
             elif kernel_type in MOL_DISTANCE_KERNEL_TYPES:
                 base_kernel_type = MolDistanceKernel.get_base_kernel_type(kernel_type)
                 num_distances = dist_computer.get_num_distances()
@@ -113,12 +114,27 @@ def _set_up_hyperparams_for_domain(fitter, X_data, gp_domain, dom_prefix,
                     raise NotImplementedError
                 else:
                     raise ValueError("Unknown base kernel type {} for mol distance kernels".format(base_kernel_type))
+
+            elif kernel_type in MOL_SUM_KERNEL_TYPES:
+                # TODO
+                num_distances = dist_computer.get_num_distances()
+                log_beta_bounds = [[np.log(1e-2), np.log(1e2)]] * num_distances
+                beta_types = [["log_beta" + str(i), "cts"] for i in range(num_distances)]
+                fitter.cts_hp_bounds.extend(log_beta_bounds)
+                fitter.param_order.extend(beta_types)
+                # TODO: add alphas here
+                alpha_bounds = [[1e-2, 10.]] * 2
+                alpha_types = [["alpha0", "cts"], ["alpha1", "cts"]]
+                fitter.cts_hp_bounds.extend(alpha_bounds)
+                fitter.param_order.extend(alpha_types)
+                raise NotImplementedError("In process of implementing!")
+
             elif kernel_type in MOL_FINGERPRINT_KERNEL_TYPES:
                 raise NotImplementedError("Not implemented setting up hyperparameters for {}".format(kernel_type))
+            
             elif kernel_type in MOL_SIMILARITY_KERNEL_TYPES:
                 # these kernels don't have hyperparameters
                 pass
-                # raise NotImplementedError("Not implemented setting up hyperparameters for {}".format(kernel_type))
             else:
                 raise ValueError('Unknown kernel type "%s" for "%s" spaces.'%(kernel_type, dom_type))
         else:
@@ -151,6 +167,7 @@ def get_molecular_kernel(kernel_hyperparams, gp_cts_hps, gp_dscr_hps):
     elif kernel_type in MOL_GRAPH_CONT_KERNEL_TYPES:
         kernel_hyperparams["par"] = gp_cts_hps[0]
         gp_cts_hps = gp_cts_hps[1:]
+    
     elif kernel_type in MOL_DISTANCE_KERNEL_TYPES:
         dist_computer = kernel_hyperparams["dist_computer"]
         num_distances = dist_computer.get_num_distances()
@@ -164,6 +181,16 @@ def get_molecular_kernel(kernel_hyperparams, gp_cts_hps, gp_dscr_hps):
             raise NotImplementedError
         else:
             raise ValueError("Unknown base kernel type {} for mol distance kernels".format(base_kernel_type))
+
+    elif kernel_type in MOL_SUM_KERNEL_TYPES:
+        # TODO
+        dist_computer = kernel_hyperparams["dist_computer"]
+        num_distances = dist_computer.get_num_distances()
+        kernel_hyperparams["betas"] = np.exp(gp_cts_hps[:num_distances])  # exp of log betas
+        gp_cts_hps = gp_cts_hps[num_distances:]
+        kernel_hyperparams["alphas"] = gp_cts_hps[:2]
+        raise NotImplementedError("get_molecular_kernel() in progress!")
+    
     elif kernel_type in MOL_SIMILARITY_KERNEL_TYPES:
         pass
     elif kernel_type in MOL_FINGERPRINT_KERNEL_TYPES:

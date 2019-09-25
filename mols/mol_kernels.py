@@ -40,6 +40,7 @@ MOL_GRAPH_INT_KERNEL_TYPES = [
 MOL_FINGERPRINT_KERNEL_TYPES = ["fingerprint_kernel"]
 MOL_SIMILARITY_KERNEL_TYPES = ["similarity_kernel"]
 MOL_DISTANCE_KERNEL_TYPES = ["distance_kernel_expsum", "distance_kernel_sumexpsum", "distance_kernel_matern"]
+MOL_SUM_KERNEL_TYPES = ["sum_kernel"]
 
 
 def mol_kern_factory(kernel_type: str, *args, **kwargs):
@@ -52,7 +53,8 @@ def mol_kern_factory(kernel_type: str, *args, **kwargs):
         MolGraphKernel: MOL_GRAPH_CONT_KERNEL_TYPES + MOL_GRAPH_INT_KERNEL_TYPES,
         MolFingerprintKernel: MOL_FINGERPRINT_KERNEL_TYPES,
         MolDistanceKernel: MOL_DISTANCE_KERNEL_TYPES,
-        MolSimilarityKernel: MOL_SIMILARITY_KERNEL_TYPES
+        MolSimilarityKernel: MOL_SIMILARITY_KERNEL_TYPES,
+        MolSumKernel: MOL_SUM_KERNEL_TYPES
     }
     kernel_type_to_kernel = {
         kernel_type: kernel
@@ -216,6 +218,41 @@ class MolFingerprintKernel(MolKernel):
 
     def __str__(self):
         return "FingerprintKernel: " + str(self.base_kernel)
+
+
+class MolSumKernel(MolKernel):
+    """
+    Molecule kernel that is a weighted sum of scaled kernels.
+    k(x,y) = alpha1 * k1(x,y) + ... alphan * kn(x,y)
+    """
+    # TODO: careful about the order of arguments here
+    def __init__(self, alphas, dist_computer, betas):
+        self.kernels = [
+            MolSimilarityKernel(),
+            MolDistanceKernel("distance_kernel_expsum",
+                dist_computer=dist_computer, betas=betas)
+            ]
+        # if not all(len(alphas) != len(arr) for arr in [alphas, kernels]):
+        #     raise ValueError("All arrays should have the same length")
+        # self.kernels = kernels
+        # TODO: do we need to add betas here?
+        self.add_hyperparams(alphas=np.array(alphas), betas=np.array(betas))
+
+        # Array to keep largest kernel values
+        # NOT USED YET
+        self.max_values_seen = [-float('inf')] * len(kernels)
+
+    def is_guaranteed_psd(self):
+        return all(kernel.is_guaranteed_psd() for kernel in self.kernels)
+
+    def _child_evaluate(self, X1, X2):
+        sum_kernel_mat = 0.
+        for kernel, alpha in zip(self.kernels, self.hyperparams['alphas']):
+            sum_kernel_mat += alpha * kernel._child_evaluate(X1, X2)
+        return sum_kernel_mat
+
+    def __str__(self):
+        return "Sum kernel of " + ",".join([str(kernel) for kernel in self.kernels])
 
 
 class MolStringKernel(MolKernel):
