@@ -226,26 +226,35 @@ class MolSumKernel(MolKernel):
     k(x,y) = alpha1 * k1(x,y) + ... alphan * kn(x,y)
     """
     # TODO: careful about the order of arguments here
-    def __init__(self, alphas, dist_computer, betas):
+    def __init__(self, kernel_type, alphas, dist_computer, betas, **kwargs):
+        """ TODO: this constructor could be made more general """
+        super(MolSumKernel, self).__init__(kernel_type, **kwargs)
         self.kernels = [
-            MolSimilarityKernel(),
+            MolSimilarityKernel("similarity_kernel"),
             MolDistanceKernel("distance_kernel_expsum",
                 dist_computer=dist_computer, betas=betas)
             ]
-        # if not all(len(alphas) != len(arr) for arr in [alphas, kernels]):
-        #     raise ValueError("All arrays should have the same length")
-        # self.kernels = kernels
-        # TODO: do we need to add betas here?
         self.add_hyperparams(alphas=np.array(alphas), betas=np.array(betas))
 
         # Array to keep largest kernel values
         # NOT USED YET
-        self.max_values_seen = [-float('inf')] * len(kernels)
+        self.max_values_seen = [-float('inf')] * len(self.kernels)
 
     def is_guaranteed_psd(self):
         return all(kernel.is_guaranteed_psd() for kernel in self.kernels)
 
+    def evaluate_from_dists(self, dists: List[np.array], X1, X2):
+        """ TODO: this method could be made more general """
+        # kernel matrix from the distance-based kernel
+        sim_kernel_mat = self.kernels[0](X1, X2)
+        # kernel matrix from the distance-based kernel
+        dist_kernel_mat = self.kernels[1].evaluate_from_dists(dists)
+        alpha0, alpha1 = self.hyperparams['alphas']
+        return alpha0 * sim_kernel_mat + alpha1 * dist_kernel_mat
+
     def _child_evaluate(self, X1, X2):
+        """ Shouldn't be used as of now (and in general,
+        in the cases when there is a distance-based component)"""
         sum_kernel_mat = 0.
         for kernel, alpha in zip(self.kernels, self.hyperparams['alphas']):
             sum_kernel_mat += alpha * kernel._child_evaluate(X1, X2)

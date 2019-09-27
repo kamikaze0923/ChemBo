@@ -22,7 +22,7 @@ from dragonfly.exd.exd_utils import get_cp_domain_initial_qinfos
 from chemist_opt.gp_bandit import CPGPBandit, get_cp_domain_initial_qinfos
 from chemist_opt.mol_function_caller import MolFunctionCaller
 from dist.ot_dist_computer import OTChemDistanceComputer
-from mols.mol_kernels import MOL_DISTANCE_KERNEL_TYPES
+from mols.mol_kernels import MOL_DISTANCE_KERNEL_TYPES, MOL_SUM_KERNEL_TYPES
 from mols.mol_gp import get_default_kernel_type
 
 
@@ -65,7 +65,7 @@ class Chemist:
                     kernel_type = chemist_args["dom_mol_kernel_type"]
                 if kernel_type == "default":
                     kernel_type = get_default_kernel_type(domain_type)
-                if kernel_type in MOL_DISTANCE_KERNEL_TYPES:
+                if kernel_type in MOL_DISTANCE_KERNEL_TYPES or kernel_type in MOL_SUM_KERNEL_TYPES:
                     computer = OTChemDistanceComputer()
                     domain_dist_computers.append(computer)
                 else:

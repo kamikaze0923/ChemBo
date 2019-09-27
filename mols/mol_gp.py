@@ -3,7 +3,8 @@ CartesianProductGP implementation working on molecular domains.
 Kernels are in mols/mol_kernels.py
 
 TODO:
-* check values in get_molecular_kernel
+* think on how to set alpha and beta optim boundaries in _set_up_hyperparams_for_domain()
+* [OLD] check values in get_molecular_kernel
 """
 
 # general imports
@@ -11,7 +12,7 @@ import numpy as np
 import logging
 
 # imports from dragonfly
-from dragonfly.exd import domains
+from dragonfly.exd import domains 
 from dragonfly.gp.kernel import CartesianProductKernel,  SEKernel
 from dragonfly.utils.option_handler import get_option_specs, load_options
 # local imports
@@ -30,6 +31,7 @@ from dragonfly.gp.cartesian_product_gp import cartesian_product_gp_args,\
     get_neural_network_kernel,\
     _get_euc_int_options
 import dragonfly.gp.cartesian_product_gp as cartesian_product_gp
+from dragonfly.utils.general_utils import get_idxs_from_list_of_lists
 
 # TODO: append to this list the mol-dependent args
 cartesian_product_gp_args += [get_option_specs('dom_mol_kernel_type', False, 'default',
@@ -116,18 +118,17 @@ def _set_up_hyperparams_for_domain(fitter, X_data, gp_domain, dom_prefix,
                     raise ValueError("Unknown base kernel type {} for mol distance kernels".format(base_kernel_type))
 
             elif kernel_type in MOL_SUM_KERNEL_TYPES:
-                # TODO
+                # TODO: Set these boundaries more accurately
                 num_distances = dist_computer.get_num_distances()
                 log_beta_bounds = [[np.log(1e-2), np.log(1e2)]] * num_distances
                 beta_types = [["log_beta" + str(i), "cts"] for i in range(num_distances)]
                 fitter.cts_hp_bounds.extend(log_beta_bounds)
                 fitter.param_order.extend(beta_types)
-                # TODO: add alphas here
+                # TODO: Set these boundaries more accurately
                 alpha_bounds = [[1e-2, 10.]] * 2
                 alpha_types = [["alpha0", "cts"], ["alpha1", "cts"]]
                 fitter.cts_hp_bounds.extend(alpha_bounds)
                 fitter.param_order.extend(alpha_types)
-                raise NotImplementedError("In process of implementing!")
 
             elif kernel_type in MOL_FINGERPRINT_KERNEL_TYPES:
                 raise NotImplementedError("Not implemented setting up hyperparameters for {}".format(kernel_type))
@@ -183,14 +184,16 @@ def get_molecular_kernel(kernel_hyperparams, gp_cts_hps, gp_dscr_hps):
             raise ValueError("Unknown base kernel type {} for mol distance kernels".format(base_kernel_type))
 
     elif kernel_type in MOL_SUM_KERNEL_TYPES:
-        # TODO
+        # Order of hyperparameters: first betas, then alphas
         dist_computer = kernel_hyperparams["dist_computer"]
         num_distances = dist_computer.get_num_distances()
-        kernel_hyperparams["betas"] = np.exp(gp_cts_hps[:num_distances])  # exp of log betas
+        # exp of log betas:
+        kernel_hyperparams["betas"] = np.exp(gp_cts_hps[:num_distances])
         gp_cts_hps = gp_cts_hps[num_distances:]
+        # just simple alphas:
         kernel_hyperparams["alphas"] = gp_cts_hps[:2]
-        raise NotImplementedError("get_molecular_kernel() in progress!")
-    
+        gp_cts_hps = gp_cts_hps[2:]
+
     elif kernel_type in MOL_SIMILARITY_KERNEL_TYPES:
         pass
     elif kernel_type in MOL_FINGERPRINT_KERNEL_TYPES:
@@ -263,7 +266,29 @@ class MolCPGP(cartesian_product_gp.CPGP):
     """ this may not need any modifications at all:
         doesn't use any of the module's functions
     """
-    pass
+    def _get_training_kernel_matrix(self):
+        """
+        Returns the training kernel matrix.
+        Method overrided in order to accomodate for sum kernel
+        having both a distance-based component and a non-distance based component.
+        """
+        n = len(self.X)
+        ret = self.kernel.hyperparams['scale'] * np.ones((n, n))
+        for idx, kern in enumerate(self.kernel.kernel_list):
+            if self.domain_lists_of_dists[idx] is not None:
+                if kern.kernel_type == "sum_kernel":
+                    # Need both use cached distances, and current X-values for the sim kernel
+                    curr_X = get_idxs_from_list_of_lists(self.X, idx)
+                    kernel_value = kern.evaluate_from_dists(self.domain_lists_of_dists[idx],
+                                                            curr_X, curr_X)
+                else:
+                    # Same behavior as base Dragonfly otherwise
+                    kernel_value = kern.evaluate_from_dists(self.domain_lists_of_dists[idx])
+                ret *= kernel_value
+            else:
+                curr_X = get_idxs_from_list_of_lists(self.X, idx)
+                ret *= kern(curr_X, curr_X)
+        return ret
 
 
 class MolCPGPFitter(cartesian_product_gp.CPGPFitter):
@@ -279,6 +304,7 @@ class MolCPGPFitter(cartesian_product_gp.CPGPFitter):
             self.domain_kernel_params_for_each_domain,
             self.domain_dist_computers,
             self.domain_lists_of_dists)
+        # print(self.param_order)
 
     def _child_build_gp(self, mean_func, noise_var, gp_cts_hps, gp_dscr_hps,
                         other_gp_params=None, *args, **kwargs):

@@ -2,7 +2,10 @@
 curl -L https://github.com/rdkit/rdkit/blob/master/Contrib/SA_Score/fpscores.pkl.gz?raw=true --output ./rdkit_contrib/fpscores.pkl.gz
 
 # Download model checkpoints and other necessary stuff for Rexgen (only three dirs):
-# TODO
+curl -L https://github.com/connorcoley/rexgen_direct/blob/master/rexgen_direct/core_wln_global/model-300-3-direct/model.ckpt-140000.data-00000-of-00001?raw=true \
+	--output ./synth/rexgen_direct/core_wln_global/model-300-3-direct/
+curl -L https://github.com/connorcoley/rexgen_direct/blob/master/rexgen_direct/rank_diff_wln/model-core16-500-3-max150-direct-useScores/model.ckpt-2400000.data-00000-of-00001?raw=true \
+	--output ./synth/rexgen_direct/rank_diff_wln/model-core16-500-3-max150-direct-useScores/
 
 # Download datasets
 # mkdir tmp_; cd tmp_

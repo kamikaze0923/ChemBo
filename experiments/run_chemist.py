@@ -30,7 +30,8 @@ from mols.mol_functions import get_objective_by_name
 from mols.visualize import visualize_mol
 
 # Where to store temporary model checkpoints
-EXP_DIR = 'experiments/results/extra_exps/chemist_exp_dir_%s'%(time.strftime('%Y%m%d%H%M%S'))
+EXP_PREFIX = "sum_kernel"
+EXP_DIR = f"experiments/results/{EXP_PREFIX}/chemist_exp_dir_{time.strftime('%Y%m%d%H%M%S')}"
 EXP_LOG_FILE = os.path.join(EXP_DIR, 'exp_log')
 RUN_LOG_FILE = os.path.join(EXP_DIR, 'run_log')
 SYN_PATH_FILE = os.path.join(EXP_DIR, 'best_molecule.pkl')
