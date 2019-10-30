@@ -94,11 +94,11 @@ def get_max(path):
     res = get_list_from_file(path)
     return max(res)
 
-def format_chem(group):
-    return [f"./experiments/final/chemist_exp_dir_{exp_num}/run_log" for exp_num in group]
+def format_chem(group, dir="final"):
+    return [f"./experiments/results/{dir}/chemist_exp_dir_{exp_num}/run_log" for exp_num in group]
 
 def format_rand(group):
-    return [f"./experiments/final/rand_exp_dir_{exp_num}/opt_vals" for exp_num in group]
+    return [f"./experiments/results/final/rand_exp_dir_{exp_num}/opt_vals" for exp_num in group]
 
 
 if __name__ == "__main__":
@@ -111,44 +111,51 @@ if __name__ == "__main__":
     # argmx = np.argmax(vals)
     # print(vals[argmx], lst[argmx])
 
-    # qed_rand_exp_paths = format_rand(["20190522072706", "20190522072835", "20190522073130", "20190522073258",
-    #                                   "20190522160909", "20190522161028"])
-    # qed_sim_exp_paths = format_chem(["20190518132128", "20190518184219", "20190519053538", "20190519172351"])
-    # qed_dist_exp_paths = format_chem(["20190518095359", "20190518182118", "20190518182227", "20190520042603"])
+    qed_paths_list = [
+        format_rand(["20190522072706", "20190522072835", "20190522073130", "20190522073258", "20190522160909"]),
+        format_chem(["20190518132128", "20190518184219", "20190519053538", "20190519172351", "20190522161028"]),
+        format_chem(["20190518095359", "20190518051956", "20190518182118", "20190518182227", "20190520042603"]),
+        format_chem(["20190929152544", "20191001135403", "20191004120521", "20190929152544", "20191004120901"],  dir="sum_kernel")
+    ]
 
-    # plogp_rand_exp_paths = format_rand(["20190522072622", "20190522072737", "20190522072853",
-    #                                     "20190522154201", "20190522154310", "20190522154417", "20190522154535"])
-    # plogp_sim_exp_paths = format_chem(["20190519053341", "20190520035241", "20190520051810"])
-    # plogp_dist_exp_paths = format_chem(["20190520034402", "20190520034422", "20190520041405", "20190518051956_f"]) #"20190520034409", 
+    plogp_paths_list = [
+        format_rand(["20190522072622", "20190522072737", "20190522072853", "20190522154201", "20190522154310"]),
+        format_chem(["20190519053341", "20190520035241", "20190520051810", "20190520123558", "20190520034409"]),
+        format_chem(["20190520034402", "20190520034422", "20190520041405", "20190518051956_f", "20190520034409"]),
+        format_chem(["20191001225737", "20191001225800", "20191001225748", "20191004120702", "20191004120851"],  dir="sum_kernel")
+    ]
 
-    # exp_paths = plogp_dist_exp_paths
-    # res = []
-    # nov = []
-    # for path in exp_paths:
-    #     # nov.append(compute_novelty(path))
-    #     res.append(get_max(path))
-    # # print(f"Novelty percentage {np.mean(nov)}")
-    # print("Mean {:.3f} \pm std {:.3f}".format(np.mean(res), np.std(res)/np.sqrt(5)))
+    qed_rand_exp_paths, qed_sim_exp_paths, qed_dist_exp_paths, qed_sum_exp_paths = qed_paths_list
+    plogp_rand_exp_paths, plogp_sim_exp_paths, plogp_dist_exp_paths, plogp_sum_exp_paths = plogp_paths_list
 
-
-    directory = './experiments/results/extra_exps/'
+    exp_paths = plogp_sum_exp_paths
     res = []
-    for subdir in os.listdir(directory):
-        if subdir.startswith('rand_'):
-            # sa = compute_synthesizability(os.path.join(directory, subdir))
-            sa = parse_min_synthesizability(os.path.join(directory, subdir))
-            if sa: res.append(sa)
+    nov = []
+    for path in exp_paths:
+        # nov.append(compute_novelty(path))
+        res.append(get_max(path))
+    # print(f"Novelty percentage {np.mean(nov)}")
+    print("Mean {:.3f} \pm std {:.3f}".format(np.mean(res), np.std(res)/np.sqrt(5)))
 
-    print(len(res))
-    directory = './experiments/results/final/'
-    for subdir in os.listdir(directory):
-        if subdir.startswith('rand_'):
-            # sa = compute_synthesizability(os.path.join(directory, subdir))
-            sa = parse_min_synthesizability(os.path.join(directory, subdir))
-            if sa: res.append(sa)
-    print(len(res))
-    compute_sa_score_datasets()
-    print("SA score: {:.3f} +- std {:.3f}".format(np.mean(res), np.std(res)))
+
+    # directory = './experiments/results/extra_exps/'
+    # res = []
+    # for subdir in os.listdir(directory):
+    #     if subdir.startswith('rand_'):
+    #         # sa = compute_synthesizability(os.path.join(directory, subdir))
+    #         sa = parse_min_synthesizability(os.path.join(directory, subdir))
+    #         if sa: res.append(sa)
+
+    # print(len(res))
+    # directory = './experiments/results/final/'
+    # for subdir in os.listdir(directory):
+    #     if subdir.startswith('rand_'):
+    #         # sa = compute_synthesizability(os.path.join(directory, subdir))
+    #         sa = parse_min_synthesizability(os.path.join(directory, subdir))
+    #         if sa: res.append(sa)
+    # print(len(res))
+    # compute_sa_score_datasets()
+    # print("SA score: {:.3f} +- std {:.3f}".format(np.mean(res), np.std(res)))
 
 
     

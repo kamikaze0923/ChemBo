@@ -4,8 +4,6 @@
 
 ChemBO is library for joint molecular optimization and synthesis. It is based on Dragonfly - a framework for scalable Bayesian optimization.
 
-[TOC here]
-
 ## Structure of the repo
 
 * `experiments` package contains experiment scripts. In particular, `run_chemist.py` script illustrates usage of the classes.
@@ -98,4 +96,15 @@ See `experiments/run_chemist.py` for the Chemist usage example.
 
 ## Citation
 
-If you found this code helpful, please consider citing this manuscript.
+If you found this code helpful, please consider citing [this manuscript](https://arxiv.org/abs/1908.01425):
+
+```
+@misc{korovina2019chembo,
+    title={ChemBO: Bayesian Optimization of Small Organic Molecules with Synthesizable Recommendations},
+    author={Ksenia Korovina and Sailun Xu and Kirthevasan Kandasamy and Willie Neiswanger and Barnabas Poczos and Jeff Schneider and Eric P. Xing},
+    year={2019},
+    eprint={1908.01425},
+    archivePrefix={arXiv},
+    primaryClass={cs.LG}
+}
+```

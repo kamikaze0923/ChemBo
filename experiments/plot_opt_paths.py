@@ -42,12 +42,13 @@ def plot_paths(name, grouped_paths_list, labels):
         plt.fill_between(range(20, 20 + len(avg)), avg-stddev, avg+stddev, alpha=0.1)
 
     # plot eps
-    plt.title("Penalized logP optimization", fontsize=32)
+    # plt.title("Penalized logP optimization", fontsize=32)
+    plt.title("QED optimization", fontsize=32)
     plt.xlabel("BO iteration", fontsize=28)
-    plt.ylabel("plogp value", fontsize=28)
-    # plt.ylim(0.82, 0.95)
+    plt.ylabel("qed value", fontsize=28)
+    plt.ylim(0.82, 0.95)
     # plt.ylim(0.6, 0.95) # for low-value QED
-    plt.ylim(1.6, 12)
+    # plt.ylim(1.6, 12.5)
     plt.legend(loc='lower right', prop={'size': 32}) #'upper left'
     plot_path = os.path.join(VIS_DIR, f"{name}.pdf")
     # plt.show()
@@ -76,41 +77,44 @@ def get_list_from_file(path):
             res = [float(v) for v in line.split()]
     return res
 
-def format_chem(group):
-    return [f"./experiments/results/extra_exps/chemist_exp_dir_{exp_num}/exp_log" for exp_num in group]
+def format_chem(group, dir="final"):
+    return [f"./experiments/results/{dir}/chemist_exp_dir_{exp_num}/exp_log" for exp_num in group]
 
 def format_rand(group):
-    return [f"./experiments/results/extra_exps/rand_exp_dir_{exp_num}/opt_vals" for exp_num in group]
+    return [f"./experiments/results/final/rand_exp_dir_{exp_num}/opt_vals" for exp_num in group]
 
 
 if __name__ == "__main__":
     # Random starting value
+        qed_paths_list = [
+        format_rand(["20190522072706", "20190522072835", "20190522073130", "20190522073258", "20190522160909"]),
+        format_chem(["20190518132128", "20190518184219", "20190519053538", "20190519172351", "20190522161028"]),
+        format_chem(["20190518095359", "20190518051956", "20190518182118", "20190518182227", "20190520042603"]),
+        format_chem(["20190929152544", "20191001135403", "20191004120521", "20190929152544", "20191004120901"],  dir="sum_kernel")
+    ]
+
+    plogp_paths_list = [
+        format_rand(["20190522072622", "20190522072737", "20190522072853", "20190522154201", "20190522154310"]),
+        format_chem(["20190519053341", "20190520035241", "20190520051810", "20190520123558", "20190520034409"]),
+        format_chem(["20190520034402", "20190520034422", "20190520041405", "20190518051956_f", "20190520034409"]),
+        format_chem(["20191001225737", "20191001225800", "20191001225748", "20191004120702", "20191004120851"],  dir="sum_kernel")
+    ]
+
+    # # Low starting value
     # qed_paths_list = [
-    # format_rand(["20190522072706", "20190522072835", "20190522073130", "20190522073258", "20190522160909"]),
-    # format_chem(["20190518132128", "20190518184219", "20190519053538", "20190519172351", "20190522161028"]),
-    # format_chem(["20190518095359", "20190518182118", "20190518182227", "20190520042603", "20190520124528"])
+    # format_rand(["20190627233317", "20190627233700", "20190627233943", "20190627234154", "20190627234353"]),
+    # format_chem(["20190622011502", "20190622012453", "20190626002756", "20190627234558", "20190704180148"]),
+    # format_chem(["20190622012539", "20190626002955", "20190626002927", "20190627233542", "20190630230013"])
     #         ]
 
     # plogp_paths_list = [
-    #             format_rand(["20190522072622", "20190522072737", "20190522072853", "20190522154201", "20190522154310"]),
-    #             format_chem(["20190519053341", "20190520035241", "20190520051810", "20190522154417", "20190522154535"]),
-    #             format_chem(["20190520034402", "20190520034422", "20190520041405", "20190518051956", "20190520034409"])
+    #             format_rand(["20190627233406", "20190627233717", "20190707151154", "20190707150845", "20190707151321"]),
+    #             format_chem(["20190630225902", "20190707150454", "20190707150643", "20190707150736", "20190704180148"]),
+    #             format_chem(["20190707150242", "20190707150547", "20190707150515", "20190627233542", "20190630230013"])
     #         ]
 
-    # Low starting value
-    qed_paths_list = [
-    format_rand(["20190627233317", "20190627233700", "20190627233943", "20190627234154", "20190627234353"]),
-    format_chem(["20190622011502", "20190622012453", "20190626002756", "20190627234558", "20190704180148"]),
-    format_chem(["20190622012539", "20190626002955", "20190626002927", "20190627233542", "20190630230013"])
-            ]
-
-    plogp_paths_list = [
-                format_rand(["20190627233406", "20190627233717", "20190707151154", "20190707150845", "20190707151321"]),
-                format_chem(["20190630225902", "20190707150454", "20190707150643", "20190707150736", "20190704180148"]),
-                format_chem(["20190707150242", "20190707150547", "20190707150515", "20190627233542", "20190630230013"])
-            ]
-
-    name = "plogp_result_new_2"
-    labels = ["rand", "fingerprint", "OT-dist"]
-    plot_paths(name, plogp_paths_list, labels)
+    name = "qed_result_with_sum_2"
+    # name = "qed_result_with_sum"
+    labels = ["rand", "fingerprint", "OT-dist", "sum-kernel"]
+    plot_paths(name, qed_paths_list, labels)
 

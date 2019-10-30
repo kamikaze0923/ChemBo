@@ -250,6 +250,9 @@ class MolSumKernel(MolKernel):
         # kernel matrix from the distance-based kernel
         dist_kernel_mat = self.kernels[1].evaluate_from_dists(dists)
         alpha0, alpha1 = self.hyperparams['alphas']
+        # Log the hyperparameter optimization only some fraction of times:
+        if np.random.binomial(1, 0.1):
+            logging.debug(f"Alphas: {self.hyperparams['alphas']}, log betas: {self.hyperparams['betas']}")
         return alpha0 * sim_kernel_mat + alpha1 * dist_kernel_mat
 
     def _child_evaluate(self, X1, X2):

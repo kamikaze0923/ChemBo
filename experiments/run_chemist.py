@@ -35,7 +35,7 @@ EXP_DIR = f"experiments/results/{EXP_PREFIX}/chemist_exp_dir_{time.strftime('%Y%
 EXP_LOG_FILE = os.path.join(EXP_DIR, 'exp_log')
 RUN_LOG_FILE = os.path.join(EXP_DIR, 'run_log')
 SYN_PATH_FILE = os.path.join(EXP_DIR, 'best_molecule.pkl')
-LOGGING_LEVEL = logging.INFO
+LOGGING_LEVEL = logging.DEBUG #logging.INFO
 TF_LOGGING_LEVEL = tf.logging.ERROR
 N_WORKERS = 1
 
