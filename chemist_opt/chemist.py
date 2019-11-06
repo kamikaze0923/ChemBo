@@ -26,6 +26,7 @@ from mols.mol_kernels import MOL_DISTANCE_KERNEL_TYPES, MOL_SUM_KERNEL_TYPES
 from mols.mol_gp import get_default_kernel_type
 
 
+
 class Chemist:
     def __init__(self, objective_func, domain_config, chemist_args=None, 
                  worker_manager='default', reporter='default', 
