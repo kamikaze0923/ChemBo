@@ -68,7 +68,6 @@ def parse_args():
         args.max_pool_size = int(args.max_pool_size)
     return args
 
-
 # Create exp directory and point the logger -----------------------------------
 def setup_logging():
     # Make directories
